@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "wolves"
+display_name = "Wilki"
+description = "Wataha krąży wokół obozu. -2 zdrowia, -1 jedzenia."
+health_delta = -2
+food_delta = -1

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "build_shelter"
+display_name = "Buduj schronienie"
+description = "Wzmocnij swoje schronienie (koszt: 3 drewna). Każdy poziom redukuje obrażenia od pogody. Max 3."
+energy_cost = 2
+wood_cost = 3
+special = "build_shelter"

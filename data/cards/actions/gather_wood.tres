@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "gather_wood"
+display_name = "Rąb drewno"
+description = "Narąb drewna na opał i budulec. +2 drewna."
+energy_cost = 2
+wood_gain = 2
