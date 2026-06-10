@@ -6,6 +6,6 @@
 script = ExtResource("1_script")
 id = "storm"
 display_name = "Burza"
-description = "Wichura i pioruny szaleją całą noc. -2 zdrowia (schronienie chroni)."
-health_delta = -2
+description = "Wichura i pioruny szaleją całą noc. -3 zdrowia (schronienie chroni)."
+health_delta = -3
 shelter_protects = true

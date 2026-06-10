@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 id = "first_aid"
 display_name = "Opatrz rany"
-description = "Opatrz się tym, co masz pod ręką (koszt: 1 materiał). +2 zdrowia."
+description = "Opatrz się tym, co masz pod ręką (koszt: 1 materiał). +1 zdrowia."
 energy_cost = 1
 materials_cost = 1
-health_delta = 2
+health_delta = 1

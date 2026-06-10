@@ -6,6 +6,6 @@
 script = ExtResource("1_script")
 id = "sickness"
 display_name = "Choroba"
-description = "Dopada cię gorączka. -1 zdrowia, -1 energii następnego dnia."
-health_delta = -1
+description = "Dopada cię gorączka. -2 zdrowia, -1 energii następnego dnia."
+health_delta = -2
 next_day_energy_delta = -1

@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 id = "build_shelter"
 display_name = "Buduj schronienie"
-description = "Wzmocnij swoje schronienie (koszt: 3 drewna). Każdy poziom redukuje obrażenia od pogody. Max 3."
+description = "Wzmocnij swoje schronienie (koszt: 3 drewna). Każdy poziom redukuje obrażenia od pogody. Max 2."
 energy_cost = 2
 wood_cost = 3
 special = "build_shelter"

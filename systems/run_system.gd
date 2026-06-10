@@ -16,8 +16,8 @@ const HAND_SIZE := 4
 ## Starter deck = this many copies of every action card definition.
 ## Replace with a DeckData resource when deckbuilding lands.
 const ACTION_CARD_COPIES := 2
-const DAILY_HUNGER_DECAY := 2
-const FOOD_HUNGER_VALUE := 3
+const DAILY_HUNGER_DECAY := 3
+const FOOD_HUNGER_VALUE := 2
 const STARVATION_DAMAGE := 2
 const TOOLS_GAIN_BONUS := 1
 

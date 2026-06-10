@@ -6,6 +6,6 @@
 script = ExtResource("1_script")
 id = "cold_night"
 display_name = "Zimna noc"
-description = "Temperatura spada poniżej zera. -2 zdrowia (schronienie chroni)."
-health_delta = -2
+description = "Temperatura spada poniżej zera. -3 zdrowia (schronienie chroni)."
+health_delta = -3
 shelter_protects = true

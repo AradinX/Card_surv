@@ -17,7 +17,14 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . --import
 Godot_v4.5.1-stable_win64_console.exe --headless --path . --quit
 ```
 
-Brak testów automatycznych w prototypie — testujemy ręcznie przez rozegranie runu.
+Smoke test logiki (bez UI; rozgrywa 50 runów naiwnym botem i sprawdza,
+że każdy kończy się wygraną albo przegraną):
+
+```
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/smoke_test.gd
+```
+
+Poza tym testujemy ręcznie przez rozegranie runu w edytorze.
 
 ## Architektura
 
@@ -60,11 +67,12 @@ ui/                   reużywalne komponenty UI (card_view)
    i automatyczne jedzenie → obrażenia z wygłodzenia → sprawdzenie
    śmierci / wygranej (dzień 20) → następny dzień.
 
-Balans (stałe w `run_state.gd` i `run_system.gd`): maks. zdrowie/głód 10,
-energia 6/dzień, głód spada o 2 dziennie, 1 jedzenie = +3 głodu, wygłodzenie
-= -2 zdrowia/dzień. Schronienie (max 3) redukuje obrażenia od zdarzeń
-z `shelter_protects = true` o swój poziom. Narzędzia: +1 do zysku jedzenia
-i drewna z kart.
+Balans (stałe w `run_state.gd` i `run_system.gd`): maks. zdrowie/sytość 10,
+energia 6/dzień, sytość spada o 3 dziennie, 1 jedzenie = +2 sytości,
+wygłodzenie = -2 zdrowia/dzień. Schronienie (max 2) redukuje obrażenia od
+zdarzeń z `shelter_protects = true` o swój poziom (najcięższa pogoda zawsze
+zadaje min. 1). Narzędzia: +1 do zysku jedzenia i drewna z kart. Punkt
+odniesienia: naiwny bot ze smoke testu wygrywa ~80% runów.
 
 ## Karty jako dane
 

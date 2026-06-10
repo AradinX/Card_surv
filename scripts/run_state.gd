@@ -7,7 +7,7 @@ extends Resource
 const MAX_HEALTH := 10
 const MAX_HUNGER := 10
 const MAX_ENERGY := 6
-const MAX_SHELTER := 3
+const MAX_SHELTER := 2
 const TARGET_DAYS := 20
 
 @export var day: int = 1
