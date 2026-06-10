@@ -1,0 +1,234 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/map.gd" id="1_script"]
+
+[node name="Map" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.13, 0.1, 1)
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="Layout" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="TopBar" type="HBoxContainer" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 28
+
+[node name="DayLabel" type="Label" parent="Margin/Layout/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 26
+text = "Mapa wyprawy — Dzień 1"
+
+[node name="StatsLabel" type="Label" parent="Margin/Layout/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 15
+text = "Zdrowie: 10/10"
+
+[node name="MapArea" type="Control" parent="Margin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DeckLabel" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Talia: 10 kart"
+
+[node name="Dim" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="RewardPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RMargin" type="MarginContainer" parent="RewardPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="RVBox" type="VBoxContainer" parent="RewardPanel/RMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="RewardTitle" type="Label" parent="RewardPanel/RMargin/RVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Znalezisko"
+horizontal_alignment = 1
+
+[node name="RewardCards" type="HBoxContainer" parent="RewardPanel/RMargin/RVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="SkipButton" type="Button" parent="RewardPanel/RMargin/RVBox"]
+layout_mode = 2
+text = "Pomiń"
+
+[node name="RestPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="RestMargin" type="MarginContainer" parent="RestPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="RestVBox" type="VBoxContainer" parent="RestPanel/RestMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RestTitle" type="Label" parent="RestPanel/RestMargin/RestVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Odpoczynek"
+horizontal_alignment = 1
+
+[node name="RestInfo" type="Label" parent="RestPanel/RestMargin/RestVBox"]
+layout_mode = 2
+text = "Bezpieczne miejsce na nocleg. Wybierz:"
+
+[node name="HealButton" type="Button" parent="RestPanel/RestMargin/RestVBox"]
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
+text = "Odpocznij (+3 zdrowia)"
+
+[node name="RemoveButton" type="Button" parent="RestPanel/RestMargin/RestVBox"]
+custom_minimum_size = Vector2(280, 44)
+layout_mode = 2
+text = "Usuń kartę z talii"
+
+[node name="DeckPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DMargin" type="MarginContainer" parent="DeckPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="DVBox" type="VBoxContainer" parent="DeckPanel/DMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DeckTitle" type="Label" parent="DeckPanel/DMargin/DVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Wybierz kartę do usunięcia"
+horizontal_alignment = 1
+
+[node name="DeckScroll" type="ScrollContainer" parent="DeckPanel/DMargin/DVBox"]
+custom_minimum_size = Vector2(420, 320)
+layout_mode = 2
+
+[node name="DeckList" type="VBoxContainer" parent="DeckPanel/DMargin/DVBox/DeckScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="DeckCancel" type="Button" parent="DeckPanel/DMargin/DVBox"]
+layout_mode = 2
+text = "Wróć"
+
+[node name="EncounterPanel" type="PanelContainer" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EMargin" type="MarginContainer" parent="EncounterPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 16
+
+[node name="EVBox" type="VBoxContainer" parent="EncounterPanel/EMargin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EncTitle" type="Label" parent="EncounterPanel/EMargin/EVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Zdarzenie"
+horizontal_alignment = 1
+
+[node name="EncText" type="Label" parent="EncounterPanel/EMargin/EVBox"]
+custom_minimum_size = Vector2(520, 0)
+layout_mode = 2
+text = "Opis zdarzenia"
+autowrap_mode = 2
+
+[node name="EncOptions" type="VBoxContainer" parent="EncounterPanel/EMargin/EVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EncContinue" type="Button" parent="EncounterPanel/EMargin/EVBox"]
+visible = false
+layout_mode = 2
+text = "Dalej"
