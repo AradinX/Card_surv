@@ -11,7 +11,7 @@ func _ready() -> void:
 	if GameManager.last_run_won:
 		_result_label.text = "WYGRANA!"
 		_result_label.modulate = Color(0.5, 1.0, 0.5)
-		_days_label.text = "Przetrwałeś %d dni w dziczy." % GameManager.last_run_days
+		_days_label.text = "Przetrwałeś wielką burzę po %d dniach wyprawy." % GameManager.last_run_days
 	else:
 		_result_label.text = "KONIEC GRY"
 		_result_label.modulate = Color(1.0, 0.45, 0.45)

@@ -20,9 +20,9 @@ var _run_system: RunSystem
 
 
 func _ready() -> void:
-	_run_system = GameManager.run_system
+	_run_system = GameManager.expedition.day_system if GameManager.expedition != null else null
 	if _run_system == null:
-		push_error("Run scene started without a RunSystem; returning to menu.")
+		push_error("Run scene started without a prepared day; returning to menu.")
 		GameManager.return_to_menu()
 		return
 
@@ -36,11 +36,12 @@ func _ready() -> void:
 	_run_system.log_message.connect(_on_log_message)
 	_end_day_button.pressed.connect(_run_system.end_day)
 
-	GameManager.begin_run()
+	GameManager.expedition.start_prepared_day()
 
 
 func _on_day_started(day: int) -> void:
-	_day_label.text = "Dzień %d/%d" % [day, RunState.TARGET_DAYS]
+	var suffix := " — FINAŁ" if _run_system.is_finale else ""
+	_day_label.text = "Dzień %d%s" % [day, suffix]
 
 
 func _on_stats_changed(state: RunState) -> void:

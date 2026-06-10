@@ -1,24 +1,43 @@
 class_name CardLibrary
 extends RefCounted
-## Loads card definitions (.tres) from data directories.
-## Keeps card data fully decoupled from game logic and UI.
+## Loads authored data resources (.tres) from data directories.
+## Keeps game data fully decoupled from game logic and UI.
 
 static func load_cards_from_dir(dir_path: String) -> Array[CardData]:
 	var cards: Array[CardData] = []
+	for resource in load_resources_from_dir(dir_path):
+		if resource is CardData:
+			cards.append(resource)
+		else:
+			push_warning("CardLibrary: '%s' is not a CardData resource" % resource.resource_path)
+	return cards
+
+
+static func load_encounters_from_dir(dir_path: String) -> Array[EncounterData]:
+	var encounters: Array[EncounterData] = []
+	for resource in load_resources_from_dir(dir_path):
+		if resource is EncounterData:
+			encounters.append(resource)
+		else:
+			push_warning("CardLibrary: '%s' is not an EncounterData resource" % resource.resource_path)
+	return encounters
+
+
+static func load_resources_from_dir(dir_path: String) -> Array[Resource]:
+	var resources: Array[Resource] = []
 	var dir := DirAccess.open(dir_path)
 	if dir == null:
 		push_error("CardLibrary: cannot open directory '%s'" % dir_path)
-		return cards
-	for file_name in dir.get_files():
+		return resources
+	var file_names := dir.get_files()
+	# Deterministic order regardless of filesystem listing.
+	file_names.sort()
+	for file_name in file_names:
 		# In exported builds resources may be listed as *.tres.remap.
 		var resource_name := file_name.trim_suffix(".remap")
 		if not resource_name.ends_with(".tres"):
 			continue
 		var resource: Resource = load(dir_path.path_join(resource_name))
-		if resource is CardData:
-			cards.append(resource)
-		else:
-			push_warning("CardLibrary: '%s' is not a CardData resource" % resource_name)
-	# Deterministic order regardless of filesystem listing.
-	cards.sort_custom(func(a: CardData, b: CardData) -> bool: return a.id < b.id)
-	return cards
+		if resource != null:
+			resources.append(resource)
+	return resources

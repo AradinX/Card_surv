@@ -1,49 +1,69 @@
 class_name RunSystem
 extends RefCounted
-## Core game loop for a single run: day cycle, playing action cards,
-## end-of-day events, win/lose conditions.
+## Plays out a SINGLE survival day (one map node): hand of cards, energy,
+## end-of-day event, hunger. The expedition-level flow (map traversal,
+## deckbuilding, win condition) lives in ExpeditionSystem.
 ##
 ## This class knows NOTHING about scenes or UI — all communication goes
-## through signals. UI connects to the signals, then calls start_run().
+## through signals. UI connects to the signals, then start_day() is called.
 
 signal day_started(day: int)
 signal stats_changed(state: RunState)
 signal hand_changed(hand: Array[ActionCardData])
 signal log_message(text: String)
-signal run_ended(won: bool, days_survived: int)
+## Emitted once per day: survived=false means the run is lost.
+signal day_ended(survived: bool)
 
 const HAND_SIZE := 4
-## Starter deck = this many copies of every action card definition.
-## Replace with a DeckData resource when deckbuilding lands.
-const ACTION_CARD_COPIES := 2
 const DAILY_HUNGER_DECAY := 3
 const FOOD_HUNGER_VALUE := 2
 const STARVATION_DAMAGE := 2
 const TOOLS_GAIN_BONUS := 1
+## The finale node adds a fixed storm on top of the normal event.
+const FINALE_STORM_DAMAGE := 4
 
 var state: RunState
 var hand: Array[ActionCardData] = []
+var is_finale := false
 
-var _action_deck: Deck
+var _day_deck: Deck
 var _event_deck: Deck
-var _rng := RandomNumberGenerator.new()
-var _run_over := false
+var _rng: RandomNumberGenerator
+var _day_active := false
 
 
-func start_run(action_cards: Array[CardData], event_cards: Array[CardData]) -> void:
-	_rng.randomize()
-	state = RunState.new()
-	_run_over = false
+## The event deck and RNG are shared across the whole expedition and
+## injected by ExpeditionSystem.
+func _init(
+	run_state: RunState, event_deck: Deck, rng: RandomNumberGenerator, finale: bool
+) -> void:
+	state = run_state
+	_event_deck = event_deck
+	_rng = rng
+	is_finale = finale
 
+
+func start_day() -> void:
+	_day_active = true
+	state.energy = clampi(
+		RunState.MAX_ENERGY + state.next_day_energy_delta, 1, RunState.ENERGY_CAP
+	)
+	state.next_day_energy_delta = 0
+
+	# Each day starts with a fresh shuffle of the player's full deck.
 	var deck_cards: Array[CardData] = []
-	for card in action_cards:
-		for i in ACTION_CARD_COPIES:
-			deck_cards.append(card)
-	_action_deck = Deck.new(deck_cards, _rng)
-	_event_deck = Deck.new(event_cards, _rng)
+	for card in state.deck:
+		deck_cards.append(card)
+	_day_deck = Deck.new(deck_cards, _rng)
+	hand.clear()
+	_draw_cards(HAND_SIZE)
 
-	log_message.emit("Budzisz się w dziczy. Przetrwaj %d dni." % RunState.TARGET_DAYS)
-	_start_day()
+	log_message.emit("--- Dzień %d ---" % state.day)
+	if is_finale:
+		log_message.emit("Nad horyzontem kłębi się czarna ściana chmur. Nadciąga wielka burza!")
+	day_started.emit(state.day)
+	stats_changed.emit(state)
+	hand_changed.emit(hand)
 
 
 ## Returns "" when the card can be played, otherwise a player-facing reason.
@@ -64,7 +84,7 @@ func can_play(card: ActionCardData) -> String:
 
 
 func play_card(index: int) -> void:
-	if _run_over or index < 0 or index >= hand.size():
+	if not _day_active or index < 0 or index >= hand.size():
 		return
 	var card := hand[index]
 	var block_reason := can_play(card)
@@ -73,7 +93,7 @@ func play_card(index: int) -> void:
 		return
 
 	hand.remove_at(index)
-	_action_deck.discard(card)
+	_day_deck.discard(card)
 
 	# Pay costs.
 	state.energy -= card.energy_cost
@@ -94,7 +114,7 @@ func play_card(index: int) -> void:
 	state.materials += card.materials_gain
 	state.health = clampi(state.health + card.health_delta, 0, RunState.MAX_HEALTH)
 	state.hunger = clampi(state.hunger + card.hunger_delta, 0, RunState.MAX_HUNGER)
-	state.energy = clampi(state.energy + card.energy_delta, 0, RunState.MAX_ENERGY)
+	state.energy = clampi(state.energy + card.energy_delta, 0, RunState.ENERGY_CAP)
 
 	log_message.emit("Zagrywasz: %s." % card.display_name)
 	match card.special:
@@ -106,53 +126,68 @@ func play_card(index: int) -> void:
 			log_message.emit("Masz narzędzia! +%d do zysku jedzenia i drewna." % TOOLS_GAIN_BONUS)
 		"explore":
 			_resolve_explore()
+		"double_explore":
+			_resolve_explore()
+			_resolve_explore()
+		"draw_two":
+			_draw_cards(2)
+			log_message.emit("Dobierasz 2 karty.")
+
+	# A card can kill you (e.g. Adrenalina at 1 HP).
+	if state.health <= 0:
+		stats_changed.emit(state)
+		_fail_day()
+		return
 
 	stats_changed.emit(state)
 	hand_changed.emit(hand)
 
 
 func end_day() -> void:
-	if _run_over:
+	if not _day_active:
 		return
 
 	# Unplayed cards go to the discard pile.
 	for card in hand:
-		_action_deck.discard(card)
+		_day_deck.discard(card)
 	hand.clear()
+	hand_changed.emit(hand)
 
+	if is_finale:
+		_resolve_finale_storm()
 	_resolve_event(_event_deck.draw() as EventCardData)
 	_resolve_hunger()
 	stats_changed.emit(state)
 
 	if state.health <= 0:
-		_finish_run(false)
-		return
-	if state.day >= RunState.TARGET_DAYS:
-		_finish_run(true)
+		_fail_day()
 		return
 
 	state.day += 1
-	state.energy = clampi(
-		RunState.MAX_ENERGY + state.next_day_energy_delta, 1, RunState.MAX_ENERGY + 1
-	)
-	state.next_day_energy_delta = 0
-	_start_day()
+	_day_active = false
+	if is_finale:
+		log_message.emit("Przetrwałeś wielką burzę. To koniec wyprawy!")
+	day_ended.emit(true)
 
 
-func _start_day() -> void:
-	_draw_hand()
-	log_message.emit("--- Dzień %d ---" % state.day)
-	day_started.emit(state.day)
-	stats_changed.emit(state)
-	hand_changed.emit(hand)
+func _fail_day() -> void:
+	state.health = 0
+	_day_active = false
+	log_message.emit("Twoje zdrowie spadło do zera. Koniec wyprawy.")
+	day_ended.emit(false)
 
 
-func _draw_hand() -> void:
-	hand.clear()
-	for i in HAND_SIZE:
-		var card := _action_deck.draw() as ActionCardData
+func _draw_cards(count: int) -> void:
+	for i in count:
+		var card := _day_deck.draw() as ActionCardData
 		if card != null:
 			hand.append(card)
+
+
+func _resolve_finale_storm() -> void:
+	var damage := _mitigated_by_shelter(-FINALE_STORM_DAMAGE)
+	state.health = clampi(state.health + damage, 0, RunState.MAX_HEALTH)
+	log_message.emit("Wielka burza uderza z pełną siłą! %d zdrowia." % damage)
 
 
 func _resolve_event(event: EventCardData) -> void:
@@ -162,7 +197,7 @@ func _resolve_event(event: EventCardData) -> void:
 
 	var health_delta := event.health_delta
 	if event.shelter_protects and health_delta < 0 and state.shelter_level > 0:
-		var mitigated := mini(health_delta + state.shelter_level, 0)
+		var mitigated := _mitigated_by_shelter(health_delta)
 		if mitigated != health_delta:
 			log_message.emit("Schronienie łagodzi skutki (%d -> %d obrażeń)." % [
 				-health_delta, -mitigated
@@ -176,6 +211,10 @@ func _resolve_event(event: EventCardData) -> void:
 	state.materials = maxi(state.materials + event.materials_delta, 0)
 	state.next_day_energy_delta += event.next_day_energy_delta
 	_event_deck.discard(event)
+
+
+func _mitigated_by_shelter(health_delta: int) -> int:
+	return mini(health_delta + state.shelter_level, 0)
 
 
 func _resolve_hunger() -> void:
@@ -204,12 +243,3 @@ func _resolve_explore() -> void:
 			state.food += 1
 			state.materials += 1
 			log_message.emit("Znajdujesz ukryty schowek. +1 jedzenia, +1 materiałów.")
-
-
-func _finish_run(won: bool) -> void:
-	_run_over = true
-	if won:
-		log_message.emit("Przetrwałeś %d dni. Wygrana!" % RunState.TARGET_DAYS)
-	else:
-		log_message.emit("Twoje zdrowie spadło do zera. Koniec runu.")
-	run_ended.emit(won, state.day)
