@@ -4,6 +4,42 @@ Singleplayerowa karcianka survivalowa 2D (desktop) w Godot 4.5. Gracz jest
 ocalałym w dziczy — gra toczy się w turach (dniach), a celem prototypu jest
 przetrwanie 20 dni. Przegrana: Zdrowie spada do 0.
 
+## Stan projektu / Changelog
+
+### Etap 1 — rdzeń pętli (UKOŃCZONY, 2026-06-10)
+
+- Pełna pętla: cykl dnia, statystyki (Zdrowie/Sytość/Energia), ręka 4 kart,
+  zagrywanie kart akcji z kosztami, talia zdarzeń na koniec dnia,
+  wygrana (dzień 20) / przegrana (0 zdrowia).
+- 9 kart akcji + 12 kart zdarzeń jako zasoby `.tres`.
+- Systemy bez zależności od UI: `RunSystem`, `Deck`, `CardLibrary`.
+- Przepływ scen: menu -> run -> wynik (`GameManager` autoload).
+- Smoke test headless (`tests/smoke_test.gd`); po przejściu balansowym
+  naiwny bot wygrywa ~80% runów.
+- Znane ograniczenia: brak save/load, brak meta-progresji (placeholder),
+  skład talii startowej zaszyty w stałej `ACTION_CARD_COPIES`, balans
+  zgrubny (tuning tylko botem, nie ręcznym testowaniem).
+
+### Etap 2 — mapa wyprawy i deckbuilding (W TRAKCIE)
+
+Przekształcenie liniowego cyklu dni w wyprawę po proceduralnej mapie węzłów
+(inspiracja Slay the Spire; wrogiem jest środowisko, nie walka):
+
+- Mapa: 10–15 węzłów w 3–4 warstwach z rozgałęzieniami, gracz wybiera
+  ścieżkę w górę; generator jako `systems/map_generator.gd`, dane węzłów
+  niezależne od UI; ekran mapy (węzły-przyciski, połączenia, pozycja gracza).
+- Typy węzłów: Teren (dzień przetrwania = obecna pętla), Zdarzenie specjalne
+  (wybór fabularny z konsekwencjami), Znalezisko (wybór 1 z 3 kart do talii),
+  Odpoczynek (regeneracja LUB usunięcie karty), Finał (trudne wyzwanie).
+- Deckbuilding w runie: startowa talia ~10 kart, dobieranie/odrzut/
+  przetasowanie z talii gracza, nagrody kartowe, 10–15 nowych kart akcji
+  (synergie, np. drewno -> budowanie).
+- Integracja: `RunState` + talia gracza, pozycja i stan mapy; przepływ
+  menu -> mapa -> węzeł -> mapa -> ... -> finał -> wynik; statystyki
+  przenoszą się między węzłami.
+- Poza zakresem etapu 2: meta-progresja/obóz (etap 3), `MetaState` zostaje
+  placeholderem.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
