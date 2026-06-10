@@ -22,5 +22,7 @@ extends CardData
 ## - build_shelter: shelter_level +1 (max RunState.MAX_SHELTER)
 ## - craft_tools: sets has_tools (one-time; +1 food/wood gain from cards)
 ## - explore: random reward rolled by RunSystem
-@export_enum("none", "build_shelter", "craft_tools", "explore")
+## - double_explore: two random reward rolls
+## - draw_two: draw 2 extra cards into hand
+@export_enum("none", "build_shelter", "craft_tools", "explore", "double_explore", "draw_two")
 var special: String = "none"

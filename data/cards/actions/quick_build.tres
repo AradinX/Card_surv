@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "quick_build"
+display_name = "Szybka budowa"
+description = "Wzmocnij schronienie mniejszym kosztem drewna (koszt: 2 drewna). Max 2."
+energy_cost = 3
+wood_cost = 2
+special = "build_shelter"
