@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EncounterData" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/encounter_data.gd" id="1_enc"]
+[ext_resource type="Script" path="res://scripts/resources/encounter_option_data.gd" id="2_opt"]
+
+[sub_resource type="Resource" id="Resource_opt1"]
+script = ExtResource("2_opt")
+label = "Przepraw się wpław"
+result_text = "Lodowata woda odbiera ci oddech, prąd ciska tobą o kamienie. -2 zdrowia."
+health_delta = -2
+
+[sub_resource type="Resource" id="Resource_opt2"]
+script = ExtResource("2_opt")
+label = "Zbuduj tratwę (zużyj 2 drewna)"
+result_text = "Prowizoryczna tratwa trzyma się ledwo, ale przeprawiasz się suchą stopą."
+wood_delta = -2
+
+[sub_resource type="Resource" id="Resource_opt3"]
+script = ExtResource("2_opt")
+label = "Idź wzdłuż brzegu"
+result_text = "Długa droga przez gęstwinę. Docierasz do brodu wygłodzony. -2 sytości."
+hunger_delta = -2
+
+[resource]
+script = ExtResource("1_enc")
+id = "river_crossing"
+title = "Rwąca rzeka"
+text = "Szlak urywa się przy szerokiej rzece. Nurt jest silny, a woda lodowata."
+options = [SubResource("Resource_opt1"), SubResource("Resource_opt2"), SubResource("Resource_opt3")]

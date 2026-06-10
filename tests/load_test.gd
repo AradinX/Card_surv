@@ -23,6 +23,36 @@ func _init() -> void:
 		push_error("starter_deck.tres did not load as DeckData")
 		failures += 1
 
+	var encounters := _load_dir("res://data/encounters")
+	print("encounters: %d" % encounters.size())
+	if encounters.size() < 4:
+		push_error("expected at least 4 encounters")
+		failures += 1
+	for resource in encounters:
+		if not (resource is EncounterData):
+			push_error("non-EncounterData resource in data/encounters")
+			failures += 1
+			continue
+		var encounter := resource as EncounterData
+		if encounter.options.size() < 2:
+			push_error("encounter '%s' has fewer than 2 options" % encounter.id)
+			failures += 1
+		for option in encounter.options:
+			if option == null or not (option is EncounterOptionData):
+				push_error("encounter '%s' has an invalid option" % encounter.id)
+				failures += 1
+
 	if failures == 0:
 		print("Load test OK")
 	quit(0 if failures == 0 else 1)
+
+
+func _load_dir(dir_path: String) -> Array[Resource]:
+	var result: Array[Resource] = []
+	var dir := DirAccess.open(dir_path)
+	if dir == null:
+		return result
+	for file_name in dir.get_files():
+		if file_name.ends_with(".tres"):
+			result.append(load(dir_path.path_join(file_name)))
+	return result
