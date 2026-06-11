@@ -6,6 +6,8 @@
 script = ExtResource("1_script")
 id = "rain"
 display_name = "Ulewa"
-description = "Przemoczony do suchej nitki. -1 zdrowia (schronienie chroni)."
+description = "Przemoczony do suchej nitki. -1 zdrowia, -1 ciepła (schronienie chroni). +1 wody."
 health_delta = -1
+warmth_delta = -1
+water_delta = 1
 shelter_protects = true

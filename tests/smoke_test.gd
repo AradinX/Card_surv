@@ -1,25 +1,26 @@
 extends SceneTree
-## Headless smoke test of the full expedition loop (no UI). A naive bot
-## traverses the map, plays days greedily, picks random rewards/options,
-## and the test verifies every expedition terminates in a win or a loss.
+## Headless smoke test of the full board-survival loop (no UI). A naive bot
+## plays hand cards and biome gather actions greedily, wanders the board,
+## and the test verifies every run terminates in a win or a loss.
 ##
 ## Run:
 ##   godot --headless --path . -s tests/smoke_test.gd
 
 const RUNS := 50
-const MAX_STEPS_PER_RUN := 500
+const MAX_DAYS_GUARD := 200
+const BOT_MOVES_PER_DAY := 2
 
 
 func _init() -> void:
-	var starter_deck: DeckData = load("res://data/decks/starter_deck.tres")
-	var action_pool := CardLibrary.load_cards_from_dir("res://data/cards/actions")
+	var character_class: CharacterClassData = load("res://data/classes/cook.tres")
+	var biome_pool := CardLibrary.load_biomes_from_dir("res://data/biomes")
 	var event_cards := CardLibrary.load_cards_from_dir("res://data/cards/events")
-	var encounters := CardLibrary.load_encounters_from_dir("res://data/encounters")
-	assert(action_pool.size() >= 20, "expected at least 20 action cards")
+	assert(character_class != null and character_class.starter_deck != null,
+		"cook class with a starter deck is required")
+	assert(biome_pool.size() >= 3, "expected at least 3 biomes")
 	assert(event_cards.size() >= 10, "expected at least 10 event cards")
-	assert(encounters.size() >= 4, "expected at least 4 encounters")
-	print("Pool: %d actions, %d events, %d encounters" % [
-		action_pool.size(), event_cards.size(), encounters.size()
+	print("Pool: %d biomes, %d events, starter deck %d cards" % [
+		biome_pool.size(), event_cards.size(), character_class.starter_deck.cards.size()
 	])
 
 	var rng := RandomNumberGenerator.new()
@@ -27,85 +28,82 @@ func _init() -> void:
 	var wins := 0
 	var total_days := 0
 	for run_index in RUNS:
-		var outcome := _play_expedition(starter_deck, action_pool, event_cards, encounters, rng)
+		var outcome := _play_run(character_class, biome_pool, event_cards, rng)
 		if not outcome.ended:
-			push_error("Expedition %d did not terminate!" % run_index)
+			push_error("Run %d did not terminate!" % run_index)
 			quit(1)
 			return
 		wins += 1 if outcome.won else 0
 		total_days += outcome.days
-	print("Smoke test OK: %d/%d expeditions won, avg %.1f days" % [
-		wins, RUNS, float(total_days) / RUNS
+	print("Smoke test OK: %d/%d runs won (cel: dzień %d), śr. %.1f dni" % [
+		wins, RUNS, SurvivalSystem.WIN_DAY, float(total_days) / RUNS
 	])
 	quit(0)
 
 
-func _play_expedition(
-	starter_deck: DeckData,
-	action_pool: Array[CardData],
+func _play_run(
+	character_class: CharacterClassData,
+	biome_pool: Array[BiomeData],
 	event_cards: Array[CardData],
-	encounters: Array[EncounterData],
 	rng: RandomNumberGenerator,
 ) -> Dictionary:
-	var expedition := ExpeditionSystem.new()
+	var survival := SurvivalSystem.new()
 	var outcome := {"ended": false, "won": false, "days": 0}
-	expedition.expedition_ended.connect(func(won: bool, days: int) -> void:
+	survival.run_ended.connect(func(won: bool, days: int) -> void:
 		outcome.ended = true
 		outcome.won = won
 		outcome.days = days
 	)
-	expedition.start(starter_deck, action_pool, event_cards, encounters)
+	survival.start(character_class, biome_pool, event_cards)
+	survival.begin()
 
-	for step in MAX_STEPS_PER_RUN:
+	for day_guard in MAX_DAYS_GUARD:
 		if outcome.ended:
 			break
-		var available := expedition.get_available_node_ids()
-		if available.is_empty():
-			break
-		var node := expedition.enter_node(available[rng.randi_range(0, available.size() - 1)])
-		match node.type:
-			MapNodeData.TYPE_TERRAIN, MapNodeData.TYPE_FINALE:
-				_play_day(expedition, outcome)
-			MapNodeData.TYPE_FIND:
-				var rewards := expedition.roll_card_rewards()
-				if not rewards.is_empty() and rng.randi_range(0, 1) == 0:
-					expedition.add_card_to_deck(rewards[rng.randi_range(0, rewards.size() - 1)])
-			MapNodeData.TYPE_REST:
-				if expedition.state.health <= RunState.MAX_HEALTH - 3:
-					expedition.rest_heal()
-				elif expedition.state.deck.size() > 8:
-					expedition.remove_card_from_deck(
-						rng.randi_range(0, expedition.state.deck.size() - 1)
-					)
-			MapNodeData.TYPE_EVENT:
-				var encounter := expedition.roll_encounter()
-				var choosable: Array[EncounterOptionData] = []
-				for option in encounter.options:
-					if expedition.can_choose_option(option):
-						choosable.append(option)
-				if not choosable.is_empty():
-					var option := choosable[rng.randi_range(0, choosable.size() - 1)]
-					expedition.apply_encounter_option(option)
-					if option.grants_card_choice and not outcome.ended:
-						var rewards := expedition.roll_card_rewards()
-						if not rewards.is_empty():
-							expedition.add_card_to_deck(rewards[0])
+		_play_day(survival, outcome, rng)
 	return outcome
 
 
-func _play_day(expedition: ExpeditionSystem, outcome: Dictionary) -> void:
-	expedition.prepare_day()
-	var day := expedition.day_system
-	expedition.start_prepared_day()
-	for step in 100:
+func _play_day(
+	survival: SurvivalSystem, outcome: Dictionary, rng: RandomNumberGenerator
+) -> void:
+	var moves_left := BOT_MOVES_PER_DAY
+	for step in 200:
 		if outcome.ended:
 			return
+
+		# Greedy: first playable hand card...
 		var played := false
-		for i in day.hand.size():
-			if day.can_play(day.hand[i]) == "":
-				day.play_card(i)
+		for i in survival.hand.size():
+			if survival.can_play(survival.hand[i]) == "":
+				survival.play_card(i)
 				played = true
 				break
-		if not played:
-			day.end_day()
-			return
+		if played:
+			continue
+
+		# ...then the local biome's gather actions...
+		for card in survival.gather_actions():
+			if survival.can_play_gather(card) == "":
+				survival.play_gather(card)
+				played = true
+				break
+		if played:
+			continue
+
+		# ...then wander to a random adjacent tile.
+		if moves_left > 0:
+			var reachable: Array[int] = []
+			for tile_index in survival.state.board.size():
+				if survival.can_move(tile_index) == "":
+					reachable.append(tile_index)
+			if not reachable.is_empty():
+				survival.move_to(reachable[rng.randi_range(0, reachable.size() - 1)])
+				moves_left -= 1
+				continue
+
+		survival.end_day()
+		return
+
+	# Step guard tripped — end the day to keep the run moving.
+	survival.end_day()

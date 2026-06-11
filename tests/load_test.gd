@@ -12,35 +12,21 @@ func _init() -> void:
 	if starter is DeckData:
 		var deck := starter as DeckData
 		print("starter_deck: %d cards" % deck.cards.size())
-		if deck.cards.size() != 10:
-			push_error("starter deck should have 10 cards")
+		if deck.cards.size() != 12:
+			push_error("starter deck should have 12 cards")
 			failures += 1
+		var has_building := false
 		for card in deck.cards:
-			if card == null or not (card is ActionCardData):
-				push_error("starter deck contains a non-ActionCardData entry")
+			if card == null or not (card is ActionCardData or card is BuildingCardData):
+				push_error("starter deck contains an entry that is neither action nor building")
 				failures += 1
+			has_building = has_building or card is BuildingCardData
+		if not has_building:
+			push_error("starter deck should contain at least one building card")
+			failures += 1
 	else:
 		push_error("starter_deck.tres did not load as DeckData")
 		failures += 1
-
-	var encounters := _load_dir("res://data/encounters")
-	print("encounters: %d" % encounters.size())
-	if encounters.size() < 4:
-		push_error("expected at least 4 encounters")
-		failures += 1
-	for resource in encounters:
-		if not (resource is EncounterData):
-			push_error("non-EncounterData resource in data/encounters")
-			failures += 1
-			continue
-		var encounter := resource as EncounterData
-		if encounter.options.size() < 2:
-			push_error("encounter '%s' has fewer than 2 options" % encounter.id)
-			failures += 1
-		for option in encounter.options:
-			if option == null or not (option is EncounterOptionData):
-				push_error("encounter '%s' has an invalid option" % encounter.id)
-				failures += 1
 
 	failures += _check_dzien50_data()
 

@@ -4,9 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "quick_build"
-display_name = "Szybka budowa"
-description = "Wzmocnij schronienie mniejszym kosztem drewna (koszt: 2 drewna). Max 2."
-energy_cost = 3
-wood_cost = 2
-special = "build_shelter"
+id = "find_water"
+display_name = "Źródło"
+description = "Nabierz wody ze strumienia. +2 wody."
+energy_cost = 1
+water_gain = 2

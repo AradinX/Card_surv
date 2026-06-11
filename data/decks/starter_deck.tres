@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DeckData" load_steps=10 format=3]
+[gd_resource type="Resource" script_class="DeckData" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/deck_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/forage.tres" id="2_forage"]
@@ -6,10 +6,12 @@
 [ext_resource type="Resource" path="res://data/cards/actions/hunt.tres" id="4_hunt"]
 [ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="5_scav"]
 [ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="6_rest"]
-[ext_resource type="Resource" path="res://data/cards/actions/build_shelter.tres" id="7_build"]
-[ext_resource type="Resource" path="res://data/cards/actions/first_aid.tres" id="8_aid"]
-[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="9_explore"]
+[ext_resource type="Resource" path="res://data/cards/actions/first_aid.tres" id="7_aid"]
+[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="8_explore"]
+[ext_resource type="Resource" path="res://data/buildings/campfire.tres" id="9_campfire"]
+[ext_resource type="Resource" path="res://data/buildings/well.tres" id="10_well"]
+[ext_resource type="Resource" path="res://data/buildings/hut.tres" id="11_hut"]
 
 [resource]
 script = ExtResource("1_script")
-cards = [ExtResource("2_forage"), ExtResource("2_forage"), ExtResource("3_wood"), ExtResource("3_wood"), ExtResource("4_hunt"), ExtResource("5_scav"), ExtResource("6_rest"), ExtResource("7_build"), ExtResource("8_aid"), ExtResource("9_explore")]
+cards = [ExtResource("2_forage"), ExtResource("2_forage"), ExtResource("3_wood"), ExtResource("3_wood"), ExtResource("4_hunt"), ExtResource("5_scav"), ExtResource("6_rest"), ExtResource("7_aid"), ExtResource("8_explore"), ExtResource("9_campfire"), ExtResource("10_well"), ExtResource("11_hut")]

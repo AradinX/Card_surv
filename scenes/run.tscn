@@ -34,17 +34,17 @@ theme_override_constants/margin_bottom = 12
 
 [node name="Layout" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="TopBar" type="HBoxContainer" parent="Margin/Layout"]
 layout_mode = 2
-theme_override_constants/separation = 32
+theme_override_constants/separation = 24
 
 [node name="DayLabel" type="Label" parent="Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 28
-text = "Dzień 1/20"
+theme_override_font_sizes/font_size = 26
+text = "Dzień 1/15"
 
 [node name="HealthBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
 layout_mode = 2
@@ -55,7 +55,7 @@ layout_mode = 2
 text = "Zdrowie: 10/10"
 
 [node name="HealthBar" type="ProgressBar" parent="Margin/Layout/TopBar/HealthBox"]
-custom_minimum_size = Vector2(180, 16)
+custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
 modulate = Color(1, 0.45, 0.45, 1)
 max_value = 10.0
@@ -71,9 +71,41 @@ layout_mode = 2
 text = "Sytość: 8/10"
 
 [node name="HungerBar" type="ProgressBar" parent="Margin/Layout/TopBar/HungerBox"]
-custom_minimum_size = Vector2(180, 16)
+custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
 modulate = Color(1, 0.8, 0.4, 1)
+max_value = 10.0
+value = 8.0
+show_percentage = false
+
+[node name="ThirstBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="ThirstLabel" type="Label" parent="Margin/Layout/TopBar/ThirstBox"]
+layout_mode = 2
+text = "Nawodnienie: 8/10"
+
+[node name="ThirstBar" type="ProgressBar" parent="Margin/Layout/TopBar/ThirstBox"]
+custom_minimum_size = Vector2(140, 14)
+layout_mode = 2
+modulate = Color(0.45, 0.7, 1, 1)
+max_value = 10.0
+value = 8.0
+show_percentage = false
+
+[node name="WarmthBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="WarmthLabel" type="Label" parent="Margin/Layout/TopBar/WarmthBox"]
+layout_mode = 2
+text = "Ciepło: 8/10"
+
+[node name="WarmthBar" type="ProgressBar" parent="Margin/Layout/TopBar/WarmthBox"]
+custom_minimum_size = Vector2(140, 14)
+layout_mode = 2
+modulate = Color(1, 0.6, 0.3, 1)
 max_value = 10.0
 value = 8.0
 show_percentage = false
@@ -84,28 +116,56 @@ size_flags_vertical = 4
 
 [node name="EnergyLabel" type="Label" parent="Margin/Layout/TopBar/EnergyBox"]
 layout_mode = 2
-text = "Energia: 6/6"
+text = "Energia: 10/10"
 
 [node name="EnergyBar" type="ProgressBar" parent="Margin/Layout/TopBar/EnergyBox"]
-custom_minimum_size = Vector2(180, 16)
+custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
-modulate = Color(0.5, 0.8, 1, 1)
-max_value = 6.0
-value = 6.0
+modulate = Color(0.6, 1, 0.6, 1)
+max_value = 10.0
+value = 10.0
 show_percentage = false
 
 [node name="ResourcesLabel" type="Label" parent="Margin/Layout"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Jedzenie: 2   |   Drewno: 0   |   Materiały: 0   |   Schronienie: 0/3   |   Narzędzia: nie"
+theme_override_font_sizes/font_size = 15
+text = "Jedzenie: 2   |   Woda: 1   |   Drewno: 0   |   Materiały: 0   |   Narzędzia: nie"
 
-[node name="Log" type="RichTextLabel" parent="Margin/Layout"]
+[node name="MidRow" type="HBoxContainer" parent="Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="Board" type="GridContainer" parent="Margin/Layout/MidRow"]
+layout_mode = 2
+size_flags_vertical = 4
+columns = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="Log" type="RichTextLabel" parent="Margin/Layout/MidRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 scroll_following = true
 
+[node name="GatherBar" type="HBoxContainer" parent="Margin/Layout"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GatherLabel" type="Label" parent="Margin/Layout/GatherBar"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 16
+text = "Okolica:"
+
+[node name="GatherCards" type="HBoxContainer" parent="Margin/Layout/GatherBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
 [node name="BottomBar" type="HBoxContainer" parent="Margin/Layout"]
-custom_minimum_size = Vector2(0, 210)
+custom_minimum_size = Vector2(0, 190)
 layout_mode = 2
 theme_override_constants/separation = 16
 

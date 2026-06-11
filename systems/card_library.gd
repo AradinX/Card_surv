@@ -13,14 +13,14 @@ static func load_cards_from_dir(dir_path: String) -> Array[CardData]:
 	return cards
 
 
-static func load_encounters_from_dir(dir_path: String) -> Array[EncounterData]:
-	var encounters: Array[EncounterData] = []
+static func load_biomes_from_dir(dir_path: String) -> Array[BiomeData]:
+	var biomes: Array[BiomeData] = []
 	for resource in load_resources_from_dir(dir_path):
-		if resource is EncounterData:
-			encounters.append(resource)
+		if resource is BiomeData:
+			biomes.append(resource)
 		else:
-			push_warning("CardLibrary: '%s' is not an EncounterData resource" % resource.resource_path)
-	return encounters
+			push_warning("CardLibrary: '%s' is not a BiomeData resource" % resource.resource_path)
+	return biomes
 
 
 static func load_resources_from_dir(dir_path: String) -> Array[Resource]:

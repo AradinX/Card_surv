@@ -5,9 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 id = "campfire"
-display_name = "Ognisko"
-description = "Rozpal porządny ogień (koszt: 2 drewna). +1 zdrowia, +1 sytości."
+display_name = "Ogrzej się"
+description = "Rozpal porządny ogień i odetchnij (koszt: 2 drewna). +2 ciepła."
 energy_cost = 1
 wood_cost = 2
-health_delta = 1
-hunger_delta = 1
+warmth_delta = 2
