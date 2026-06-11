@@ -13,8 +13,11 @@ extends CardData
 @export_group("Effects")
 @export var health_delta: int = 0
 @export var hunger_delta: int = 0
+@export var thirst_delta: int = 0
+@export var warmth_delta: int = 0
 @export var energy_delta: int = 0
 @export var food_gain: int = 0
+@export var water_gain: int = 0
 @export var wood_gain: int = 0
 @export var materials_gain: int = 0
 
