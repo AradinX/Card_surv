@@ -1,10 +1,17 @@
-# Karcianka: Przetrwanie
+# Dzień 50 (tytuł roboczy; wcześniej „Karcianka: Przetrwanie")
 
-Singleplayerowa karcianka survivalowa 2D (desktop) w Godot 4.5 — roguelike'owa
-wyprawa po proceduralnej mapie węzłów (inspiracja Slay the Spire, ale wrogiem
-jest środowisko, nie walka). Gracz prowadzi ocalałego przez 4 warstwy mapy do
-punktu kulminacyjnego (wielka burza), rozgrywając dni przetrwania kartami
-z własnej, rozbudowywanej w trakcie runu talii. Przegrana: Zdrowie spada do 0.
+Karciany roguelike survivalowy 2D (desktop, Godot 4.5), singleplayer.
+**Pełny koncept gry jest w [README.md](README.md)** — to on wyznacza kierunek:
+run ~60–90 min w dwóch aktach (budowa osady na planszy 6 kafli biomów →
+katastrofa **BUM** → przetrwanie do dnia 50), wszystko jest kartą (akcje,
+budynki, zdarzenia, potwory, kafle biomów), klasy postaci, meta-progresja
+„różnorodność zamiast siły".
+
+Stan obecny: grywalny jest prototyp z etapów 1–2 (wyprawa po mapie węzłów
+à la Slay the Spire) — to fundament, na którym powstaje vertical slice
+z README (sekcja 10). Szkielet danych pod Dzień 50 jest już założony
+(patrz changelog); stare elementy mapy węzłów usuwamy dopiero w momencie,
+gdy nowy system planszy faktycznie je zastępuje.
 
 ## Stan projektu / Changelog
 
@@ -36,6 +43,25 @@ z własnej, rozbudowywanej w trakcie runu talii. Przegrana: Zdrowie spada do 0.
   losują się bez powtórek dopiero w ramach jednego runu, `MetaState` nadal
   pusty (obóz = etap 3).
 
+### Zwrot projektowy — koncept „Dzień 50" + szkielet danych (2026-06-11)
+
+- Projekt dostał pełny koncept docelowej gry (README.md): plansza 6 kafli
+  biomów zamiast mapy węzłów, budynki jako karty z HP, katastrofa BUM
+  w połowie runu, potwory w Akcie II, klasy postaci, 4 statystyki
+  (HP/Głód/Pragnienie/Ciepło), poziomy w runie, meta-progresja
+  „różnorodność zamiast siły".
+- Założony szkielet danych pod vertical slice (definicje + przykładowe
+  `.tres`, jeszcze NIE wpięte w rozgrywkę): `BiomeData` (3 biomy z
+  awersem i skorumpowanym rewersem), `BuildingCardData` (Ognisko, Szałas,
+  Studnia), `MonsterCardData` (Zgnilec), `DisasterData` (Plaga),
+  `CharacterClassData` (Kucharz), stany runtime `TileState`/`BuildingState`.
+- `RunState` rozszerzony o pola szkieletowe (pragnienie, ciepło, woda,
+  XP/poziom, klasa, katastrofa, plansza kafli) — stare pola mapy węzłów
+  oznaczone jako legacy do usunięcia przy wymianie systemu.
+- `load_test` waliduje nowe katalogi danych (typy, sloty 2–4, spójność
+  potwór↔katastrofa, talia startowa klasy).
+- Stara rozgrywka (etap 2) pozostaje w pełni grywalna.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -62,25 +88,34 @@ Poza tym testujemy ręcznie przez rozegranie runu w edytorze.
 ## Architektura
 
 Kluczowa zasada: **dane ≠ logika ≠ UI**. Docelowo dojdzie meta-progresja
-(obóz między runami — etap 3); struktura ma to umożliwić bez refaktoru.
+(kolekcja, odblokowania, drabinka trudności — README sekcja 8); struktura
+ma to umożliwić bez refaktoru.
 
 ```
 data/cards/actions/   karty akcji (.tres, ActionCardData) — czyste dane
 data/cards/events/    karty zdarzeń końca dnia (.tres, EventCardData)
 data/decks/           talie (.tres, DeckData) — talia startowa
-data/encounters/      spotkania fabularne (.tres, EncounterData + opcje)
+data/encounters/      spotkania fabularne (.tres) [LEGACY mapy węzłów]
+data/biomes/          kafle biomów planszy (.tres, BiomeData) — awers +
+                      skorumpowany rewers (po BUM)
+data/buildings/       karty budynków (.tres, BuildingCardData)
+data/monsters/        karty potworów Aktu II (.tres, MonsterCardData)
+data/disasters/       typy katastrofy BUM (.tres, DisasterData)
+data/classes/         klasy postaci (.tres, CharacterClassData)
 scripts/
   game_manager.gd     autoload "GameManager": przepływ scen
   run_state.gd        RunState (Resource): stan runu — statystyki, zasoby,
-                      talia gracza, mapa, pozycja (gotowy pod save/load)
+                      talia gracza, plansza, pozycja (gotowy pod save/load)
   meta_state.gd       MetaState (Resource): placeholder pod meta-progresję
-  resources/          definicje zasobów danych (CardData, DeckData,
-                      EncounterData, MapData, MapNodeData)
+  resources/          definicje zasobów danych: CardData + pochodne,
+                      DeckData, BiomeData, DisasterData, CharacterClassData,
+                      TileState/BuildingState (stan runtime planszy),
+                      EncounterData, MapData/MapNodeData [LEGACY]
 systems/              logika gry, NIEZALEŻNA od scen i UI (RefCounted + sygnały)
-  expedition_system.gd  warstwa wyprawy: trawersowanie mapy, deckbuilding,
-                        spotkania, odpoczynek, warunki końca
-  run_system.gd         pojedynczy dzień przetrwania (węzeł Teren/Finał)
-  map_generator.gd      proceduralna generacja MapData
+  expedition_system.gd  warstwa wyprawy po mapie węzłów [LEGACY — do
+                        zastąpienia systemem planszy biomów]
+  run_system.gd         pojedynczy dzień przetrwania
+  map_generator.gd      proceduralna generacja MapData [LEGACY]
   deck.gd               generyczna talia (dobieranie, odrzut, przetasowanie)
   card_library.gd       ładowanie zasobów .tres z katalogów data/
 scenes/               sceny + ich skrypty (tylko UI i podpięcie sygnałów)
@@ -88,6 +123,10 @@ scenes/               sceny + ich skrypty (tylko UI i podpięcie sygnałów)
 ui/                   reużywalne komponenty UI (card_view)
 tests/                testy headless (SceneTree, uruchamiane z -s)
 ```
+
+Elementy `[LEGACY]` obsługują grywalny prototyp etapu 2 — usuwamy je
+dopiero wtedy, gdy odpowiedni kawałek vertical slice'a je zastąpi
+(historia zostaje w gicie).
 
 ### Przepływ
 
@@ -123,9 +162,10 @@ odniesienia: naiwny bot ze smoke testu wygrywa ~86% wypraw.
 
 ## Dane jako zasoby
 
-Karty, talie i spotkania to `.tres` w `data/` — ZERO logiki w definicjach.
-Nowa karta/spotkanie = nowy plik, bez zmian w kodzie (wyjątek: nowa wartość
-`special` wymaga obsługi w `run_system.gd`).
+Karty, talie, biomy, budynki, potwory, katastrofy i klasy to `.tres`
+w `data/` — ZERO logiki w definicjach. Nowa karta/biom/klasa = nowy plik,
+bez zmian w kodzie (wyjątek: nowa wartość `special` wymaga obsługi
+w systemach).
 
 - `CardData` (bazowa): `id`, `display_name`, `description`
 - `ActionCardData`: koszty (`energy_cost`, `food/wood/materials_cost`),
@@ -138,18 +178,38 @@ Nowa karta/spotkanie = nowy plik, bez zmian w kodzie (wyjątek: nowa wartość
 - `EncounterData`: tytuł, tekst, `options: Array[EncounterOptionData]`;
   opcja: delty + `grants_card_choice`; ujemne delty zasobów są CENĄ opcji
   (niedostępna, gdy gracza nie stać) — zdrowie/sytość stosują się zawsze
-  (spotkanie może zabić)
-- `MapData`/`MapNodeData`: struktura mapy (generowana w runtime, jako
-  Resource — gotowa pod save/load)
+  (spotkanie może zabić) [LEGACY]
+- `MapData`/`MapNodeData`: struktura mapy węzłów (generowana w runtime,
+  jako Resource) [LEGACY]
+
+Szkielet Dnia 50 (jeszcze nie wpięty w rozgrywkę):
+
+- `BiomeData`: `building_slots` (2–4), `gather_cards` (działają tylko gdy
+  gracz stoi na kaflu), `extra_event_cards` (zagrożenia biomu) + komplet
+  pól `corrupted_*` (rewers kafla po BUM)
+- `BuildingCardData`: koszty budowy, `max_hp` (próg 50% = ruina),
+  `defense`, pasywne efekty dzienne (GLOBALNE — niezależne od pozycji),
+  `special` ("slow_spoilage" | "night_protection" | "unlock_crafting")
+- `MonsterCardData`: `disaster_id`, obrażenia dla gracza i budynków,
+  `copies_in_deck` (ile kopii trafia do talii zdarzeń po BUM)
+- `DisasterData`: pula potworów + dodatkowe karty zdarzeń Aktu II
+- `CharacterClassData`: talia startowa + modyfikatory zasad (mnożniki
+  jedzenia/psucia, koszty budowania, HP budynków, redukcja obrażeń)
+- `TileState`/`BuildingState`: stan runtime planszy (kafel + `is_corrupted`
+  + budynki z HP) — częścią `RunState`, gotowe pod save/load
 
 ## Punkty rozbudowy (NIE implementować bez decyzji)
 
-- `MetaState` — pusty placeholder; tu trafią permanentne ulepszenia i stan
-  obozu między runami (etap 3).
-- `RunState` jest `Resource` z `@export` (w tym mapa i talia) — gotowy pod
-  save/load.
+- `MetaState` — pusty placeholder; tu trafią kolekcja, odblokowania
+  (biomy/katastrofy/klasy) i drabinka trudności (README sekcja 8,
+  milestone 2).
+- `RunState` jest `Resource` z `@export` (w tym plansza i talia) — gotowy
+  pod save/load.
 - `ExpeditionSystem`/`MapGenerator` używają wstrzykiwanego RNG — gotowe pod
-  seedowane runy.
+  seedowane runy; nowy system planszy ma przejąć ten wzorzec.
+- Kolejny krok wg README sekcja 10 (vertical slice): system planszy 6 kafli
+  + ruch za 1 energię, budynki w slotach, nowe statystyki w pętli dnia,
+  XP/poziomy, BUM (Plaga) — każdy kawałek osobną decyzją/krokiem.
 
 ## Konwencje
 

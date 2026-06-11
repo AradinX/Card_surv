@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BuildingCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/building_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "building_well"
+display_name = "Studnia"
+description = "Czysta woda na miejscu (+2 wody dziennie)."
+energy_cost = 2
+wood_cost = 1
+materials_cost = 1
+max_hp = 8
+water_gain = 2

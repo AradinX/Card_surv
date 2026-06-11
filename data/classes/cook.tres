@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CharacterClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_class_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/decks/starter_deck.tres" id="2_deck"]
+
+[resource]
+script = ExtResource("1_script")
+id = "cook"
+display_name = "Kucharz"
+description = "Jedzenie odnawia +50% głodu, zapasy psują się wolniej. Budowanie kosztuje +1 energii."
+starter_deck = ExtResource("2_deck")
+food_hunger_multiplier = 1.5
+spoilage_multiplier = 0.5
+build_energy_cost_delta = 1

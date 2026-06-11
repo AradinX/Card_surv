@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BiomeData" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="2_scav"]
+[ext_resource type="Resource" path="res://data/cards/actions/gather_sticks.tres" id="3_sticks"]
+[ext_resource type="Resource" path="res://data/cards/events/cold_night.tres" id="4_cold"]
+[ext_resource type="Resource" path="res://data/cards/events/storm.tres" id="5_storm"]
+[ext_resource type="Resource" path="res://data/cards/events/fog.tres" id="6_fog"]
+
+[resource]
+script = ExtResource("1_script")
+id = "mountains"
+display_name = "Góry"
+description = "Surowe skały bogate w materiały. Zima przychodzi tu pierwsza."
+building_slots = 2
+gather_cards = [ExtResource("2_scav"), ExtResource("3_sticks")]
+extra_event_cards = [ExtResource("4_cold"), ExtResource("5_storm")]
+corrupted_display_name = "Wyjące Góry"
+corrupted_description = "Wiatr w szczelinach brzmi jak głosy. Nie schodź w doliny."
+corrupted_gather_cards = [ExtResource("3_sticks")]
+corrupted_extra_event_cards = [ExtResource("6_fog")]
