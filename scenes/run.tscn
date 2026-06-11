@@ -46,6 +46,13 @@ size_flags_vertical = 4
 theme_override_font_sizes/font_size = 26
 text = "Dzień 1/15"
 
+[node name="LevelLabel" type="Label" parent="Margin/Layout/TopBar"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 16
+text = "Poziom 1
+XP 0/8"
+
 [node name="HealthBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
@@ -180,3 +187,70 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 20
 text = "Zakończ dzień"
+
+[node name="LevelUpOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="Panel" type="PanelContainer" parent="LevelUpOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelMargin" type="MarginContainer" parent="LevelUpOverlay/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+text = "Awans! Poziom 2 — wybierz nagrodę"
+
+[node name="RewardButtons" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="EnergyButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
+custom_minimum_size = Vector2(200, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "+1 maks. energii"
+
+[node name="HealthButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
+custom_minimum_size = Vector2(200, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "+1 maks. zdrowia
+(+2 leczenia)"
+
+[node name="CardButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
+custom_minimum_size = Vector2(200, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Nowa karta do talii
+(wybór 1 z 3)"
+
+[node name="CardChoices" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
+visible = false
+custom_minimum_size = Vector2(0, 190)
+layout_mode = 2
+theme_override_constants/separation = 12

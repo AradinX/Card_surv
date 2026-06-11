@@ -13,6 +13,8 @@ signal stats_changed(state: RunState)
 signal hand_changed(hand: Array[CardData])
 signal board_changed(state: RunState)
 signal gather_actions_changed(actions: Array[ActionCardData])
+## A level was gained; the player has state.pending_rewards choices waiting.
+signal leveled_up(level: int)
 signal log_message(text: String)
 signal run_ended(won: bool, days_survived: int)
 
@@ -33,12 +35,21 @@ const TOOLS_GAIN_BONUS := 1
 ## health/warmth deltas by this many points.
 const NIGHT_PROTECTION_VALUE := 2
 
+## In-run progression: XP for actions, level-up = choice of 1 of 3 rewards.
+const XP_PER_CARD := 1
+const XP_PER_BUILDING := 3
+const XP_BASE_COST := 8
+const XP_COST_GROWTH := 4
+const REWARD_CHOICES := 3
+const REWARD_HEAL := 1
+
 var state: RunState
 var hand: Array[CardData] = []
 
 var _rng := RandomNumberGenerator.new()
 var _day_deck: Deck
 var _event_deck: Deck
+var _card_pool: Array[ActionCardData] = []
 var _day_active := false
 var _ended := false
 ## "<tile index>:<card id>" entries for gather actions already used today.
@@ -49,12 +60,16 @@ func start(
 	character_class: CharacterClassData,
 	biome_pool: Array[BiomeData],
 	event_cards: Array[CardData],
+	card_pool: Array[CardData] = [],
 ) -> void:
 	_rng.randomize()
 	state = RunState.new()
 	state.character_class = character_class
 	for card in character_class.starter_deck.cards:
 		state.deck.append(card)
+	for card in card_pool:
+		if card is ActionCardData:
+			_card_pool.append(card)
 
 	state.board = BoardGenerator.generate(biome_pool, _rng)
 	state.current_tile = _rng.randi_range(0, state.board.size() - 1)
@@ -133,6 +148,7 @@ func play_gather(card: ActionCardData) -> void:
 	_used_gathers[_gather_key(card)] = true
 	log_message.emit("Korzystasz z okolicy: %s." % card.display_name)
 	_resolve_action(card)
+	_grant_xp(XP_PER_CARD)
 	if _check_death():
 		return
 	stats_changed.emit(state)
@@ -180,8 +196,10 @@ func play_card(index: int) -> void:
 		_day_deck.discard(card)
 		log_message.emit("Zagrywasz: %s." % card.display_name)
 		_resolve_action(card as ActionCardData)
+		_grant_xp(XP_PER_CARD)
 	elif card is BuildingCardData:
 		_build(card as BuildingCardData)
+		_grant_xp(XP_PER_BUILDING)
 
 	if _check_death():
 		return
@@ -217,14 +235,77 @@ func end_day() -> void:
 	_start_day()
 
 
+# --- Progression (XP, levels, 1-of-3 rewards) ---
+
+
+## XP needed to reach the next level (grows with each level).
+func xp_to_next_level() -> int:
+	return XP_BASE_COST + XP_COST_GROWTH * (state.level - 1)
+
+
+func has_pending_reward() -> bool:
+	return state.pending_rewards > 0 and not _ended
+
+
+func claim_max_energy() -> void:
+	if not has_pending_reward():
+		return
+	state.pending_rewards -= 1
+	state.max_energy += 1
+	state.energy = mini(state.energy + 1, state.max_energy + 1)
+	log_message.emit("Nagroda: +1 maks. energii (%d)." % state.max_energy)
+	stats_changed.emit(state)
+
+
+func claim_max_health() -> void:
+	if not has_pending_reward():
+		return
+	state.pending_rewards -= 1
+	state.max_health += 1
+	state.health = mini(state.health + 1 + REWARD_HEAL, state.max_health)
+	log_message.emit("Nagroda: +1 maks. zdrowia (%d)." % state.max_health)
+	stats_changed.emit(state)
+
+
+## Up to REWARD_CHOICES distinct random cards from the reward pool.
+func roll_card_rewards() -> Array[ActionCardData]:
+	var pool := _card_pool.duplicate()
+	var result: Array[ActionCardData] = []
+	while result.size() < REWARD_CHOICES and not pool.is_empty():
+		result.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
+	return result
+
+
+func claim_card(card: ActionCardData) -> void:
+	if not has_pending_reward() or card == null:
+		return
+	state.pending_rewards -= 1
+	state.deck.append(card)
+	log_message.emit("Nagroda: %s dołącza do talii (%d kart)." % [
+		card.display_name, state.deck.size()
+	])
+	stats_changed.emit(state)
+
+
+func _grant_xp(amount: int) -> void:
+	state.xp += amount
+	while state.xp >= xp_to_next_level():
+		state.xp -= xp_to_next_level()
+		state.level += 1
+		state.pending_rewards += 1
+		log_message.emit("AWANS! Poziom %d — wybierz nagrodę." % state.level)
+		leveled_up.emit(state.level)
+
+
 # --- Day flow ---
 
 
 func _start_day() -> void:
 	_day_active = true
 	_used_gathers.clear()
+	# Energy may exceed the cap by one (e.g. the Sunny Morning event).
 	state.energy = clampi(
-		RunState.MAX_ENERGY + state.next_day_energy_delta, 1, RunState.ENERGY_CAP
+		state.max_energy + state.next_day_energy_delta, 1, state.max_energy + 1
 	)
 	state.next_day_energy_delta = 0
 
@@ -294,7 +375,7 @@ func _resolve_action(card: ActionCardData) -> void:
 	_apply_stat_deltas(
 		card.health_delta, card.hunger_delta, card.thirst_delta, card.warmth_delta
 	)
-	state.energy = clampi(state.energy + card.energy_delta, 0, RunState.ENERGY_CAP)
+	state.energy = clampi(state.energy + card.energy_delta, 0, state.max_energy + 1)
 
 	match card.special:
 		"craft_tools":
@@ -466,7 +547,7 @@ func _cost_block_reason(
 func _apply_stat_deltas(
 	health_delta: int, hunger_delta: int, thirst_delta: int, warmth_delta: int
 ) -> void:
-	state.health = clampi(state.health + health_delta, 0, RunState.MAX_HEALTH)
+	state.health = clampi(state.health + health_delta, 0, state.max_health)
 	state.hunger = clampi(state.hunger + hunger_delta, 0, RunState.MAX_HUNGER)
 	state.thirst = clampi(state.thirst + thirst_delta, 0, RunState.MAX_THIRST)
 	state.warmth = clampi(state.warmth + warmth_delta, 0, RunState.MAX_WARMTH)

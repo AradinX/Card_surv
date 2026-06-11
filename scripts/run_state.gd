@@ -4,15 +4,17 @@ extends Resource
 ## properties so it can be saved/loaded later without refactoring.
 ## Global, between-run state belongs in MetaState, NOT here.
 
+## Starting caps; health/energy caps can grow during a run (level rewards),
+## so their current values live in max_health/max_energy below.
 const MAX_HEALTH := 10
 const MAX_HUNGER := 10
 const MAX_THIRST := 10
 const MAX_WARMTH := 10
 const MAX_ENERGY := 10
-## Energy may exceed MAX_ENERGY by one (e.g. the Sunny Morning event).
-const ENERGY_CAP := MAX_ENERGY + 1
 
 @export var day: int = 1
+@export var max_health: int = MAX_HEALTH
+@export var max_energy: int = MAX_ENERGY
 @export var health: int = MAX_HEALTH
 @export var hunger: int = 8
 @export var thirst: int = 8
@@ -26,9 +28,11 @@ const ENERGY_CAP := MAX_ENERGY + 1
 ## Accumulated energy modifier from events, applied at the next dawn.
 @export var next_day_energy_delta: int = 0
 
-## In-run character progression (resets every run; rewards come later).
+## In-run character progression (resets every run). Levels grant a choice
+## of 1 of 3 rewards; unclaimed level-ups wait in pending_rewards.
 @export var xp: int = 0
 @export var level: int = 1
+@export var pending_rewards: int = 0
 @export var character_class: CharacterClassData
 
 ## Deckbuilding: the player's full deck (action AND building cards); copies

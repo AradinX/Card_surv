@@ -7,10 +7,11 @@ katastrofa **BUM** → przetrwanie do dnia 50), wszystko jest kartą (akcje,
 budynki, zdarzenia, potwory, kafle biomów), klasy postaci, meta-progresja
 „różnorodność zamiast siły".
 
-Stan obecny: gra toczy się już na planszy 6 kafli biomów (krok 1 vertical
+Stan obecny: gra toczy się na planszy 6 kafli biomów (kroki 1–2 vertical
 slice'a z README sekcja 10) — mapa węzłów z etapu 2 została zastąpiona
 i usunięta (historia w gicie). Run = przetrwaj do dnia 15 (placeholder do
-czasu BUM); 4 statystyki, budynki jako karty, akcje biomu, ruch za energię.
+czasu BUM); 4 statystyki, budynki jako karty, akcje biomu, ruch za energię,
+XP i poziomy z nagrodami 1 z 3 (deckbuilding w runie).
 
 ## Stan projektu / Changelog
 
@@ -87,6 +88,24 @@ czasu BUM); 4 statystyki, budynki jako karty, akcje biomu, ruch za energię.
 - Znane ograniczenia: brak nagród kartowych/XP (talia statyczna w runie),
   brak pór roku, BUM/potwory/naprawy jeszcze nie wpięte, balans zgrubny.
 
+### Vertical slice krok 2 — XP i poziomy w runie (UKOŃCZONY, 2026-06-12)
+
+- XP za działania: zagranie karty/akcji biomu +1, budowa budynku +3;
+  próg awansu rośnie (8 + 4×(poziom−1)); awanse kolejkują się
+  w `pending_rewards` (zapisywane w `RunState`).
+- Nagroda awansu = wybór 1 z 3: +1 maks. energii / +1 maks. zdrowia
+  (+2 leczenia) / nowa karta do talii (wybór 1 z 3 z puli 20 kart akcji)
+  — deckbuilding wrócił do runu. Uproszczenie względem README:
+  zamiast „ulepszenia karty" (system ulepszeń jeszcze nie istnieje)
+  nagrodą jest karta z puli.
+- `max_health`/`max_energy` są teraz polami `RunState` (rosną w runie);
+  stałe `MAX_*` to wartości startowe.
+- UI: panel awansu (overlay blokujący klik, kolejka nagród), etykieta
+  poziomu i XP w pasku górnym, paski zdrowia/energii o dynamicznym maks.
+- Smoke bot wybiera nagrody losowo: 46/50 wygranych (~92%, śr. poziom
+  6,4) — lekko ponad bazowe ~86%, bo nagrody to czysta korzyść; trudność
+  doważy BUM.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -138,7 +157,8 @@ scripts/
                       planszy: TileState/BuildingState
 systems/              logika gry, NIEZALEŻNA od scen i UI (RefCounted + sygnały)
   survival_system.gd    cały run na planszy: dni, statystyki, ruch,
-                        budynki, akcje biomu, zdarzenia, warunki końca
+                        budynki, akcje biomu, zdarzenia, XP/awanse,
+                        warunki końca
   board_generator.gd    generacja planszy 6 kafli (3×2) + sąsiedztwo
   deck.gd               generyczna talia (dobieranie, odrzut, przetasowanie)
   card_library.gd       ładowanie zasobów .tres z katalogów data/
@@ -176,13 +196,15 @@ menu -> **run (cała wyprawa na jednym ekranie)** -> wynik
    głód/odwodnienie/zamarzanie biją w zdrowie → śmierć (przegrana) /
    dzień 15 przeżyty (wygrana) / kolejny dzień.
 
-Balans (stałe w `run_state.gd`, `survival_system.gd`): maks. statystyki 10,
-energia 10/dzień (cap 11 ze Słonecznym porankiem), ruch 1 energii, sytość
-i nawodnienie -2 dziennie, ciepło -1 dziennie, 1 jedzenie = +2 sytości
-(Kucharz: +3), 1 woda = +2 nawodnienia, głód/odwodnienie/mróz -2 zdrowia
-dziennie, Szałas -2 obrażeń z chronionych zdarzeń, narzędzia +1 do zysku
-jedzenia/drewna, wygrana w dniu 15. Punkt odniesienia: naiwny bot ze
-smoke testu wygrywa ~86% runów (43/50).
+Balans (stałe w `run_state.gd`, `survival_system.gd`): startowe maks.
+statystyki 10 (zdrowie/energia rosną nagrodami awansu), energia 10/dzień
+(cap maks.+1 ze Słonecznym porankiem), ruch 1 energii, sytość i nawodnienie
+-2 dziennie, ciepło -1 dziennie, 1 jedzenie = +2 sytości (Kucharz: +3),
+1 woda = +2 nawodnienia, głód/odwodnienie/mróz -2 zdrowia dziennie, Szałas
+-2 obrażeń z chronionych zdarzeń, narzędzia +1 do zysku jedzenia/drewna,
+XP: +1 karta/akcja biomu, +3 budynek, próg 8 + 4×(poziom−1), wygrana
+w dniu 15. Punkt odniesienia: naiwny bot ze smoke testu wygrywa ~92%
+runów (46/50, śr. poziom 6,4).
 
 ## Dane jako zasoby
 
@@ -222,15 +244,15 @@ w systemach).
 - `MetaState` — pusty placeholder; tu trafią kolekcja, odblokowania
   (biomy/katastrofy/klasy) i drabinka trudności (README sekcja 8,
   milestone 2).
-- `RunState` jest `Resource` z `@export` (w tym plansza i talia) — gotowy
-  pod save/load; pola `xp`/`level`/`disaster`/`bum_happened` czekają na
-  kolejne kroki slice'a.
+- `RunState` jest `Resource` z `@export` (w tym plansza, talia i postęp
+  poziomów) — gotowy pod save/load; pola `disaster`/`bum_happened` czekają
+  na krok BUM.
 - `BoardGenerator` używa wstrzykiwanego RNG (`SurvivalSystem` ma własny) —
   gotowe pod seedowane runy.
-- Kolejne kroki wg README sekcja 10 (każdy osobną decyzją): XP i poziomy
-  z wyborem 1 z 3 (przywróci deckbuilding w runie), uproszczone pory roku,
-  BUM (Plaga: flip kafli na `corrupted_*`, procentowe uszkodzenia budynków,
-  potwory, obrona), wydłużenie runu do ~30 dni.
+- Kolejne kroki wg README sekcja 10 (każdy osobną decyzją): uproszczone
+  pory roku, BUM (Plaga: flip kafli na `corrupted_*`, procentowe
+  uszkodzenia budynków, potwory, obrona), wydłużenie runu do ~30 dni,
+  ulepszanie kart (wtedy wraca jako nagroda awansu).
 
 ## Konwencje
 

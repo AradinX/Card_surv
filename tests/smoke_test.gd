@@ -15,28 +15,34 @@ func _init() -> void:
 	var character_class: CharacterClassData = load("res://data/classes/cook.tres")
 	var biome_pool := CardLibrary.load_biomes_from_dir("res://data/biomes")
 	var event_cards := CardLibrary.load_cards_from_dir("res://data/cards/events")
+	var card_pool := CardLibrary.load_cards_from_dir("res://data/cards/actions")
 	assert(character_class != null and character_class.starter_deck != null,
 		"cook class with a starter deck is required")
 	assert(biome_pool.size() >= 3, "expected at least 3 biomes")
 	assert(event_cards.size() >= 10, "expected at least 10 event cards")
-	print("Pool: %d biomes, %d events, starter deck %d cards" % [
-		biome_pool.size(), event_cards.size(), character_class.starter_deck.cards.size()
+	assert(card_pool.size() >= 20, "expected at least 20 action cards in the pool")
+	print("Pool: %d biomes, %d events, %d reward cards, starter deck %d cards" % [
+		biome_pool.size(), event_cards.size(), card_pool.size(),
+		character_class.starter_deck.cards.size()
 	])
 
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
 	var wins := 0
 	var total_days := 0
+	var total_levels := 0
 	for run_index in RUNS:
-		var outcome := _play_run(character_class, biome_pool, event_cards, rng)
+		var outcome := _play_run(character_class, biome_pool, event_cards, card_pool, rng)
 		if not outcome.ended:
 			push_error("Run %d did not terminate!" % run_index)
 			quit(1)
 			return
 		wins += 1 if outcome.won else 0
 		total_days += outcome.days
-	print("Smoke test OK: %d/%d runs won (cel: dzień %d), śr. %.1f dni" % [
-		wins, RUNS, SurvivalSystem.WIN_DAY, float(total_days) / RUNS
+		total_levels += outcome.level
+	print("Smoke test OK: %d/%d runs won (cel: dzień %d), śr. %.1f dni, śr. poziom %.1f" % [
+		wins, RUNS, SurvivalSystem.WIN_DAY,
+		float(total_days) / RUNS, float(total_levels) / RUNS
 	])
 	quit(0)
 
@@ -45,22 +51,24 @@ func _play_run(
 	character_class: CharacterClassData,
 	biome_pool: Array[BiomeData],
 	event_cards: Array[CardData],
+	card_pool: Array[CardData],
 	rng: RandomNumberGenerator,
 ) -> Dictionary:
 	var survival := SurvivalSystem.new()
-	var outcome := {"ended": false, "won": false, "days": 0}
+	var outcome := {"ended": false, "won": false, "days": 0, "level": 1}
 	survival.run_ended.connect(func(won: bool, days: int) -> void:
 		outcome.ended = true
 		outcome.won = won
 		outcome.days = days
 	)
-	survival.start(character_class, biome_pool, event_cards)
+	survival.start(character_class, biome_pool, event_cards, card_pool)
 	survival.begin()
 
 	for day_guard in MAX_DAYS_GUARD:
 		if outcome.ended:
 			break
 		_play_day(survival, outcome, rng)
+	outcome.level = survival.state.level
 	return outcome
 
 
@@ -71,6 +79,20 @@ func _play_day(
 	for step in 200:
 		if outcome.ended:
 			return
+
+		# Claim pending level rewards with a random pick.
+		while survival.has_pending_reward():
+			match rng.randi_range(0, 2):
+				0:
+					survival.claim_max_energy()
+				1:
+					survival.claim_max_health()
+				2:
+					var rewards := survival.roll_card_rewards()
+					if rewards.is_empty():
+						survival.claim_max_energy()
+					else:
+						survival.claim_card(rewards[rng.randi_range(0, rewards.size() - 1)])
 
 		# Greedy: first playable hand card...
 		var played := false

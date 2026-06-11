@@ -6,6 +6,7 @@ extends Control
 const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 
 @onready var _day_label: Label = $Margin/Layout/TopBar/DayLabel
+@onready var _level_label: Label = $Margin/Layout/TopBar/LevelLabel
 @onready var _health_label: Label = $Margin/Layout/TopBar/HealthBox/HealthLabel
 @onready var _health_bar: ProgressBar = $Margin/Layout/TopBar/HealthBox/HealthBar
 @onready var _hunger_label: Label = $Margin/Layout/TopBar/HungerBox/HungerLabel
@@ -22,6 +23,13 @@ const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 @onready var _gather_container: HBoxContainer = $Margin/Layout/GatherBar/GatherCards
 @onready var _hand_container: HBoxContainer = $Margin/Layout/BottomBar/Hand
 @onready var _end_day_button: Button = $Margin/Layout/BottomBar/EndDayButton
+@onready var _level_overlay: ColorRect = $LevelUpOverlay
+@onready var _level_title: Label = $LevelUpOverlay/Panel/PanelMargin/VBox/TitleLabel
+@onready var _reward_buttons: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons
+@onready var _energy_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/EnergyButton
+@onready var _health_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/HealthButton
+@onready var _card_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/CardButton
+@onready var _card_choices: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/CardChoices
 
 var _survival: SurvivalSystem
 var _tile_buttons: Array[Button] = []
@@ -47,8 +55,12 @@ func _ready() -> void:
 	_survival.hand_changed.connect(_on_hand_changed)
 	_survival.board_changed.connect(_on_board_changed)
 	_survival.gather_actions_changed.connect(_on_gather_actions_changed)
+	_survival.leveled_up.connect(_on_leveled_up)
 	_survival.log_message.connect(_on_log_message)
 	_end_day_button.pressed.connect(_survival.end_day)
+	_energy_button.pressed.connect(_on_reward_energy)
+	_health_button.pressed.connect(_on_reward_health)
+	_card_button.pressed.connect(_on_reward_card)
 
 	_survival.begin()
 
@@ -67,7 +79,11 @@ func _on_day_started(day: int) -> void:
 
 
 func _on_stats_changed(state: RunState) -> void:
-	_health_label.text = "Zdrowie: %d/%d" % [state.health, RunState.MAX_HEALTH]
+	_level_label.text = "Poziom %d\nXP %d/%d" % [
+		state.level, state.xp, _survival.xp_to_next_level()
+	]
+	_health_label.text = "Zdrowie: %d/%d" % [state.health, state.max_health]
+	_health_bar.max_value = state.max_health
 	_health_bar.value = state.health
 	_hunger_label.text = "Sytość: %d/%d" % [state.hunger, RunState.MAX_HUNGER]
 	_hunger_bar.value = state.hunger
@@ -75,7 +91,8 @@ func _on_stats_changed(state: RunState) -> void:
 	_thirst_bar.value = state.thirst
 	_warmth_label.text = "Ciepło: %d/%d" % [state.warmth, RunState.MAX_WARMTH]
 	_warmth_bar.value = state.warmth
-	_energy_label.text = "Energia: %d/%d" % [state.energy, RunState.MAX_ENERGY]
+	_energy_label.text = "Energia: %d/%d" % [state.energy, state.max_energy]
+	_energy_bar.max_value = state.max_energy
 	_energy_bar.value = state.energy
 	_resources_label.text = "Jedzenie: %d   |   Woda: %d   |   Drewno: %d   |   Materiały: %d   |   Narzędzia: %s" % [
 		state.food, state.water, state.wood, state.materials,
@@ -158,3 +175,63 @@ func _refresh_playability() -> void:
 
 func _on_log_message(text: String) -> void:
 	_log.append_text(text + "\n")
+
+
+# --- Level-up rewards ---
+
+
+func _on_leveled_up(_level: int) -> void:
+	_show_reward_panel()
+
+
+func _show_reward_panel() -> void:
+	if not _survival.has_pending_reward():
+		_level_overlay.visible = false
+		return
+	var state := _survival.state
+	var suffix := "" if state.pending_rewards == 1 \
+		else " (w kolejce: %d)" % state.pending_rewards
+	_level_title.text = "Awans! Poziom %d — wybierz nagrodę%s" % [state.level, suffix]
+	_reward_buttons.visible = true
+	_clear_card_choices()
+	_level_overlay.visible = true
+
+
+func _on_reward_energy() -> void:
+	_survival.claim_max_energy()
+	_show_reward_panel()
+
+
+func _on_reward_health() -> void:
+	_survival.claim_max_health()
+	_show_reward_panel()
+
+
+## Rolling the 3 cards commits to this reward (no going back — that would
+## allow re-roll scumming).
+func _on_reward_card() -> void:
+	var rewards := _survival.roll_card_rewards()
+	if rewards.is_empty():
+		_survival.claim_max_energy()
+		_show_reward_panel()
+		return
+	_reward_buttons.visible = false
+	_clear_card_choices()
+	for card in rewards:
+		var view: CardView = CARD_VIEW_SCENE.instantiate()
+		_card_choices.add_child(view)
+		view.setup(card, "")
+		view.pressed.connect(_on_reward_card_chosen.bind(card))
+	_card_choices.visible = true
+
+
+func _on_reward_card_chosen(card: ActionCardData) -> void:
+	_survival.claim_card(card)
+	_show_reward_panel()
+
+
+func _clear_card_choices() -> void:
+	for child in _card_choices.get_children():
+		_card_choices.remove_child(child)
+		child.queue_free()
+	_card_choices.visible = false

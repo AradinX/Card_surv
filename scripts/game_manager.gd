@@ -8,6 +8,7 @@ const MAIN_MENU_SCENE := "res://scenes/main_menu.tscn"
 const RUN_SCENE := "res://scenes/run.tscn"
 const RESULT_SCENE := "res://scenes/result.tscn"
 
+const ACTION_CARDS_DIR := "res://data/cards/actions"
 const EVENT_CARDS_DIR := "res://data/cards/events"
 const BIOMES_DIR := "res://data/biomes"
 ## The only playable class for now (more classes unlock via meta-progression).
@@ -31,7 +32,8 @@ func start_new_run() -> void:
 	var character_class: CharacterClassData = load(CLASS_PATH)
 	var biome_pool := CardLibrary.load_biomes_from_dir(BIOMES_DIR)
 	var event_cards := CardLibrary.load_cards_from_dir(EVENT_CARDS_DIR)
-	survival.start(character_class, biome_pool, event_cards)
+	var card_pool := CardLibrary.load_cards_from_dir(ACTION_CARDS_DIR)
+	survival.start(character_class, biome_pool, event_cards, card_pool)
 
 	_change_scene(RUN_SCENE)
 
