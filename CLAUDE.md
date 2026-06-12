@@ -7,11 +7,13 @@ katastrofa **BUM** → przetrwanie do dnia 50), wszystko jest kartą (akcje,
 budynki, zdarzenia, potwory, kafle biomów), klasy postaci, meta-progresja
 „różnorodność zamiast siły".
 
-Stan obecny: gra toczy się na planszy 6 kafli biomów (kroki 1–2 vertical
+Stan obecny: gra toczy się na planszy 6 kafli biomów (kroki 1–3 vertical
 slice'a z README sekcja 10) — mapa węzłów z etapu 2 została zastąpiona
-i usunięta (historia w gicie). Run = przetrwaj do dnia 15 (placeholder do
-czasu BUM); 4 statystyki, budynki jako karty, akcje biomu, ruch za energię,
-XP i poziomy z nagrodami 1 z 3 (deckbuilding w runie).
+i usunięta (historia w gicie). Run = przetrwaj do dnia 30 w dwóch aktach:
+Akt I (budowa), BUM w dniu 13–16 (Plaga: flip kafli, uszkodzenia budynków),
+Akt II (potwory nocą, naprawy, ruiny, obrona). 4 statystyki, budynki jako
+karty, akcje biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3
+(deckbuilding w runie, w puli nagród też budynki).
 
 ## Stan projektu / Changelog
 
@@ -115,6 +117,158 @@ XP i poziomy z nagrodami 1 z 3 (deckbuilding w runie).
 - To prototyp równoległy do gry w Godot — wersja Godot pozostaje główną
   linią rozwoju; rozbieżności balansu opisane w `web/README.md`.
 
+### Assety: wygenerowany zestaw ramek kart (2026-06-12)
+
+- Płaskie deterministyczne ramki kart odrzucone; nowy zestaw 5 ramek
+  (akcja/budynek/zdarzenie/potwór/nagroda, 1024x1536) wygenerowany
+  Higgsfield GPT Image 2 z referencjami (rewersy kart + tła biomów),
+  spójny z zatwierdzonymi rewersami; stare ramki zarchiwizowane
+  w `assets/art/concepts/cards/legacy_flat_frames/`.
+- `card_art_mask.png` przebudowana: 754x483 @ (135, 307) — przecięcie
+  zmierzonych okien ilustracji wszystkich 5 ramek; prompty i pipeline
+  w `docs/asset_plan/generated_asset_samples.md`.
+- Komplet startowych ilustracji kart (warstwa artu pod ramkę, 1024x688,
+  text-free): 3 budynki (Ognisko/Szałas/Studnia) + 7 akcji (Odpoczynek,
+  Eksploruj, Rąb drewno, Zbieractwo, Opatrz rany, Źródło, Narzędzia)
+  w `assets/art/cards/illustrations/{buildings,actions}/`. Wspólny scaffold
+  promptu + referencje palety (rewers + tło lasu), GPT Image 2 medium.
+- 4 potwory Plagi (Zgnilec, Zarażony wilk, Krucza chmara, Rój szczurów,
+  1024x688, text-free) w `assets/art/cards/illustrations/monsters/` —
+  ten sam pipeline, paleta skażona z referencji (rewers potwora + las Plagi).
+- Dodatkowe 12 budynków (Spiżarnia, Warsztat, Palisada, Pułapki, Magazyn
+  drewna, Port rybacki, Filtr wodny, Wieża obserwacyjna, Drwalnia, Farma,
+  Kamieniołom, Zielarnia) w `assets/art/cards/illustrations/buildings/` —
+  ten sam scaffold, GPT Image 2 medium (Magazyn drewna w low, by zmieścić
+  się w budżecie). Katalog budynków ma teraz 15 ilustracji; brak jeszcze
+  kart `.tres` pod nowe budynki (art wyprzedza dane/rozgrywkę).
+- Korekta kierunku buildingow: `assets/art/cards/illustrations/buildings/`
+  zostaje jako ciemny zestaw Act II/post-BUM. Zatwierdzony jasny komplet
+  Act I (15 ilustracji, 1024x688, text-free, bez ramek i postaci) jest w
+  `assets/art/cards/illustrations/buildings_act1_candidates/`; podglad:
+  `docs/asset_plan/previews/preview_buildings_act1.png`.
+- Korekta kierunku actions: `assets/art/cards/illustrations/actions/`
+  zostaje jako ciemny zestaw Act II/post-BUM. Zatwierdzony jasny komplet
+  Act I (10 ilustracji, 1024x688, text-free, bez ramek i postaci) jest w
+  `assets/art/cards/illustrations/actions_act1_candidates/`; podglad:
+  `docs/asset_plan/previews/preview_actions_act1.png`.
+- Dodatkowe 3 ilustracje eksploracji/fog-of-war (Zwiad, Wytycz szlak,
+  Mapa okolicy, 1024x688, text-free) w
+  `assets/art/cards/illustrations/actions/`; format zgodny z nowymi
+  standalone card illustrations i gotowy do złożenia z ramkami w Godot.
+- Szeroki pack integracyjny P0/P1: `bg_run_table.png`, 36 ikon
+  `assets/art/cards/icons/*.png`, pierwsze panele/przyciski/bary UI,
+  markery/overlaye board oraz proste FX BUM/pogody/kart w `assets/art/fx/`.
+  Assety są text-free; UI/FX to pierwsze placeholdery produkcyjne pod szybkie
+  podpięcie i iterację w Godot. UWAGA (audyt 2026-06-12): zapowiadane tu
+  wcześniej assety discovery kafli (`biome_unknown*`, mgła, ramki 9-slice,
+  hint overlaye) NIE istnieją w repo — `assets/art/biomes/discovery/` jest
+  pusty; do wygenerowania wg sekcji discovery w `ASSET_PLAN_DZIEN_50_GODOT.md`
+  (istnieją tylko FX `assets/art/fx/discovery/`, popup discovery
+  i `icon_discovery.png`).
+- Korekta kierunku icons: obecne płaskie `assets/art/cards/icons/*.png`
+  zostają na razie jako działający placeholder. Nowy deck-style candidate pack
+  (36 ikon, text-free, złote medaliony + ciemna haftowana zieleń zgodna z
+  backs/frames) jest w `assets/art/cards/icons_deck_style_candidates/`
+  (`64x64`) oraz `source_128/`; legacy kopie są w
+  `assets/art/concepts/cards/icons_legacy_flat_reference/`. Podglądy:
+  `docs/asset_plan/previews/preview_icons_deck_style_64.png` i
+  `docs/asset_plan/previews/preview_icons_deck_style_128.png`.
+
+- Korekta biome UI layers: plaski deterministic repaint ramek/slotow zostal
+  odrzucony jako zbyt paint-like. Produkcyjne `assets/art/biomes/frames` i
+  `slot_markers` uzywaja surowych AI assetow na zielonym tle. `frames`
+  zostaly ponownie wygenerowane w lzejszym stylu `biome_neighbor_highlight`
+  (cienkie zlote bracket/corner accents, liscie, duzo pustego zielonego
+  srodka), a poprzednie zaakceptowane ramki zapisano w
+  `assets/art/concepts/biomes/frames_before_neighbor_highlight_style/`.
+  `assets/art/biomes/overlays` zostaly ponownie wygenerowane przez `imagegen`.
+  Regula pipeline'u: zostawiac raw `#00FF00`, nie usuwac chroma-key podczas
+  generowania, bo wycinanie potrafi obciac koncowki ramek i glow piksele.
+  Podglady: `docs/asset_plan/previews/preview_biome_ai_candidates_greenkey.png`,
+  `docs/asset_plan/previews/preview_biome_ai_candidates_on_forest.png` oraz
+  `docs/asset_plan/previews/preview_biome_overlays_raw_green.png`,
+  `docs/asset_plan/previews/preview_biome_frames_neighbor_style_raw_green.png`.
+
+### Audyt struktury assetów + porządki (2026-06-12)
+
+- Pełne porównanie plików na dysku z dokumentacją
+  (`docs/asset_plan/generated_asset_samples.md`, ten changelog).
+- Usunięte duplikaty bajt-w-bajt w `assets/art/concepts/biomes/`:
+  `legacy_biome_forest_normal_v3.png` i `legacy_biome_meadow_normal.png`
+  (identyczne z `concept_biome_*_board_slots*.png` w tym samym katalogu).
+  Świadome duplikaty zostają: próbki `*_act1_candidate.png` (approval
+  history) i `move_arrow.png` w `board/markers/` + `board/player_marker/`.
+- `docs/` dostał `.gdignore` (jak `web/`) — Godot nie importuje już
+  podglądów z dokumentacji.
+- Skorygowane nieaktualne ścieżki/wymiary w `generated_asset_samples.md`:
+  maska 800x520 → 754x483 @ (135, 307); `building_well_card` →
+  `concepts/cards/concept_building_well_card.png`; stare kafle biomów →
+  `concepts/biomes/concept_biome_*_board_slots*.png`; sekcja
+  `ai_layer_candidates` (katalog usunięty po promocji do produkcji).
+- Wykryty brak: assety discovery kafli z planu (`biome_unknown*` itd.)
+  nigdy nie trafiły do repo mimo wcześniejszego wpisu — oznaczone jako
+  MISSING w docs, do wygenerowania przy kroku fog-of-war.
+- Wiele nowszych PNG nie ma jeszcze plików `.import` — wygenerują się
+  automatycznie przy następnym otwarciu/`--import` Godota.
+
+### Vertical slice krok 3 — BUM (Plaga) i Akt II (UKOŃCZONY, 2026-06-12)
+
+- Run wydłużony do 30 dni; BUM uderza o świcie dnia losowanego z 13–16
+  (typ i dzień zapadają przy starcie runu, gracz ich nie zna); od 3 dni
+  przed BUM skryptowane omeny w logu (foreshadowing).
+- BUM: wszystkie kafle flipują na `corrupted_*` (nazwa, opis, akcje
+  zbierania, zdarzenia), każdy budynek losuje 10–80% uszkodzeń; HP poniżej
+  50% maks. = RUINA (pasywy/obrona/speciale przestają działać).
+- Talia zdarzeń Aktu II budowana od nowa: zdarzenia bazowe + zagrożenia
+  skorumpowanych biomów + zdarzenia katastrofy (Gnijące zapasy, Koszmary
+  w `data/cards/events/plague/`) + karty potworów × `copies_in_deck`.
+- Potwory (4 typy Plagi, komplet z artem): Zgnilec 2/2 ×2, Zarażony wilk
+  3/0 ×2, Krucza chmara 1/1 ×2, Rój szczurów 0/3 ×2 (obrażenia
+  gracz/budynki × kopie). Atak nocą: gracz dostaje obrażenia (Szałas
+  łagodzi o 2, klasa może redukować), losowy stojący budynek dostaje
+  obrażenia minus suma `defense` budynków na jego kaflu; potwór wraca do
+  talii (nie znika).
+- Podstawowa obrona: Palisada (`data/buildings/palisade.tres`, defense 2,
+  12 HP) — budynki weszły do puli nagród awansu (kolejne kopie do
+  zbudowania); pula = 20 akcji + 4 budynki.
+- Naprawa (na swoim kaflu, budynek nie-ruina): 1 energia + 1 drewno za
+  każde 2 brakujące HP, przywraca do pełna. Rozbiórka ruiny: 1 energia,
+  zwrot połowy drewna/materiałów kosztu budowy, zwalnia slot.
+- Skorumpowane akcje zbierania (`data/cards/actions/corrupted/` — poza
+  pulą nagród): Skażona zwierzyna (+3 jedzenia, -1 zdrowia; Martwy Las
+  i Zgniłe Łąki), Mętna woda (+1 wody; Martwy Las i Wyjące Góry).
+- UI: HP/RUINA budynków na kaflach, pasek „Budynki:" z przyciskami
+  naprawy/rozbiórki na bieżącym kaflu, tło ciemnieje po BUM
+  (sygnał `bum_struck`), tooltip kafla pokazuje opis skorumpowany.
+- Balans botem (50 runów): ~56–62% wygranych, śr. ~27 dni, śr. poziom ~9;
+  większość porażek po BUM — katastrofa jest skokiem trudności zgodnie
+  z założeniem (Akt I solo: ~90%). Tuning: zombie 3→2 kopie, rzut
+  uszkodzeń 10–90→10–80, Szałas działa też na ataki potworów.
+- Bot w smoke teście: naprawia/rozbiera na swoim kaflu i nie gra kart
+  z ujemnym zdrowiem, gdy ma ≥2 jedzenia.
+
+### Nowe decyzje projektowe z rozmowy GPT (2026-06-12, NIE zaimplementowane)
+
+- Akt I ma docelowo używać fog-of-war na planszy: startowo widoczny jest
+  tylko kafel startowy, pozostałe 5 kafli to `Nieznany teren`. Wejście na
+  sąsiedni kafel odkrywa biom, sloty, akcje zbierania i zagrożenia; karty
+  `Eksploruj`/`Zwiad`/`Mapa okolicy` mogą później podglądać lub oznaczać
+  kafle przed ruchem.
+- Nocne zdarzenia nie powinny być czystym losowaniem ze wszystkich kart.
+  Docelowy model: aktywna pula = karty bazowe + karty odkrytych biomów +
+  sezon + omen BUM + po BUM potwory/katastrofa. Karty mają wagi, cooldowny,
+  limity na run i tagi, żeby rzadkie kary (powódź, choroby bagien) nie
+  spamowały gracza.
+- `Spokojna noc` ma być prawdziwą neutralną kartą w talii zdarzeń, a nie
+  brakiem zdarzenia.
+- Po kliknięciu `Zakończ dzień` UI ma pokazywać dużą kartę nocnego zdarzenia
+  na przyciemnionym ekranie (docelowo rewers -> flip -> opis -> `OK` ->
+  rozliczenie efektów + wpis do dziennika). Obecnie zdarzenia rozliczają się
+  automatycznie w logu.
+- Asset plan został rozszerzony o zakryte kafle, mgłę, ikony odkrywania,
+  karty zwiadu i prompty dla `Nieznanego terenu`; sekcje discovery są na
+  końcu `ASSET_PLAN_DZIEN_50_GODOT.md`.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -167,7 +321,8 @@ scripts/
 systems/              logika gry, NIEZALEŻNA od scen i UI (RefCounted + sygnały)
   survival_system.gd    cały run na planszy: dni, statystyki, ruch,
                         budynki, akcje biomu, zdarzenia, XP/awanse,
-                        warunki końca
+                        BUM (flip planszy, uszkodzenia), potwory nocą,
+                        naprawy/ruiny/rozbiórka, warunki końca
   board_generator.gd    generacja planszy 6 kafli (3×2) + sąsiedztwo
   deck.gd               generyczna talia (dobieranie, odrzut, przetasowanie)
   card_library.gd       ładowanie zasobów .tres z katalogów data/
@@ -200,10 +355,17 @@ menu -> **run (cała wyprawa na jednym ekranie)** -> wynik
    karty z talii na slot bieżącego kafla), korzysta z akcji zbierania
    bieżącego biomu (każda 1×/dzień) i przemieszcza się na sąsiednie kafle
    (1 energia); kończy dzień przyciskiem.
-3. Noc: pasywy budynków (globalne) → karta zdarzenia (Szałas łagodzi
-   chronione) → sytość/nawodnienie spadają i automatyczne jedzenie/picie →
+3. Noc (obecnie): pasywy budynków (globalne, ruiny pomijane) → karta
+   z talii zdarzeń: zwykłe zdarzenie (Szałas łagodzi chronione) ALBO po BUM
+   potwór (rani gracza i losowy budynek; Szałas/defense łagodzą) →
+   sytość/nawodnienie spadają i automatyczne jedzenie/picie →
    głód/odwodnienie/zamarzanie biją w zdrowie → śmierć (przegrana) /
-   dzień 15 przeżyty (wygrana) / kolejny dzień.
+   dzień 30 przeżyty (wygrana) / kolejny dzień.
+   O świcie dnia BUM (13–16): flip planszy, uszkodzenia budynków,
+   przebudowa talii zdarzeń.
+4. Noc (docelowo): po kliknięciu `Zakończ dzień` pojawia się duża karta
+   zdarzenia z aktywnej, wagowanej puli; gracz klika `OK`, dopiero wtedy
+   efekt i podsumowanie nocy są rozliczane oraz logowane.
 
 Balans (stałe w `run_state.gd`, `survival_system.gd`): startowe maks.
 statystyki 10 (zdrowie/energia rosną nagrodami awansu), energia 10/dzień
@@ -212,8 +374,11 @@ statystyki 10 (zdrowie/energia rosną nagrodami awansu), energia 10/dzień
 1 woda = +2 nawodnienia, głód/odwodnienie/mróz -2 zdrowia dziennie, Szałas
 -2 obrażeń z chronionych zdarzeń, narzędzia +1 do zysku jedzenia/drewna,
 XP: +1 karta/akcja biomu, +3 budynek, próg 8 + 4×(poziom−1), wygrana
-w dniu 15. Punkt odniesienia: naiwny bot ze smoke testu wygrywa ~92%
-runów (46/50, śr. poziom 6,4).
+w dniu 30. BUM: dzień 13–16, uszkodzenia budynków 10–80%, ruina poniżej
+50% maks. HP, naprawa 1 energia + 1 drewno/2 HP, rozbiórka ruiny 1 energia
++ zwrot połowy surowców, Szałas -2 obrażeń także od potworów, Palisada
+defense 2 (kafel). Punkt odniesienia: naiwny bot ze smoke testu wygrywa
+~56–62% runów (śr. ~27 dni, śr. poziom ~9); sam Akt I wygrywał ~90%.
 
 ## Dane jako zasoby
 
@@ -233,7 +398,9 @@ w systemach).
   wpięte: night_protection)
 - `EventCardData`: delty statystyk/zasobów (w tym woda/ciepło),
   `next_day_energy_delta`, `shelter_protects` (łagodzone przez budynek
-  night_protection)
+  night_protection). Docelowo do dodania pod aktywną pulę nocnych zdarzeń:
+  `weight`, `cooldown_days`, `max_per_run`, `tags` oraz kategoria/ciężar
+  (`neutral/weather/biome/omen/monster/disaster`, `minor/medium/major`).
 - `DeckData`: lista kart — akcje i budynki (kopie = wielokrotne wpisy
   tego samego zasobu)
 - `BiomeData`: `building_slots` (2–4), `gather_cards` (akcje dostępne
@@ -253,15 +420,20 @@ w systemach).
 - `MetaState` — pusty placeholder; tu trafią kolekcja, odblokowania
   (biomy/katastrofy/klasy) i drabinka trudności (README sekcja 8,
   milestone 2).
-- `RunState` jest `Resource` z `@export` (w tym plansza, talia i postęp
-  poziomów) — gotowy pod save/load; pola `disaster`/`bum_happened` czekają
-  na krok BUM.
+- `RunState` jest `Resource` z `@export` (w tym plansza, talia, postęp
+  poziomów oraz `disaster`/`bum_day`/`bum_happened`) — gotowy pod
+  save/load.
+- Fog-of-war planszy: dodać stan odkrycia kafli do `TileState`/`RunState`,
+  ukryć dane nieodkrytych kafli w UI, odkrywać kafel po ruchu; dopiero
+  odkryte biomy powinny aktywować swoje zdarzenia w nocnej puli.
+- Nocne zdarzenia: zastąpić prostą talię zdarzeń aktywną pulą z wagami,
+  cooldownami, limitami i tagami; dodać popup dużej karty przed rozliczeniem.
 - `BoardGenerator` używa wstrzykiwanego RNG (`SurvivalSystem` ma własny) —
   gotowe pod seedowane runy.
 - Kolejne kroki wg README sekcja 10 (każdy osobną decyzją): uproszczone
-  pory roku, BUM (Plaga: flip kafli na `corrupted_*`, procentowe
-  uszkodzenia budynków, potwory, obrona), wydłużenie runu do ~30 dni,
-  ulepszanie kart (wtedy wraca jako nagroda awansu).
+  pory roku, drugi typ katastrofy (Pęknięcie/Zaćmienie — szkielet danych
+  `DisasterData` już to umożliwia, system losuje z puli), ulepszanie kart
+  (wtedy wraca jako nagroda awansu), docelowy run do dnia 50.
 
 ## Konwencje
 

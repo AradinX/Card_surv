@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomeData" load_steps=7 format=3]
+[gd_resource type="Resource" script_class="BiomeData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/forage.tres" id="2_forage"]
@@ -6,6 +6,7 @@
 [ext_resource type="Resource" path="res://data/cards/events/sunny.tres" id="4_sunny"]
 [ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="5_scav"]
 [ext_resource type="Resource" path="res://data/cards/events/rats.tres" id="6_rats"]
+[ext_resource type="Resource" path="res://data/cards/actions/corrupted/tainted_hunt.tres" id="7_tainted"]
 
 [resource]
 script = ExtResource("1_script")
@@ -17,5 +18,5 @@ gather_cards = [ExtResource("2_forage"), ExtResource("3_snare")]
 extra_event_cards = [ExtResource("4_sunny")]
 corrupted_display_name = "Zgniłe Łąki"
 corrupted_description = "Trawa gnije na stojąco, a ziemia mlaszcze pod stopami."
-corrupted_gather_cards = [ExtResource("5_scav")]
+corrupted_gather_cards = [ExtResource("5_scav"), ExtResource("7_tainted")]
 corrupted_extra_event_cards = [ExtResource("6_rats")]

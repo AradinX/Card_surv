@@ -11,6 +11,8 @@ const RESULT_SCENE := "res://scenes/result.tscn"
 const ACTION_CARDS_DIR := "res://data/cards/actions"
 const EVENT_CARDS_DIR := "res://data/cards/events"
 const BIOMES_DIR := "res://data/biomes"
+const BUILDINGS_DIR := "res://data/buildings"
+const DISASTERS_DIR := "res://data/disasters"
 ## The only playable class for now (more classes unlock via meta-progression).
 const CLASS_PATH := "res://data/classes/cook.tres"
 
@@ -32,8 +34,14 @@ func start_new_run() -> void:
 	var character_class: CharacterClassData = load(CLASS_PATH)
 	var biome_pool := CardLibrary.load_biomes_from_dir(BIOMES_DIR)
 	var event_cards := CardLibrary.load_cards_from_dir(EVENT_CARDS_DIR)
+	# Reward pool: all action cards + buildings (extra copies to construct).
 	var card_pool := CardLibrary.load_cards_from_dir(ACTION_CARDS_DIR)
-	survival.start(character_class, biome_pool, event_cards, card_pool)
+	card_pool.append_array(CardLibrary.load_cards_from_dir(BUILDINGS_DIR))
+	var disaster_pool: Array[DisasterData] = []
+	for resource in CardLibrary.load_resources_from_dir(DISASTERS_DIR):
+		if resource is DisasterData:
+			disaster_pool.append(resource)
+	survival.start(character_class, biome_pool, event_cards, card_pool, disaster_pool)
 
 	_change_scene(RUN_SCENE)
 

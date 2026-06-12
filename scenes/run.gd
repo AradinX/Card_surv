@@ -17,10 +17,13 @@ const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 @onready var _warmth_bar: ProgressBar = $Margin/Layout/TopBar/WarmthBox/WarmthBar
 @onready var _energy_label: Label = $Margin/Layout/TopBar/EnergyBox/EnergyLabel
 @onready var _energy_bar: ProgressBar = $Margin/Layout/TopBar/EnergyBox/EnergyBar
+@onready var _background: ColorRect = $Background
 @onready var _resources_label: Label = $Margin/Layout/ResourcesLabel
 @onready var _board_grid: GridContainer = $Margin/Layout/MidRow/Board
 @onready var _log: RichTextLabel = $Margin/Layout/MidRow/Log
 @onready var _gather_container: HBoxContainer = $Margin/Layout/GatherBar/GatherCards
+@onready var _building_bar: HBoxContainer = $Margin/Layout/BuildingBar
+@onready var _building_actions: HBoxContainer = $Margin/Layout/BuildingBar/BuildingActions
 @onready var _hand_container: HBoxContainer = $Margin/Layout/BottomBar/Hand
 @onready var _end_day_button: Button = $Margin/Layout/BottomBar/EndDayButton
 @onready var _level_overlay: ColorRect = $LevelUpOverlay
@@ -56,6 +59,7 @@ func _ready() -> void:
 	_survival.board_changed.connect(_on_board_changed)
 	_survival.gather_actions_changed.connect(_on_gather_actions_changed)
 	_survival.leveled_up.connect(_on_leveled_up)
+	_survival.bum_struck.connect(_on_bum_struck)
 	_survival.log_message.connect(_on_log_message)
 	_end_day_button.pressed.connect(_survival.end_day)
 	_energy_button.pressed.connect(_on_reward_energy)
@@ -115,7 +119,7 @@ func _refresh_tiles(state: RunState) -> void:
 		var marker := "▶ " if i == state.current_tile else ""
 		var building_names: PackedStringArray = []
 		for built in tile.buildings:
-			building_names.append(built.data.display_name)
+			building_names.append(_building_label(built))
 		var buildings_line := ", ".join(building_names) if not building_names.is_empty() \
 			else "—"
 		button.text = "%s%s\nSloty: %d/%d\n%s" % [
@@ -126,10 +130,60 @@ func _refresh_tiles(state: RunState) -> void:
 		var block_reason := _survival.can_move(i)
 		button.disabled = block_reason != ""
 		if i == state.current_tile:
-			button.tooltip_text = tile.biome.description
+			button.tooltip_text = tile.biome.corrupted_description if tile.is_corrupted \
+				else tile.biome.description
 		else:
 			button.tooltip_text = block_reason if block_reason != "" \
 				else "Przejdź (koszt: %d energii)" % SurvivalSystem.MOVE_ENERGY_COST
+	_refresh_building_actions()
+
+
+func _building_label(built: BuildingState) -> String:
+	if built.is_ruined:
+		return "RUINA: %s" % built.data.display_name
+	return "%s %d HP" % [built.data.display_name, built.hp]
+
+
+## Repair/demolish buttons for buildings on the player's current tile.
+func _refresh_building_actions() -> void:
+	for child in _building_actions.get_children():
+		_building_actions.remove_child(child)
+		child.queue_free()
+
+	var buildings := _survival.current_tile().buildings
+	var any_action := false
+	for i in buildings.size():
+		var built := buildings[i]
+		if built.is_ruined:
+			var demolish_button := Button.new()
+			demolish_button.text = "Rozbierz ruinę: %s" % built.data.display_name
+			var demolish_block := _survival.can_demolish(i)
+			demolish_button.disabled = demolish_block != ""
+			demolish_button.tooltip_text = demolish_block if demolish_block != "" \
+				else "Koszt: %d energii, odzysk ~połowy surowców" \
+					% SurvivalSystem.DEMOLISH_ENERGY_COST
+			demolish_button.pressed.connect(_survival.demolish.bind(i))
+			_building_actions.add_child(demolish_button)
+			any_action = true
+		elif built.hp < _survival.building_max_hp(built.data):
+			var repair_button := Button.new()
+			repair_button.text = "Napraw: %s (%d drewna)" % [
+				built.data.display_name, _survival.repair_wood_cost(built)
+			]
+			var repair_block := _survival.can_repair(i)
+			repair_button.disabled = repair_block != ""
+			repair_button.tooltip_text = repair_block if repair_block != "" \
+				else "Koszt: %d energii, naprawa do pełna" \
+					% SurvivalSystem.REPAIR_ENERGY_COST
+			repair_button.pressed.connect(_survival.repair.bind(i))
+			_building_actions.add_child(repair_button)
+			any_action = true
+	_building_bar.visible = any_action
+
+
+## BUM: the world darkens for the rest of the run.
+func _on_bum_struck(_disaster: DisasterData) -> void:
+	_background.color = Color(0.1, 0.12, 0.09)
 
 
 func _on_hand_changed(hand: Array[CardData]) -> void:
@@ -225,7 +279,7 @@ func _on_reward_card() -> void:
 	_card_choices.visible = true
 
 
-func _on_reward_card_chosen(card: ActionCardData) -> void:
+func _on_reward_card_chosen(card: CardData) -> void:
 	_survival.claim_card(card)
 	_show_reward_panel()
 

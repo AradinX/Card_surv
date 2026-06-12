@@ -60,8 +60,8 @@ func _check_dzien50_data() -> int:
 
 	var buildings := _load_dir("res://data/buildings")
 	print("buildings: %d" % buildings.size())
-	if buildings.size() < 3:
-		push_error("expected at least 3 buildings")
+	if buildings.size() < 4:
+		push_error("expected at least 4 buildings (incl. a defense building)")
 		failures += 1
 	for resource in buildings:
 		if not (resource is BuildingCardData):
@@ -74,6 +74,9 @@ func _check_dzien50_data() -> int:
 
 	var monsters := _load_dir("res://data/monsters")
 	print("monsters: %d" % monsters.size())
+	if monsters.size() < 4:
+		push_error("expected at least 4 monster types (README MVP: 3-4)")
+		failures += 1
 	for resource in monsters:
 		if not (resource is MonsterCardData):
 			push_error("non-MonsterCardData resource in data/monsters")

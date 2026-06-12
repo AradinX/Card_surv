@@ -44,6 +44,8 @@ const MAX_ENERGY := 10
 @export var board: Array[TileState] = []
 @export var current_tile: int = 0
 
-## BUM disaster (rolled when it strikes; null before).
+## BUM disaster: type and strike day are rolled at run start (the player
+## never knows the day); bum_happened flips when the board is corrupted.
 @export var disaster: DisasterData
+@export var bum_day: int = 0
 @export var bum_happened: bool = false

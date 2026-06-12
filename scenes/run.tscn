@@ -44,7 +44,7 @@ theme_override_constants/separation = 24
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 26
-text = "Dzień 1/15"
+text = "Dzień 1/30"
 
 [node name="LevelLabel" type="Label" parent="Margin/Layout/TopBar"]
 layout_mode = 2
@@ -167,6 +167,22 @@ theme_override_font_sizes/font_size = 16
 text = "Okolica:"
 
 [node name="GatherCards" type="HBoxContainer" parent="Margin/Layout/GatherBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="BuildingBar" type="HBoxContainer" parent="Margin/Layout"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BuildingLabel" type="Label" parent="Margin/Layout/BuildingBar"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 16
+text = "Budynki:"
+
+[node name="BuildingActions" type="HBoxContainer" parent="Margin/Layout/BuildingBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10

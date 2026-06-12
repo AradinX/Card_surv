@@ -1,9 +1,10 @@
 class_name SurvivalSystem
 extends RefCounted
-## The whole run on the biome board (Dzien 50, Act I core): continuous days,
-## four survival stats, movement between tiles (1 energy), buildings as
-## cards placed into tile slots, biome gather actions, end-of-day events.
-## Replaces the old node-map expedition layer.
+## The whole run on the biome board (Dzien 50): Act I (continuous days,
+## four survival stats, movement between tiles, buildings as cards in tile
+## slots, biome gather actions, end-of-day events), then BUM mid-run (tiles
+## flip to corrupted faces, buildings take percent damage) and Act II
+## (monsters in the night deck, repairs, ruins, defense buildings).
 ##
 ## This class knows NOTHING about scenes or UI — all communication goes
 ## through signals. UI connects to the signals, then begin() is called.
@@ -15,11 +16,25 @@ signal board_changed(state: RunState)
 signal gather_actions_changed(actions: Array[ActionCardData])
 ## A level was gained; the player has state.pending_rewards choices waiting.
 signal leveled_up(level: int)
+## BUM struck this dawn: tiles flipped, buildings damaged, monsters incoming.
+signal bum_struck(disaster: DisasterData)
 signal log_message(text: String)
 signal run_ended(won: bool, days_survived: int)
 
-## Vertical-slice win condition: survive this many days (BUM extends it later).
-const WIN_DAY := 15
+## Full run: Act I (build up) -> BUM mid-run -> Act II (survive the disaster).
+const WIN_DAY := 30
+## BUM strikes at dawn of a day rolled from this range at run start.
+const BUM_DAY_MIN := 13
+const BUM_DAY_MAX := 16
+## Each building rolls this damage percent range when BUM strikes.
+const BUM_DAMAGE_PERCENT_MIN := 10
+const BUM_DAMAGE_PERCENT_MAX := 80
+## Scripted dawn omens start this many days before BUM (foreshadowing).
+const OMEN_DAYS_BEFORE := 3
+const REPAIR_ENERGY_COST := 1
+const DEMOLISH_ENERGY_COST := 1
+## Tearing down a ruin refunds about half of the build resources.
+const DEMOLISH_REFUND_DIVISOR := 2
 const HAND_SIZE := 4
 const MOVE_ENERGY_COST := 1
 const DAILY_HUNGER_DECAY := 2
@@ -49,7 +64,10 @@ var hand: Array[CardData] = []
 var _rng := RandomNumberGenerator.new()
 var _day_deck: Deck
 var _event_deck: Deck
-var _card_pool: Array[ActionCardData] = []
+## Level-up card reward pool: action cards and (extra copies of) buildings.
+var _card_pool: Array[CardData] = []
+## Generic events shared by both acts; biome/disaster extras come on top.
+var _base_event_cards: Array[CardData] = []
 var _day_active := false
 var _ended := false
 ## "<tile index>:<card id>" entries for gather actions already used today.
@@ -61,6 +79,7 @@ func start(
 	biome_pool: Array[BiomeData],
 	event_cards: Array[CardData],
 	card_pool: Array[CardData] = [],
+	disaster_pool: Array[DisasterData] = [],
 ) -> void:
 	_rng.randomize()
 	state = RunState.new()
@@ -68,15 +87,21 @@ func start(
 	for card in character_class.starter_deck.cards:
 		state.deck.append(card)
 	for card in card_pool:
-		if card is ActionCardData:
+		if card is ActionCardData or card is BuildingCardData:
 			_card_pool.append(card)
+	_base_event_cards = event_cards.duplicate()
 
 	state.board = BoardGenerator.generate(biome_pool, _rng)
 	state.current_tile = _rng.randi_range(0, state.board.size() - 1)
 
+	# BUM is sealed at run start: the player never knows the type or the day.
+	if not disaster_pool.is_empty():
+		state.disaster = disaster_pool[_rng.randi_range(0, disaster_pool.size() - 1)]
+		state.bum_day = _rng.randi_range(BUM_DAY_MIN, BUM_DAY_MAX)
+
 	# The board composition shapes the run: biome hazard cards join the
 	# shared event deck for the whole run.
-	var event_pool: Array[CardData] = event_cards.duplicate()
+	var event_pool: Array[CardData] = _base_event_cards.duplicate()
 	for tile in state.board:
 		for event in tile.biome.extra_event_cards:
 			event_pool.append(event)
@@ -155,6 +180,83 @@ func play_gather(card: ActionCardData) -> void:
 	gather_actions_changed.emit(gather_actions())
 
 
+# --- Building maintenance (repairs and ruins, README BUM section) ---
+
+
+## Wood needed to fully repair a damaged building (1 per 2 missing HP).
+func repair_wood_cost(built: BuildingState) -> int:
+	return ceili((building_max_hp(built.data) - built.hp) / 2.0)
+
+
+## Returns "" when the building on the current tile can be repaired.
+func can_repair(building_index: int) -> String:
+	if not _day_active:
+		return "Dzień dobiegł końca."
+	var buildings := current_tile().buildings
+	if building_index < 0 or building_index >= buildings.size():
+		return "Nie ma takiego budynku."
+	var built := buildings[building_index]
+	if built.is_ruined:
+		return "To ruina — można ją tylko rozebrać."
+	if built.hp >= building_max_hp(built.data):
+		return "Budynek jest cały."
+	if state.energy < REPAIR_ENERGY_COST:
+		return "Za mało energii (potrzeba %d)." % REPAIR_ENERGY_COST
+	if state.wood < repair_wood_cost(built):
+		return "Za mało drewna (potrzeba %d)." % repair_wood_cost(built)
+	return ""
+
+
+func repair(building_index: int) -> void:
+	var block_reason := can_repair(building_index)
+	if block_reason != "":
+		log_message.emit(block_reason)
+		return
+	var built := current_tile().buildings[building_index]
+	state.energy -= REPAIR_ENERGY_COST
+	state.wood -= repair_wood_cost(built)
+	built.hp = building_max_hp(built.data)
+	log_message.emit("Naprawiasz: %s (HP %d/%d)." % [
+		built.data.display_name, built.hp, building_max_hp(built.data)
+	])
+	stats_changed.emit(state)
+	board_changed.emit(state)
+
+
+## Returns "" when the ruin on the current tile can be torn down.
+func can_demolish(building_index: int) -> String:
+	if not _day_active:
+		return "Dzień dobiegł końca."
+	var buildings := current_tile().buildings
+	if building_index < 0 or building_index >= buildings.size():
+		return "Nie ma takiego budynku."
+	if not buildings[building_index].is_ruined:
+		return "Budynek stoi — rozbiórka tylko dla ruin."
+	if state.energy < DEMOLISH_ENERGY_COST:
+		return "Za mało energii (potrzeba %d)." % DEMOLISH_ENERGY_COST
+	return ""
+
+
+## Tearing down a ruin frees the slot and refunds ~half the build resources.
+func demolish(building_index: int) -> void:
+	var block_reason := can_demolish(building_index)
+	if block_reason != "":
+		log_message.emit(block_reason)
+		return
+	var built := current_tile().buildings[building_index]
+	var wood_refund := floori(built.data.wood_cost / float(DEMOLISH_REFUND_DIVISOR))
+	var materials_refund := floori(built.data.materials_cost / float(DEMOLISH_REFUND_DIVISOR))
+	state.energy -= DEMOLISH_ENERGY_COST
+	state.wood += wood_refund
+	state.materials += materials_refund
+	current_tile().buildings.remove_at(building_index)
+	log_message.emit("Rozbierasz ruinę: %s (+%d drewna, +%d materiałów)." % [
+		built.data.display_name, wood_refund, materials_refund
+	])
+	stats_changed.emit(state)
+	board_changed.emit(state)
+
+
 # --- Hand cards (actions and buildings) ---
 
 
@@ -219,7 +321,11 @@ func end_day() -> void:
 	hand_changed.emit(hand)
 
 	_resolve_building_passives()
-	_resolve_event(_event_deck.draw() as EventCardData)
+	var night_card := _event_deck.draw()
+	if night_card is MonsterCardData:
+		_resolve_monster_attack(night_card as MonsterCardData)
+	elif night_card is EventCardData:
+		_resolve_event(night_card as EventCardData)
 	_resolve_needs()
 	stats_changed.emit(state)
 
@@ -227,7 +333,7 @@ func end_day() -> void:
 		_finish(false)
 		return
 	if state.day >= WIN_DAY:
-		log_message.emit("Dzień %d. Wciąż żyjesz. To koniec tej próby!" % WIN_DAY)
+		log_message.emit("Dzień %d. Budzisz się we własnym łóżku. To był sen?" % WIN_DAY)
 		_finish(true)
 		return
 
@@ -267,16 +373,17 @@ func claim_max_health() -> void:
 	stats_changed.emit(state)
 
 
-## Up to REWARD_CHOICES distinct random cards from the reward pool.
-func roll_card_rewards() -> Array[ActionCardData]:
+## Up to REWARD_CHOICES distinct random cards from the reward pool
+## (actions and buildings alike — a building reward is a new card to build).
+func roll_card_rewards() -> Array[CardData]:
 	var pool := _card_pool.duplicate()
-	var result: Array[ActionCardData] = []
+	var result: Array[CardData] = []
 	while result.size() < REWARD_CHOICES and not pool.is_empty():
 		result.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
 	return result
 
 
-func claim_card(card: ActionCardData) -> void:
+func claim_card(card: CardData) -> void:
 	if not has_pending_reward() or card == null:
 		return
 	state.pending_rewards -= 1
@@ -303,6 +410,12 @@ func _grant_xp(amount: int) -> void:
 func _start_day() -> void:
 	_day_active = true
 	_used_gathers.clear()
+
+	if not state.bum_happened and state.disaster != null:
+		if state.day >= state.bum_day:
+			_trigger_bum()
+		elif state.bum_day - state.day <= OMEN_DAYS_BEFORE:
+			_log_omen()
 	# Energy may exceed the cap by one (e.g. the Sunny Morning event).
 	state.energy = clampi(
 		state.max_energy + state.next_day_energy_delta, 1, state.max_energy + 1
@@ -399,7 +512,7 @@ func _build(building: BuildingCardData) -> void:
 
 	var built := BuildingState.new()
 	built.data = building
-	built.hp = building.max_hp + state.character_class.building_hp_bonus
+	built.hp = building_max_hp(building)
 	current_tile().buildings.append(built)
 
 	# A built building leaves the player's deck permanently — it lives on
@@ -448,12 +561,142 @@ func _resolve_explore() -> void:
 			log_message.emit("Znajdujesz deszczówkę i jagody. +1 wody, +1 jedzenia.")
 
 
+# --- BUM and Act II (README sections 5-6) ---
+
+
+## The catastrophe: tiles flip to their corrupted faces, every building
+## rolls a damage percent (>= 50% = ruin), and the event deck is rebuilt
+## with corrupted biome hazards, disaster events and monster cards.
+func _trigger_bum() -> void:
+	state.bum_happened = true
+	log_message.emit("=== BUM ===")
+	log_message.emit("Niebo pęka. %s" % state.disaster.description)
+
+	for tile in state.board:
+		tile.is_corrupted = true
+		for built in tile.buildings:
+			var max_hp := building_max_hp(built.data)
+			var percent := _rng.randi_range(
+				BUM_DAMAGE_PERCENT_MIN, BUM_DAMAGE_PERCENT_MAX
+			)
+			built.hp = maxi(built.hp - roundi(max_hp * percent / 100.0), 0)
+			_check_ruin(built)
+			if not built.is_ruined:
+				log_message.emit("%s: uszkodzenia %d%% (HP %d/%d)." % [
+					built.data.display_name, percent, built.hp, max_hp
+				])
+
+	# Act II event deck: generic events + corrupted biome hazards +
+	# disaster events + monsters (each with its copy count).
+	var event_pool: Array[CardData] = _base_event_cards.duplicate()
+	for tile in state.board:
+		for event in tile.biome.corrupted_extra_event_cards:
+			event_pool.append(event)
+	for event in state.disaster.extra_event_cards:
+		event_pool.append(event)
+	for monster in state.disaster.monsters:
+		for copy in monster.copies_in_deck:
+			event_pool.append(monster)
+	_event_deck = Deck.new(event_pool, _rng)
+
+	log_message.emit("Świat już nie jest ten sam. Przetrwaj do dnia %d." % WIN_DAY)
+	bum_struck.emit(state.disaster)
+	board_changed.emit(state)
+
+
+## Foreshadowing in the last days before BUM (the player senses SOMETHING).
+func _log_omen() -> void:
+	var omens: Array[String] = [
+		"Martwe ptaki leżą pod drzewami. Żadne zwierzę ich nie tyka.",
+		"Ziemia zadrżała. Na horyzoncie stoi zielonkawa łuna.",
+		"Sny są coraz cięższe. Coś nadchodzi.",
+		"Zwierzyna ucichła. Las wstrzymuje oddech.",
+	]
+	log_message.emit("Omen: %s" % omens[state.day % omens.size()])
+
+
+## A monster card drawn at night: it claws the player and one building,
+## then shuffles back into the event deck (monsters don't go away).
+func _resolve_monster_attack(monster: MonsterCardData) -> void:
+	log_message.emit("Potwór: %s — %s" % [monster.display_name, monster.description])
+
+	var player_damage := maxi(
+		monster.damage_to_player - state.character_class.monster_damage_reduction, 0
+	)
+	# A standing Szalas shields the player from night attacks too — until
+	# monsters or BUM turn it into a ruin.
+	if player_damage > 0 and _has_night_protection():
+		player_damage = maxi(player_damage - NIGHT_PROTECTION_VALUE, 0)
+		log_message.emit("Szałas osłania cię przed atakiem.")
+	if player_damage > 0:
+		state.health = maxi(state.health - player_damage, 0)
+		log_message.emit("%s rani cię. -%d zdrowia." % [monster.display_name, player_damage])
+
+	if monster.damage_to_buildings > 0:
+		_monster_attack_building(monster)
+
+	_event_deck.discard(monster)
+	board_changed.emit(state)
+
+
+## The monster picks a random standing building; the summed defense of
+## standing buildings on that tile (Palisada...) soaks part of the damage.
+func _monster_attack_building(monster: MonsterCardData) -> void:
+	var standing: Array = []
+	var tiles: Array[TileState] = []
+	for tile in state.board:
+		for built in tile.buildings:
+			if not built.is_ruined:
+				standing.append(built)
+				tiles.append(tile)
+	if standing.is_empty():
+		return
+
+	var pick := _rng.randi_range(0, standing.size() - 1)
+	var target: BuildingState = standing[pick]
+	var damage := maxi(monster.damage_to_buildings - _tile_defense(tiles[pick]), 0)
+	if damage <= 0:
+		log_message.emit("Palisada odpiera atak na %s." % target.data.display_name)
+		return
+	target.hp = maxi(target.hp - damage, 0)
+	log_message.emit("%s niszczy %s (-%d HP, zostało %d/%d)." % [
+		monster.display_name, target.data.display_name, damage,
+		target.hp, building_max_hp(target.data),
+	])
+	_check_ruin(target)
+
+
+func _tile_defense(tile: TileState) -> int:
+	var defense := 0
+	for built in tile.buildings:
+		if not built.is_ruined:
+			defense += built.data.defense
+	return defense
+
+
+func building_max_hp(building: BuildingCardData) -> int:
+	return building.max_hp + state.character_class.building_hp_bonus
+
+
+## Below 50% HP a building collapses into a ruin: passives, defense and
+## specials stop working; it can only be torn down (README BUM threshold).
+func _check_ruin(built: BuildingState) -> void:
+	if built.is_ruined:
+		return
+	if built.hp * 2 < building_max_hp(built.data):
+		built.is_ruined = true
+		log_message.emit("%s zamienia się w RUINĘ. Możesz ją tylko rozebrać." %
+			built.data.display_name)
+
+
 # --- End of day ---
 
 
 func _resolve_building_passives() -> void:
 	for tile in state.board:
 		for built in tile.buildings:
+			if built.is_ruined:
+				continue
 			var data := built.data
 			state.food += data.food_gain
 			state.water += data.water_gain
@@ -489,10 +732,10 @@ func _resolve_event(event: EventCardData) -> void:
 
 
 func _has_night_protection() -> bool:
-	# Building passives are global, so any standing Szalas counts.
+	# Building passives are global, so any standing (non-ruined) Szalas counts.
 	for tile in state.board:
 		for built in tile.buildings:
-			if built.data.special == "night_protection" and built.hp > 0:
+			if built.data.special == "night_protection" and not built.is_ruined:
 				return true
 	return false
 

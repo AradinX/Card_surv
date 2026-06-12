@@ -1,13 +1,17 @@
-[gd_resource type="Resource" script_class="DisasterData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="DisasterData" load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/disaster_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/monsters/plague_zombie.tres" id="2_zombie"]
-[ext_resource type="Resource" path="res://data/cards/events/sickness.tres" id="3_sick"]
+[ext_resource type="Resource" path="res://data/monsters/plague_wolf.tres" id="3_wolf"]
+[ext_resource type="Resource" path="res://data/monsters/crow_swarm.tres" id="4_crows"]
+[ext_resource type="Resource" path="res://data/monsters/rat_swarm.tres" id="5_rats"]
+[ext_resource type="Resource" path="res://data/cards/events/plague/rotting_supplies.tres" id="6_rot"]
+[ext_resource type="Resource" path="res://data/cards/events/plague/nightmares.tres" id="7_dreams"]
 
 [resource]
 script = ExtResource("1_script")
 id = "plague"
 display_name = "Plaga"
 description = "Niebo pęka zielonym błyskiem. Ziemia gnije, a umarli nie chcą leżeć."
-monsters = [ExtResource("2_zombie")]
-extra_event_cards = [ExtResource("3_sick")]
+monsters = [ExtResource("2_zombie"), ExtResource("3_wolf"), ExtResource("4_crows"), ExtResource("5_rats")]
+extra_event_cards = [ExtResource("6_rot"), ExtResource("7_dreams")]

@@ -4,10 +4,10 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "plague_zombie"
-display_name = "Zgnilec"
-description = "Powłóczy nogami w stronę ogniska. Nocą drze deski z twoich budynków."
+id = "rat_swarm"
+display_name = "Rój szczurów"
+description = "Tysiące zębów w ścianach. Rano budynki są cieńsze."
 disaster_id = "plague"
-damage_to_player = 2
-damage_to_buildings = 2
+damage_to_player = 0
+damage_to_buildings = 3
 copies_in_deck = 2

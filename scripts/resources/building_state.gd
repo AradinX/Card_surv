@@ -6,3 +6,6 @@ extends Resource
 
 @export var data: BuildingCardData
 @export var hp: int = 0
+## A building whose hp falls below 50% of its max becomes a ruin: passives,
+## defense and specials stop working and it can only be torn down.
+@export var is_ruined: bool = false

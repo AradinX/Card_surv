@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "murky_water"
+display_name = "Mętna woda"
+description = "Cuchnąca kałuża po deszczu. Lepsze to niż nic. +1 wody."
+energy_cost = 1
+water_gain = 1
