@@ -4,6 +4,7 @@ extends Control
 ## SurvivalSystem signals and forwards player input to it.
 
 const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
+const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
 
 @onready var _day_label: Label = $Scroll/Margin/Layout/TopBar/DayLabel
 @onready var _level_label: Label = $Scroll/Margin/Layout/TopBar/LevelLabel
@@ -38,7 +39,7 @@ const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 @onready var _night_continue_button: Button = $NightEventOverlay/Panel/PanelMargin/VBox/ContinueButton
 
 var _survival: SurvivalSystem
-var _tile_buttons: Array[Button] = []
+var _tile_buttons: Array[BiomeTileView] = []
 
 
 func _ready() -> void:
@@ -76,8 +77,7 @@ func _ready() -> void:
 
 func _create_tile_buttons() -> void:
 	for i in BoardGenerator.BOARD_SIZE:
-		var button := Button.new()
-		button.custom_minimum_size = Vector2(230, 110)
+		var button := BIOME_TILE_VIEW_SCENE.instantiate() as BiomeTileView
 		button.pressed.connect(_survival.move_to.bind(i))
 		_board_grid.add_child(button)
 		_tile_buttons.append(button)
@@ -119,35 +119,16 @@ func _refresh_tiles(state: RunState) -> void:
 	for i in _tile_buttons.size():
 		var tile := state.board[i]
 		var button := _tile_buttons[i]
-		var biome_name := tile.biome.corrupted_display_name if tile.is_corrupted \
-			else tile.biome.display_name
-		var marker := "▶ " if i == state.current_tile else ""
-		var building_names: PackedStringArray = []
-		for built in tile.buildings:
-			building_names.append(_building_label(built))
-		var buildings_line := ", ".join(building_names) if not building_names.is_empty() \
-			else "—"
-		button.text = "%s%s\nSloty: %d/%d\n%s" % [
-			marker, biome_name,
-			tile.buildings.size(), tile.biome.building_slots,
-			buildings_line,
-		]
 		var block_reason := _survival.can_move(i)
-		button.disabled = block_reason != ""
+		var tooltip := ""
 		if i == state.current_tile:
-			button.tooltip_text = tile.biome.corrupted_description if tile.is_corrupted \
+			tooltip = tile.biome.corrupted_description if tile.is_corrupted \
 				else tile.biome.description
 		else:
-			button.tooltip_text = block_reason if block_reason != "" \
+			tooltip = block_reason if block_reason != "" \
 				else "Przejdź (koszt: %d energii)" % SurvivalSystem.MOVE_ENERGY_COST
+		button.setup(tile, i == state.current_tile, block_reason, tooltip)
 	_refresh_building_actions()
-
-
-func _building_label(built: BuildingState) -> String:
-	if built.is_ruined:
-		return "RUINA: %s" % built.data.display_name
-	return "%s %d HP" % [built.data.display_name, built.hp]
-
 
 ## Repair/demolish buttons for buildings on the player's current tile.
 func _refresh_building_actions() -> void:
