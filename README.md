@@ -56,6 +56,11 @@ dnia 50. Obudź się.
   sąsiedni kafel kosztuje **1 energię**. Karty zbierania zasobów działają
   tylko w bieżącym biomie; **pasywne efekty budynków są globalne**
   (Ognisko grzeje niezależnie od pozycji).
+- **Odkrywanie mapy w Akcie I:** na starcie gracz widzi tylko kafel
+  startowy, a pozostałe kafle są zakryte jako `Nieznany teren`. Wejście na
+  sąsiedni kafel odkrywa jego biom, sloty budynków, akcje zbierania i
+  zagrożenia. Karty eksploracji (`Eksploruj`, `Zwiad`, `Mapa okolicy`) mogą
+  docelowo podejrzeć lub oznaczyć kafel przed wejściem.
 - **Po BUM kafle odwracają się** na skorumpowane wersje (Martwe
   Wybrzeże, Wyjące Góry...) z innymi zasobami i zagrożeniami.
 - Synergia układu: sąsiedztwo kafli ma znaczenie (np. Farma na Łące
@@ -68,8 +73,9 @@ dnia 50. Obudź się.
 - Statystyki gracza: **HP, Głód, Pragnienie, Ciepło** — spadek któregoś
   do zera = obrażenia / śmierć.
 - **Energia: 10 dziennie (bazowo).** Pętla dnia: dobierz rękę z talii
-  akcji → graj karty za energię → efekty budynków → karta zdarzenia →
-  koniec dnia (głód/pragnienie/ciepło tykają).
+  akcji → graj karty za energię → zakończ dzień → duża karta nocnego
+  zdarzenia → efekty budynków i rozliczenie nocy (głód/pragnienie/ciepło
+  tykają).
 - **Poziomy postaci w obrębie runu:** XP za działania; awans = wybór
   1 z 3 nagród (+1 max energii / +max HP / ulepszenie karty z talii).
   Poziomy NIE przenoszą się między runami. Karty zdarzeń mogą dawać
@@ -80,6 +86,17 @@ dnia 50. Obudź się.
 - **Pory roku jako fazy talii zdarzeń:** wiosna → lato (upał, psucie
   jedzenia) → jesień (obfitość, przygotowania) → zima (mróz, śnieżyce,
   zamarznięta woda).
+- **Nocne zdarzenia jako kontrolowana pula, nie czysty chaos:** każdej nocy
+  dobierana jest jedna karta z aktywnej puli z wagami. Pula składa się z
+  kart bazowych, kart odkrytych biomów, kart sezonu, zapowiedzi BUM, a po
+  katastrofie także potworów i kart katastrofy. Zdarzenia mają `weight`,
+  `cooldown_days`, `max_per_run` i tagi, aby rzadkie zagrożenia (powódź,
+  choroba z bagien) nie powtarzały się frustrująco często. `Spokojna noc`
+  jest prawdziwą neutralną kartą, a nie brakiem zdarzenia.
+- **Prezentacja nocy:** po kliknięciu `Zakończ dzień` ekran przyciemnia się,
+  pokazuje rewers karty zdarzenia, flipuje ją na dużą kartę z opisem i
+  efektem, a gracz klika `OK`, żeby rozliczyć konsekwencje. Efekty trafiają
+  też do dziennika/logu.
 - **Foreshadowing** (zapowiedzi twista): od ~dnia 15 w talii zdarzeń
   pojawiają się sygnały — martwe ptaki, drżenie ziemi, łuna na
   horyzoncie, niespokojne sny. Gracz wie, że COŚ nadchodzi; nie wie
@@ -165,9 +182,14 @@ zdarzeń, mapa węzłów) to fundament — nie zaczynamy od zera.
 ### Vertical slice (cel nr 1)
 - Przeróbka mapy węzłów na **planszę 6 kafli** (3-4 biomy w puli),
   ruch za 1 energię, sloty budynków 2-4.
+- Odkrywanie mapy w Akcie I: start z jednym widocznym kaflem, reszta jako
+  `Nieznany teren`; odkrywanie przez wejście na sąsiedni kafel, później
+  wsparte kartami zwiadu.
 - Budynki jako karty na stole z przypisaniem do slotów i HP.
 - Statystyki: HP, Głód, Pragnienie, Ciepło; energia 10/dzień;
   uproszczone pory roku (po kilka kart na porę).
+- Nocne zdarzenia: aktywna pula z wagami, karta `Spokojna noc`, duży popup
+  karty po zakończeniu dnia; cooldowny i limity jako następny krok balansu.
 - Poziomy w runie: XP + wybór 1 z 3 przy awansie.
 - **Jeden typ BUM** (Plaga): flip kafli, procentowe uszkodzenia
   budynków (próg 50%), 3-4 typy potworów, podstawowa obrona.
@@ -198,6 +220,9 @@ zdarzeń, mapa węzłów) to fundament — nie zaczynamy od zera.
 - [ ] Wielkość ręki kart i koszty energii poszczególnych akcji
       (do ustalenia w praktyce podczas balansu vertical slice'a).
 - [ ] Ile XP za co i co dokładnie daje "poziom osady" w punktacji meta.
+- [ ] Dokładne wagi, cooldowny i limity nocnych zdarzeń dla biomów/sezonów.
+- [ ] Czy `Zwiad` tylko podgląda kafel, czy także czasowo ujawnia jego
+      zdarzenia/zasoby w puli planowania.
 - [ ] Szczegóły wydarzeń odblokowujących Budowlańca i Wojskowego.
 - [ ] Scena po napisach — czy element ze snu pojawia się w "realnym"
       pokoju?

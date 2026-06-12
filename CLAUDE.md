@@ -178,16 +178,24 @@ karty, akcje biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3
   odrzucony jako zbyt paint-like. Produkcyjne `assets/art/biomes/frames` i
   `slot_markers` uzywaja surowych AI assetow na zielonym tle. `frames`
   zostaly ponownie wygenerowane w lzejszym stylu `biome_neighbor_highlight`
-  (cienkie zlote bracket/corner accents, liscie, duzo pustego zielonego
-  srodka), a poprzednie zaakceptowane ramki zapisano w
-  `assets/art/concepts/biomes/frames_before_neighbor_highlight_style/`.
+  (cienkie zlote bracket/corner accents, liscie), ale po korekcie
+  `biome_tile_frame.png` ma byc zamknieta ciagla ramka bez przerw, a
+  `biome_title_plate.png` ma miec ciemne zielono/brazowe wypelnienie pod
+  czytelny jednokolorowy tekst w Godot. Slot markery uproszczono do dwoch
+  aktywnych stanow: `slot_empty.png` i `slot_selectable.png`; oba maja byc
+  zamkniete, lekkie, ornamentalne i z ciemnym wypelnionym srodkiem. Poprzednie zaakceptowane ramki
+  zapisano w `assets/art/concepts/biomes/frames_before_neighbor_highlight_style/`,
+  a przerwana/open-frame wersje w
+  `assets/art/concepts/biomes/frames_neighbor_style_open_frame_reference/`.
   `assets/art/biomes/overlays` zostaly ponownie wygenerowane przez `imagegen`.
   Regula pipeline'u: zostawiac raw `#00FF00`, nie usuwac chroma-key podczas
   generowania, bo wycinanie potrafi obciac koncowki ramek i glow piksele.
   Podglady: `docs/asset_plan/previews/preview_biome_ai_candidates_greenkey.png`,
   `docs/asset_plan/previews/preview_biome_ai_candidates_on_forest.png` oraz
   `docs/asset_plan/previews/preview_biome_overlays_raw_green.png`,
-  `docs/asset_plan/previews/preview_biome_frames_neighbor_style_raw_green.png`.
+  `docs/asset_plan/previews/preview_biome_frames_neighbor_style_raw_green.png`,
+  `docs/asset_plan/previews/preview_biome_frames_closed_filled_raw_green.png`
+  oraz `docs/asset_plan/previews/preview_biome_slots_closed_light_raw_green.png`.
 
 ### Audyt struktury assetów + porządki (2026-06-12)
 
