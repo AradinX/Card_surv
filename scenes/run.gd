@@ -5,27 +5,27 @@ extends Control
 
 const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 
-@onready var _day_label: Label = $Margin/Layout/TopBar/DayLabel
-@onready var _level_label: Label = $Margin/Layout/TopBar/LevelLabel
-@onready var _health_label: Label = $Margin/Layout/TopBar/HealthBox/HealthLabel
-@onready var _health_bar: ProgressBar = $Margin/Layout/TopBar/HealthBox/HealthBar
-@onready var _hunger_label: Label = $Margin/Layout/TopBar/HungerBox/HungerLabel
-@onready var _hunger_bar: ProgressBar = $Margin/Layout/TopBar/HungerBox/HungerBar
-@onready var _thirst_label: Label = $Margin/Layout/TopBar/ThirstBox/ThirstLabel
-@onready var _thirst_bar: ProgressBar = $Margin/Layout/TopBar/ThirstBox/ThirstBar
-@onready var _warmth_label: Label = $Margin/Layout/TopBar/WarmthBox/WarmthLabel
-@onready var _warmth_bar: ProgressBar = $Margin/Layout/TopBar/WarmthBox/WarmthBar
-@onready var _energy_label: Label = $Margin/Layout/TopBar/EnergyBox/EnergyLabel
-@onready var _energy_bar: ProgressBar = $Margin/Layout/TopBar/EnergyBox/EnergyBar
+@onready var _day_label: Label = $Scroll/Margin/Layout/TopBar/DayLabel
+@onready var _level_label: Label = $Scroll/Margin/Layout/TopBar/LevelLabel
+@onready var _health_label: Label = $Scroll/Margin/Layout/TopBar/HealthBox/HealthLabel
+@onready var _health_bar: ProgressBar = $Scroll/Margin/Layout/TopBar/HealthBox/HealthBar
+@onready var _hunger_label: Label = $Scroll/Margin/Layout/TopBar/HungerBox/HungerLabel
+@onready var _hunger_bar: ProgressBar = $Scroll/Margin/Layout/TopBar/HungerBox/HungerBar
+@onready var _thirst_label: Label = $Scroll/Margin/Layout/TopBar/ThirstBox/ThirstLabel
+@onready var _thirst_bar: ProgressBar = $Scroll/Margin/Layout/TopBar/ThirstBox/ThirstBar
+@onready var _warmth_label: Label = $Scroll/Margin/Layout/TopBar/WarmthBox/WarmthLabel
+@onready var _warmth_bar: ProgressBar = $Scroll/Margin/Layout/TopBar/WarmthBox/WarmthBar
+@onready var _energy_label: Label = $Scroll/Margin/Layout/TopBar/EnergyBox/EnergyLabel
+@onready var _energy_bar: ProgressBar = $Scroll/Margin/Layout/TopBar/EnergyBox/EnergyBar
 @onready var _background: ColorRect = $Background
-@onready var _resources_label: Label = $Margin/Layout/ResourcesLabel
-@onready var _board_grid: GridContainer = $Margin/Layout/MidRow/Board
-@onready var _log: RichTextLabel = $Margin/Layout/MidRow/Log
-@onready var _gather_container: HBoxContainer = $Margin/Layout/GatherBar/GatherCards
-@onready var _building_bar: HBoxContainer = $Margin/Layout/BuildingBar
-@onready var _building_actions: HBoxContainer = $Margin/Layout/BuildingBar/BuildingActions
-@onready var _hand_container: HBoxContainer = $Margin/Layout/BottomBar/Hand
-@onready var _end_day_button: Button = $Margin/Layout/BottomBar/EndDayButton
+@onready var _resources_label: Label = $Scroll/Margin/Layout/ResourcesLabel
+@onready var _board_grid: GridContainer = $Scroll/Margin/Layout/MidRow/Board
+@onready var _log: RichTextLabel = $Scroll/Margin/Layout/MidRow/Log
+@onready var _gather_container: HBoxContainer = $Scroll/Margin/Layout/GatherBar/GatherCards
+@onready var _building_bar: HBoxContainer = $Scroll/Margin/Layout/BuildingBar
+@onready var _building_actions: HBoxContainer = $Scroll/Margin/Layout/BuildingBar/BuildingActions
+@onready var _hand_container: HBoxContainer = $Scroll/Margin/Layout/BottomBar/Hand
+@onready var _end_day_button: Button = $Scroll/Margin/Layout/BottomBar/EndDayButton
 @onready var _level_overlay: ColorRect = $LevelUpOverlay
 @onready var _level_title: Label = $LevelUpOverlay/Panel/PanelMargin/VBox/TitleLabel
 @onready var _reward_buttons: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons
@@ -33,6 +33,9 @@ const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 @onready var _health_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/HealthButton
 @onready var _card_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/CardButton
 @onready var _card_choices: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/CardChoices
+@onready var _night_overlay: ColorRect = $NightEventOverlay
+@onready var _night_card_slot: CenterContainer = $NightEventOverlay/Panel/PanelMargin/VBox/CardSlot
+@onready var _night_continue_button: Button = $NightEventOverlay/Panel/PanelMargin/VBox/ContinueButton
 
 var _survival: SurvivalSystem
 var _tile_buttons: Array[Button] = []
@@ -60,11 +63,13 @@ func _ready() -> void:
 	_survival.gather_actions_changed.connect(_on_gather_actions_changed)
 	_survival.leveled_up.connect(_on_leveled_up)
 	_survival.bum_struck.connect(_on_bum_struck)
+	_survival.night_card_drawn.connect(_on_night_card_drawn)
 	_survival.log_message.connect(_on_log_message)
 	_end_day_button.pressed.connect(_survival.end_day)
 	_energy_button.pressed.connect(_on_reward_energy)
 	_health_button.pressed.connect(_on_reward_health)
 	_card_button.pressed.connect(_on_reward_card)
+	_night_continue_button.pressed.connect(_hide_night_event)
 
 	_survival.begin()
 
@@ -184,6 +189,26 @@ func _refresh_building_actions() -> void:
 ## BUM: the world darkens for the rest of the run.
 func _on_bum_struck(_disaster: DisasterData) -> void:
 	_background.color = Color(0.1, 0.12, 0.09)
+
+
+func _on_night_card_drawn(card: CardData) -> void:
+	_clear_night_card()
+	var view: CardView = CARD_VIEW_SCENE.instantiate()
+	_night_card_slot.add_child(view)
+	view.setup(card, "")
+	view.focus_mode = Control.FOCUS_NONE
+	_night_overlay.visible = true
+
+
+func _hide_night_event() -> void:
+	_night_overlay.visible = false
+	_clear_night_card()
+
+
+func _clear_night_card() -> void:
+	for child in _night_card_slot.get_children():
+		_night_card_slot.remove_child(child)
+		child.queue_free()
 
 
 func _on_hand_changed(hand: Array[CardData]) -> void:

@@ -20,48 +20,54 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.14, 0.14, 0.16, 1)
 
-[node name="Margin" type="MarginContainer" parent="."]
+[node name="Scroll" type="ScrollContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="Margin" type="MarginContainer" parent="Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 12
 
-[node name="Layout" type="VBoxContainer" parent="Margin"]
+[node name="Layout" type="VBoxContainer" parent="Scroll/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="TopBar" type="HBoxContainer" parent="Margin/Layout"]
+[node name="TopBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
 layout_mode = 2
 theme_override_constants/separation = 24
 
-[node name="DayLabel" type="Label" parent="Margin/Layout/TopBar"]
+[node name="DayLabel" type="Label" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 26
 text = "Dzień 1/30"
 
-[node name="LevelLabel" type="Label" parent="Margin/Layout/TopBar"]
+[node name="LevelLabel" type="Label" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 16
 text = "Poziom 1
 XP 0/8"
 
-[node name="HealthBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
+[node name="HealthBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="HealthLabel" type="Label" parent="Margin/Layout/TopBar/HealthBox"]
+[node name="HealthLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/HealthBox"]
 layout_mode = 2
 text = "Zdrowie: 10/10"
 
-[node name="HealthBar" type="ProgressBar" parent="Margin/Layout/TopBar/HealthBox"]
+[node name="HealthBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/HealthBox"]
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
 modulate = Color(1, 0.45, 0.45, 1)
@@ -69,15 +75,15 @@ max_value = 10.0
 value = 10.0
 show_percentage = false
 
-[node name="HungerBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
+[node name="HungerBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="HungerLabel" type="Label" parent="Margin/Layout/TopBar/HungerBox"]
+[node name="HungerLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/HungerBox"]
 layout_mode = 2
 text = "Sytość: 8/10"
 
-[node name="HungerBar" type="ProgressBar" parent="Margin/Layout/TopBar/HungerBox"]
+[node name="HungerBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/HungerBox"]
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
 modulate = Color(1, 0.8, 0.4, 1)
@@ -85,15 +91,15 @@ max_value = 10.0
 value = 8.0
 show_percentage = false
 
-[node name="ThirstBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
+[node name="ThirstBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="ThirstLabel" type="Label" parent="Margin/Layout/TopBar/ThirstBox"]
+[node name="ThirstLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/ThirstBox"]
 layout_mode = 2
 text = "Nawodnienie: 8/10"
 
-[node name="ThirstBar" type="ProgressBar" parent="Margin/Layout/TopBar/ThirstBox"]
+[node name="ThirstBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/ThirstBox"]
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
 modulate = Color(0.45, 0.7, 1, 1)
@@ -101,15 +107,15 @@ max_value = 10.0
 value = 8.0
 show_percentage = false
 
-[node name="WarmthBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
+[node name="WarmthBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="WarmthLabel" type="Label" parent="Margin/Layout/TopBar/WarmthBox"]
+[node name="WarmthLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/WarmthBox"]
 layout_mode = 2
 text = "Ciepło: 8/10"
 
-[node name="WarmthBar" type="ProgressBar" parent="Margin/Layout/TopBar/WarmthBox"]
+[node name="WarmthBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/WarmthBox"]
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
 modulate = Color(1, 0.6, 0.3, 1)
@@ -117,15 +123,15 @@ max_value = 10.0
 value = 8.0
 show_percentage = false
 
-[node name="EnergyBox" type="VBoxContainer" parent="Margin/Layout/TopBar"]
+[node name="EnergyBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
 size_flags_vertical = 4
 
-[node name="EnergyLabel" type="Label" parent="Margin/Layout/TopBar/EnergyBox"]
+[node name="EnergyLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/EnergyBox"]
 layout_mode = 2
 text = "Energia: 10/10"
 
-[node name="EnergyBar" type="ProgressBar" parent="Margin/Layout/TopBar/EnergyBox"]
+[node name="EnergyBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/EnergyBox"]
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
 modulate = Color(0.6, 1, 0.6, 1)
@@ -133,71 +139,71 @@ max_value = 10.0
 value = 10.0
 show_percentage = false
 
-[node name="ResourcesLabel" type="Label" parent="Margin/Layout"]
+[node name="ResourcesLabel" type="Label" parent="Scroll/Margin/Layout"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "Jedzenie: 2   |   Woda: 1   |   Drewno: 0   |   Materiały: 0   |   Narzędzia: nie"
 
-[node name="MidRow" type="HBoxContainer" parent="Margin/Layout"]
+[node name="MidRow" type="HBoxContainer" parent="Scroll/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="Board" type="GridContainer" parent="Margin/Layout/MidRow"]
+[node name="Board" type="GridContainer" parent="Scroll/Margin/Layout/MidRow"]
 layout_mode = 2
 size_flags_vertical = 4
 columns = 3
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
-[node name="Log" type="RichTextLabel" parent="Margin/Layout/MidRow"]
+[node name="Log" type="RichTextLabel" parent="Scroll/Margin/Layout/MidRow"]
 layout_mode = 2
 size_flags_horizontal = 3
 scroll_following = true
 
-[node name="GatherBar" type="HBoxContainer" parent="Margin/Layout"]
+[node name="GatherBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
 custom_minimum_size = Vector2(0, 150)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="GatherLabel" type="Label" parent="Margin/Layout/GatherBar"]
+[node name="GatherLabel" type="Label" parent="Scroll/Margin/Layout/GatherBar"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 16
 text = "Okolica:"
 
-[node name="GatherCards" type="HBoxContainer" parent="Margin/Layout/GatherBar"]
+[node name="GatherCards" type="HBoxContainer" parent="Scroll/Margin/Layout/GatherBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="BuildingBar" type="HBoxContainer" parent="Margin/Layout"]
+[node name="BuildingBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="BuildingLabel" type="Label" parent="Margin/Layout/BuildingBar"]
+[node name="BuildingLabel" type="Label" parent="Scroll/Margin/Layout/BuildingBar"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 16
 text = "Budynki:"
 
-[node name="BuildingActions" type="HBoxContainer" parent="Margin/Layout/BuildingBar"]
+[node name="BuildingActions" type="HBoxContainer" parent="Scroll/Margin/Layout/BuildingBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="BottomBar" type="HBoxContainer" parent="Margin/Layout"]
+[node name="BottomBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
 custom_minimum_size = Vector2(0, 190)
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="Hand" type="HBoxContainer" parent="Margin/Layout/BottomBar"]
+[node name="Hand" type="HBoxContainer" parent="Scroll/Margin/Layout/BottomBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="EndDayButton" type="Button" parent="Margin/Layout/BottomBar"]
+[node name="EndDayButton" type="Button" parent="Scroll/Margin/Layout/BottomBar"]
 custom_minimum_size = Vector2(170, 56)
 layout_mode = 2
 size_flags_vertical = 4
@@ -270,3 +276,51 @@ visible = false
 custom_minimum_size = Vector2(0, 190)
 layout_mode = 2
 theme_override_constants/separation = 12
+
+[node name="NightEventOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.025, 0.02, 0.72)
+
+[node name="Panel" type="PanelContainer" parent="NightEventOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelMargin" type="MarginContainer" parent="NightEventOverlay/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="NightEventOverlay/Panel/PanelMargin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TitleLabel" type="Label" parent="NightEventOverlay/Panel/PanelMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+text = "Nocne zdarzenie"
+
+[node name="CardSlot" type="CenterContainer" parent="NightEventOverlay/Panel/PanelMargin/VBox"]
+custom_minimum_size = Vector2(230, 220)
+layout_mode = 2
+
+[node name="ContinueButton" type="Button" parent="NightEventOverlay/Panel/PanelMargin/VBox"]
+custom_minimum_size = Vector2(180, 48)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 18
+text = "Dalej"

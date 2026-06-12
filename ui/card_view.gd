@@ -39,4 +39,13 @@ func _format_costs(card: CardData) -> String:
 			parts.append("Drewno: %d" % building.wood_cost)
 		if building.materials_cost > 0:
 			parts.append("Materiały: %d" % building.materials_cost)
+	elif card is MonsterCardData:
+		var monster := card as MonsterCardData
+		parts.append("POTWOR")
+		if monster.damage_to_player > 0:
+			parts.append("Obrazenia: %d" % monster.damage_to_player)
+		if monster.damage_to_buildings > 0:
+			parts.append("Budynki: %d" % monster.damage_to_buildings)
+	elif card is EventCardData:
+		parts.append("ZDARZENIE NOCNE")
 	return " | ".join(parts)

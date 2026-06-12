@@ -18,6 +18,8 @@ signal gather_actions_changed(actions: Array[ActionCardData])
 signal leveled_up(level: int)
 ## BUM struck this dawn: tiles flipped, buildings damaged, monsters incoming.
 signal bum_struck(disaster: DisasterData)
+## The card drawn for the night event, shown by UI as a card overlay.
+signal night_card_drawn(card: CardData)
 signal log_message(text: String)
 signal run_ended(won: bool, days_survived: int)
 
@@ -322,6 +324,8 @@ func end_day() -> void:
 
 	_resolve_building_passives()
 	var night_card := _event_deck.draw()
+	if night_card != null:
+		night_card_drawn.emit(night_card)
 	if night_card is MonsterCardData:
 		_resolve_monster_attack(night_card as MonsterCardData)
 	elif night_card is EventCardData:
