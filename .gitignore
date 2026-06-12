@@ -6,3 +6,8 @@ export_presets.cfg
 # Systemowe
 .DS_Store
 Thumbs.db
+
+# Port webowy — lokalne narzędzia (przenośny Node, Chrome, zrzuty) i paczka
+web/_tools/
+web/_refs/
+web/dzien50.zip

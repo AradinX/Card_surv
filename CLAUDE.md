@@ -106,6 +106,15 @@ XP i poziomy z nagrodami 1 z 3 (deckbuilding w runie).
   6,4) — lekko ponad bazowe ~86%, bo nagrody to czysta korzyść; trudność
   doważy BUM.
 
+### Port przeglądarkowy (Higgsfield) — równoległy artefakt (2026-06-12)
+
+- Grywalny web-port konceptu (slice + akt BUM, run 30 dni) zbudowany
+  pipeline'em Higgsfield.ai: https://simple-warbler-784.higgsfield.gg/
+- Źródła i artefakty projektowe w `web/` (katalog ma `.gdignore` — Godot
+  go nie skanuje); szczegóły w `web/README.md` i `web/design/`.
+- To prototyp równoległy do gry w Godot — wersja Godot pozostaje główną
+  linią rozwoju; rozbieżności balansu opisane w `web/README.md`.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
