@@ -188,7 +188,7 @@ func _refresh_building_actions() -> void:
 
 ## BUM: the world darkens for the rest of the run.
 func _on_bum_struck(_disaster: DisasterData) -> void:
-	_background.color = Color(0.1, 0.12, 0.09)
+	_background.color = Color(0.04, 0.08, 0.045, 0.58)
 
 
 func _on_night_card_drawn(card: CardData) -> void:
