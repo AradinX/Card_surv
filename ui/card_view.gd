@@ -128,4 +128,4 @@ func _format_costs(card: CardData) -> String:
 			parts.append("B%d" % monster.damage_to_buildings)
 	elif card is EventCardData:
 		parts.append("NOC")
-	return "\n".join(parts)
+	return "  ".join(parts)
