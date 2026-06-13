@@ -171,22 +171,27 @@ theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
 [node name="Log" type="RichTextLabel" parent="Scroll/Margin/Layout/MidRow"]
+custom_minimum_size = Vector2(340, 220)
 layout_mode = 2
-size_flags_horizontal = 3
 scroll_following = true
 
-[node name="GatherBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
-custom_minimum_size = Vector2(0, 290)
+[node name="CardsRow" type="HBoxContainer" parent="Scroll/Margin/Layout"]
+custom_minimum_size = Vector2(0, 208)
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="GatherBar" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow"]
+custom_minimum_size = Vector2(388, 208)
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="GatherLabel" type="Label" parent="Scroll/Margin/Layout/GatherBar"]
+[node name="GatherLabel" type="Label" parent="Scroll/Margin/Layout/CardsRow/GatherBar"]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 16
 text = "Okolica:"
 
-[node name="GatherCards" type="HBoxContainer" parent="Scroll/Margin/Layout/GatherBar"]
+[node name="GatherCards" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow/GatherBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
@@ -207,21 +212,22 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="BottomBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
-custom_minimum_size = Vector2(0, 290)
+[node name="BottomBar" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow"]
+custom_minimum_size = Vector2(0, 208)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 16
 
-[node name="Hand" type="HBoxContainer" parent="Scroll/Margin/Layout/BottomBar"]
+[node name="Hand" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow/BottomBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="EndDayButton" type="Button" parent="Scroll/Margin/Layout/BottomBar"]
-custom_minimum_size = Vector2(170, 56)
+[node name="EndDayButton" type="Button" parent="Scroll/Margin/Layout/CardsRow/BottomBar"]
+custom_minimum_size = Vector2(132, 52)
 layout_mode = 2
 size_flags_vertical = 4
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 16
 text = "Zakończ dzień"
 
 [node name="LevelUpOverlay" type="ColorRect" parent="."]
@@ -287,7 +293,7 @@ text = "Nowa karta do talii
 
 [node name="CardChoices" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
 visible = false
-custom_minimum_size = Vector2(0, 290)
+custom_minimum_size = Vector2(0, 208)
 layout_mode = 2
 theme_override_constants/separation = 12
 
@@ -329,7 +335,7 @@ horizontal_alignment = 1
 text = "Nocne zdarzenie"
 
 [node name="CardSlot" type="CenterContainer" parent="NightEventOverlay/Panel/PanelMargin/VBox"]
-custom_minimum_size = Vector2(230, 310)
+custom_minimum_size = Vector2(170, 220)
 layout_mode = 2
 
 [node name="ContinueButton" type="Button" parent="NightEventOverlay/Panel/PanelMargin/VBox"]

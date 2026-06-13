@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://ui/card_view.gd" id="1_script"]
 
 [node name="CardView" type="Button"]
-custom_minimum_size = Vector2(180, 270)
+custom_minimum_size = Vector2(132, 198)
 size_flags_vertical = 4
 flat = true
 script = ExtResource("1_script")
@@ -23,7 +23,7 @@ stretch_mode = 0
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.12
-anchor_top = 0.205
+anchor_top = 0.215
 anchor_right = 0.88
 anchor_bottom = 0.515
 grow_horizontal = 2
@@ -32,55 +32,57 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Margin" type="MarginContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="NameLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.285
+anchor_top = 0.045
+anchor_right = 0.875
+anchor_bottom = 0.125
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 18
-theme_override_constants/margin_top = 18
-theme_override_constants/margin_right = 18
-theme_override_constants/margin_bottom = 18
-
-[node name="VBox" type="VBoxContainer" parent="Margin"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="NameLabel" type="Label" parent="Margin/VBox"]
-layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.88, 0.68, 1)
 theme_override_colors/font_shadow_color = Color(0.08, 0.05, 0.03, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 15
 text = "Nazwa karty"
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="CostLabel" type="Label" parent="Margin/VBox"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 104)
-size_flags_vertical = 8
+[node name="CostLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.075
+anchor_top = 0.047
+anchor_right = 0.225
+anchor_bottom = 0.145
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(0.93, 0.82, 0.57, 1)
 theme_override_colors/font_shadow_color = Color(0.08, 0.05, 0.03, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 13
-text = "Energia: 0"
+theme_override_font_sizes/font_size = 10
+text = "E1"
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 2
 
-[node name="HSeparator" type="HSeparator" parent="Margin/VBox"]
-layout_mode = 2
-
-[node name="DescLabel" type="Label" parent="Margin/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
+[node name="DescLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.14
+anchor_top = 0.585
+anchor_right = 0.86
+anchor_bottom = 0.82
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(0.98, 0.93, 0.79, 1)
 theme_override_colors/font_shadow_color = Color(0.08, 0.05, 0.03, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 10
 text = "Opis karty"
 autowrap_mode = 2

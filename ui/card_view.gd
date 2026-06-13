@@ -5,9 +5,9 @@ extends Button
 ## played. Clicks are handled via the inherited "pressed" signal.
 
 
-@onready var _name_label: Label = $Margin/VBox/NameLabel
-@onready var _cost_label: Label = $Margin/VBox/CostLabel
-@onready var _desc_label: Label = $Margin/VBox/DescLabel
+@onready var _name_label: Label = $NameLabel
+@onready var _cost_label: Label = $CostLabel
+@onready var _desc_label: Label = $DescLabel
 @onready var _illustration: TextureRect = $Illustration
 @onready var _frame: TextureRect = $Frame
 
@@ -102,30 +102,30 @@ func _format_costs(card: CardData) -> String:
 	var parts: PackedStringArray = []
 	if card is ActionCardData:
 		var action := card as ActionCardData
-		parts.append("Energia: %d" % action.energy_cost)
+		parts.append("E%d" % action.energy_cost)
 		if action.food_cost > 0:
-			parts.append("Jedzenie: %d" % action.food_cost)
+			parts.append("J%d" % action.food_cost)
 		if action.wood_cost > 0:
-			parts.append("Drewno: %d" % action.wood_cost)
+			parts.append("D%d" % action.wood_cost)
 		if action.materials_cost > 0:
-			parts.append("Materiały: %d" % action.materials_cost)
+			parts.append("M%d" % action.materials_cost)
 	elif card is BuildingCardData:
 		var building := card as BuildingCardData
-		parts.append("BUDYNEK (HP %d)" % building.max_hp)
-		parts.append("Energia: %d" % building.energy_cost)
+		parts.append("HP%d" % building.max_hp)
+		parts.append("E%d" % building.energy_cost)
 		if building.food_cost > 0:
-			parts.append("Jedzenie: %d" % building.food_cost)
+			parts.append("J%d" % building.food_cost)
 		if building.wood_cost > 0:
-			parts.append("Drewno: %d" % building.wood_cost)
+			parts.append("D%d" % building.wood_cost)
 		if building.materials_cost > 0:
-			parts.append("Materiały: %d" % building.materials_cost)
+			parts.append("M%d" % building.materials_cost)
 	elif card is MonsterCardData:
 		var monster := card as MonsterCardData
-		parts.append("POTWOR")
+		parts.append("P")
 		if monster.damage_to_player > 0:
-			parts.append("Obrazenia: %d" % monster.damage_to_player)
+			parts.append("Z%d" % monster.damage_to_player)
 		if monster.damage_to_buildings > 0:
-			parts.append("Budynki: %d" % monster.damage_to_buildings)
+			parts.append("B%d" % monster.damage_to_buildings)
 	elif card is EventCardData:
-		parts.append("ZDARZENIE NOCNE")
-	return " | ".join(parts)
+		parts.append("NOC")
+	return "\n".join(parts)

@@ -18,7 +18,6 @@ const BUILDING_PREVIEW_LIMIT := 2
 @onready var _title_label: Label = $Content/VBox/TitlePlate/TitleLabel
 @onready var _slots_label: Label = $Content/VBox/TitlePlate/SlotsLabel
 @onready var _building_rows: VBoxContainer = $Content/VBox/BuildingRows
-@onready var _empty_hint: Label = $Content/VBox/EmptyHint
 @onready var _marker: Label = $Marker
 
 
@@ -31,7 +30,9 @@ func setup(
 	var biome_name := tile.biome.corrupted_display_name if tile.is_corrupted \
 		else tile.biome.display_name
 	_title_label.text = biome_name
-	_slots_label.text = "%d/%d" % [tile.buildings.size(), tile.biome.building_slots]
+	var slots_text := "%d/%d" % [tile.buildings.size(), tile.biome.building_slots]
+	_slots_label.text = "puste sloty %s" % slots_text if tile.buildings.is_empty() \
+		else slots_text
 	tooltip_text = tile_tooltip
 	disabled = block_reason != ""
 	self_modulate = Color(0.68, 0.68, 0.68, 1.0) if disabled and not is_current \
@@ -72,7 +73,6 @@ func _refresh_buildings(tile: TileState) -> void:
 		_building_rows.remove_child(child)
 		child.queue_free()
 
-	_empty_hint.visible = tile.buildings.is_empty()
 	for i in mini(tile.buildings.size(), BUILDING_PREVIEW_LIMIT):
 		var built := tile.buildings[i]
 		var label := Label.new()
