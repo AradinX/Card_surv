@@ -381,14 +381,18 @@ Update 2026-06-12: the original deterministic flat frames were rejected
 described in the `card_frame_action_v3` section below. The flat originals
 are archived in `assets/art/concepts/cards/legacy_flat_frames/`.
 
+Update 2026-06-13: the card frame direction was unified. `card_frame_building.png`
+is now the only final visual card frame. `card_frame_event.png`,
+`card_frame_monster.png`, and `card_frame_reward.png` are compatibility copies
+of that same bitmap. `card_frame_action.png` was removed from final assets.
+
 Generated / created files:
 
 ```text
-assets/art/cards/frames/card_frame_action.png    1024x1536
 assets/art/cards/frames/card_frame_building.png  1024x1536
-assets/art/cards/frames/card_frame_event.png     1024x1536
-assets/art/cards/frames/card_frame_monster.png   1024x1536
-assets/art/cards/frames/card_frame_reward.png    1024x1536
+assets/art/cards/frames/card_frame_event.png     1024x1536, copy of building
+assets/art/cards/frames/card_frame_monster.png   1024x1536, copy of building
+assets/art/cards/frames/card_frame_reward.png    1024x1536, copy of building
 assets/art/cards/frames/card_art_mask.png        754x483 @ (135, 307)
 
 assets/art/cards/backs/card_back_action.png      1024x1536
@@ -409,11 +413,10 @@ no readable text, no UI labels, no watermark.
 Final paths (all 1024x1536, upscaled nearest-neighbor from 688x1024):
 
 ```text
-assets/art/cards/frames/card_frame_action.png
 assets/art/cards/frames/card_frame_building.png
-assets/art/cards/frames/card_frame_event.png
-assets/art/cards/frames/card_frame_monster.png
-assets/art/cards/frames/card_frame_reward.png
+assets/art/cards/frames/card_frame_event.png     copy of building
+assets/art/cards/frames/card_frame_monster.png   copy of building
+assets/art/cards/frames/card_frame_reward.png    copy of building
 assets/art/cards/frames/card_art_mask.png        754x483 @ (135, 307)
 ```
 

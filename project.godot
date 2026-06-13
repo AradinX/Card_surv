@@ -12,8 +12,8 @@ config_version=5
 
 config/name="Karcianka: Przetrwanie"
 run/main_scene="res://scenes/main_menu.tscn"
+config/features=PackedStringArray("4.5", "Forward Plus")
 run/max_fps=60
-config/features=PackedStringArray("4.5")
 
 [autoload]
 
@@ -23,11 +23,5 @@ GameManager="*res://scripts/game_manager.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-window/vsync/vsync_mode=1
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-
-[rendering]
-
-renderer/rendering_method="gl_compatibility"
-renderer/rendering_method.mobile="gl_compatibility"

@@ -154,7 +154,6 @@ Trzymać `snake_case`, bez polskich znaków w nazwach plików. Teksty widoczne w
 Przykłady:
 
 ```text
-card_frame_action.png
 card_frame_building.png
 card_back_action.png
 icon_health.png
@@ -282,13 +281,12 @@ To wystarczy, żeby gra wyglądała jak gra, a nie jak debug UI:
 
 | Asset | Ścieżka | Priorytet | Opis |
 |---|---|---:|---|
-| Ramka karty akcji | `assets/art/cards/frames/card_frame_action.png` | P0 | Metalowo-drewniana ramka, neutralna. Miejsce na koszt, nazwę, ilustrację, opis. |
-| Ramka karty budynku | `assets/art/cards/frames/card_frame_building.png` | P0 | Cięższa, architektoniczna ramka, z miejscem na HP i koszt budowy. |
-| Ramka karty zdarzenia | `assets/art/cards/frames/card_frame_event.png` | P0 | Ciemna ramka z pergaminowym/księżycowym akcentem. |
-| Ramka karty potwora | `assets/art/cards/frames/card_frame_monster.png` | P0 | Agresywna ramka z pazurami, kością lub zgniłą zielenią. |
+| Bazowa ramka kart | `assets/art/cards/frames/card_frame_building.png` | P0 | Jedyny finalny szablon ramki dla kart na ręce, zdarzeń, potworów i nagród. Miejsce na nazwę, ilustrację, opis i dolny pasek kosztu/statusu. |
+| Alias ramki zdarzenia | `assets/art/cards/frames/card_frame_event.png` | P0 | Kopia bazowej ramki building, utrzymana jako osobny plik dla kompatybilności importów. |
+| Alias ramki potwora | `assets/art/cards/frames/card_frame_monster.png` | P0 | Kopia bazowej ramki building, utrzymana jako osobny plik dla kompatybilności importów. |
 | Ramka karty biomu | `assets/art/cards/frames/card_frame_biome.png` | P1 | Używana w kolekcji/tooltipach biomów. |
 | Ramka karty katastrofy | `assets/art/cards/frames/card_frame_disaster.png` | P1 | Duża, dramatyczna ramka dla BUM/typu katastrofy. |
-| Ramka nagrody poziomu | `assets/art/cards/frames/card_frame_reward.png` | P0 | Czytelna karta wyboru 1 z 3. |
+| Alias ramki nagrody poziomu | `assets/art/cards/frames/card_frame_reward.png` | P0 | Kopia bazowej ramki building, utrzymana jako osobny plik dla kompatybilności importów. |
 | Rewers akcji | `assets/art/cards/backs/card_back_action.png` | P0 | Motyw dłoni/ogniska/ekwipunku. |
 | Rewers zdarzeń | `assets/art/cards/backs/card_back_event.png` | P0 | Motyw nocy, gwiazd, lasu. |
 | Rewers potworów | `assets/art/cards/backs/card_back_monster.png` | P0 | Motyw plagi, pazurów, zębów. |
@@ -524,7 +522,7 @@ W tej kolejności:
 
 1. `bg_run_table.png` — tło run screen.
 2. `top_status_bar.png`, `panel_log_9slice.png`, `panel_hand_area.png`, `button_end_day.png`.
-3. `card_frame_action.png`, `card_frame_building.png`, `card_frame_event.png`, `card_frame_monster.png`.
+3. `card_frame_building.png` oraz jego kopie kompatybilności: `card_frame_event.png`, `card_frame_monster.png`, `card_frame_reward.png`.
 4. Ikony: zdrowie, sytość, nawodnienie, ciepło, energia, XP, jedzenie, woda, drewno, materiały, obrona, naprawa, ruina.
 5. Biomy: Las, Łąki, Góry + wersje Plagi.
 6. Sloty: empty, selectable, occupied, damaged, ruin.

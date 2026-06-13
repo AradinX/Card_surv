@@ -7,6 +7,9 @@ export_presets.cfg
 .DS_Store
 Thumbs.db
 
+# Tymczasowe artefakty testów headless (pliki zaczynające się od _)
+tests/_*
+
 # Port webowy — lokalne narzędzia (przenośny Node, Chrome, zrzuty) i paczka
 web/_tools/
 web/_refs/

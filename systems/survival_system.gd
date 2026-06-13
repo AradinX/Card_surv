@@ -157,6 +157,16 @@ func gather_actions() -> Array[ActionCardData]:
 	return biome.gather_cards
 
 
+## Gather actions still available today (used-up ones drop out of the list so
+## the UI can remove them rather than just greying them out).
+func available_gather_actions() -> Array[ActionCardData]:
+	var available: Array[ActionCardData] = []
+	for card in gather_actions():
+		if not _used_gathers.has(_gather_key(card)):
+			available.append(card)
+	return available
+
+
 func can_play_gather(card: ActionCardData) -> String:
 	if not _day_active:
 		return "Dzień dobiegł końca."

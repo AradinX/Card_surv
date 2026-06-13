@@ -11,7 +11,6 @@ extends Button
 @onready var _illustration: TextureRect = $Illustration
 @onready var _frame: TextureRect = $Frame
 
-const FRAME_ACTION := "res://assets/art/cards/frames/card_frame_action.png"
 const FRAME_BUILDING := "res://assets/art/cards/frames/card_frame_building.png"
 const FRAME_EVENT := "res://assets/art/cards/frames/card_frame_event.png"
 const FRAME_MONSTER := "res://assets/art/cards/frames/card_frame_monster.png"
@@ -54,11 +53,13 @@ const MONSTER_ART_ALIASES := {
 func setup(card: CardData, block_reason: String) -> void:
 	_name_label.text = card.display_name
 	_cost_label.text = _format_costs(card)
-	_desc_label.text = card.description
+	_desc_label.text = _format_description(card)
+	_apply_desc_font(_desc_label.text)
 	disabled = block_reason != ""
 	tooltip_text = block_reason
 	self_modulate = Color(0.62, 0.62, 0.62, 1.0) if disabled else Color.WHITE
 	_apply_art(card)
+	_apply_text_layout(card)
 
 
 func _apply_art(card: CardData) -> void:
@@ -72,14 +73,25 @@ func _apply_art(card: CardData) -> void:
 		_illustration.visible = false
 
 
+## Monster-attack and nature/biome night events get their own frames;
+## everything else (actions, buildings, gather cards) uses the base frame.
 func _frame_path(card: CardData) -> String:
-	if card is BuildingCardData:
-		return FRAME_BUILDING
 	if card is MonsterCardData:
 		return FRAME_MONSTER
 	if card is EventCardData:
 		return FRAME_EVENT
-	return FRAME_ACTION
+	return FRAME_BUILDING
+
+
+func _apply_text_layout(card: CardData) -> void:
+	var has_cost_bar := not (card is EventCardData or card is MonsterCardData)
+	_cost_label.visible = has_cost_bar
+	if has_cost_bar:
+		_desc_label.anchor_top = 0.575
+		_desc_label.anchor_bottom = 0.805
+	else:
+		_desc_label.anchor_top = 0.575
+		_desc_label.anchor_bottom = 0.93
 
 
 func _illustration_path(card: CardData) -> String:
@@ -98,34 +110,58 @@ func _illustration_path(card: CardData) -> String:
 	return ""
 
 
+## Poor-man's auto-fit: Godot Labels don't shrink text to fit, so pick a font
+## size from the description length so long copy stays inside the frame window.
+func _apply_desc_font(text: String) -> void:
+	var n := text.length()
+	var size := 11
+	if n > 130:
+		size = 7
+	elif n > 105:
+		size = 8
+	elif n > 80:
+		size = 9
+	elif n > 55:
+		size = 10
+	_desc_label.add_theme_font_size_override("font_size", size)
+
+
+## Building cards carry their durability (HP) in the description rather than in
+## the cost bar — HP is a property of the placed building, not a build cost.
+func _format_description(card: CardData) -> String:
+	if card is BuildingCardData:
+		return "%s\nWytrzymałość: %d HP" % [card.description, (card as BuildingCardData).max_hp]
+	return card.description
+
+
 func _format_costs(card: CardData) -> String:
 	var parts: PackedStringArray = []
 	if card is ActionCardData:
 		var action := card as ActionCardData
-		parts.append("E%d" % action.energy_cost)
+		parts.append("Energia %d" % action.energy_cost)
 		if action.food_cost > 0:
-			parts.append("J%d" % action.food_cost)
+			parts.append("Jedzenie %d" % action.food_cost)
 		if action.wood_cost > 0:
-			parts.append("D%d" % action.wood_cost)
+			parts.append("Drewno %d" % action.wood_cost)
 		if action.materials_cost > 0:
-			parts.append("M%d" % action.materials_cost)
+			parts.append("Materiały %d" % action.materials_cost)
 	elif card is BuildingCardData:
 		var building := card as BuildingCardData
-		parts.append("HP%d" % building.max_hp)
-		parts.append("E%d" % building.energy_cost)
+		parts.append("Energia %d" % building.energy_cost)
 		if building.food_cost > 0:
-			parts.append("J%d" % building.food_cost)
+			parts.append("Jedzenie %d" % building.food_cost)
 		if building.wood_cost > 0:
-			parts.append("D%d" % building.wood_cost)
+			parts.append("Drewno %d" % building.wood_cost)
 		if building.materials_cost > 0:
-			parts.append("M%d" % building.materials_cost)
+			parts.append("Materiały %d" % building.materials_cost)
 	elif card is MonsterCardData:
 		var monster := card as MonsterCardData
-		parts.append("P")
+		var dmg: PackedStringArray = []
 		if monster.damage_to_player > 0:
-			parts.append("Z%d" % monster.damage_to_player)
+			dmg.append("gracz %d" % monster.damage_to_player)
 		if monster.damage_to_buildings > 0:
-			parts.append("B%d" % monster.damage_to_buildings)
+			dmg.append("budynki %d" % monster.damage_to_buildings)
+		return "Atak — %s" % ", ".join(dmg) if not dmg.is_empty() else "Potwór"
 	elif card is EventCardData:
-		parts.append("NOC")
-	return "  ".join(parts)
+		return "Zdarzenie nocne"
+	return "   ·   ".join(parts)

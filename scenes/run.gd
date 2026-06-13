@@ -19,6 +19,7 @@ const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
 @onready var _energy_label: Label = $Scroll/Margin/Layout/TopBar/EnergyBox/EnergyLabel
 @onready var _energy_bar: ProgressBar = $Scroll/Margin/Layout/TopBar/EnergyBox/EnergyBar
 @onready var _background: ColorRect = $Background
+@onready var _background_art: TextureRect = $BackgroundArt
 @onready var _resources_label: Label = $Scroll/Margin/Layout/ResourcesLabel
 @onready var _board_grid: GridContainer = $Scroll/Margin/Layout/MidRow/Board
 @onready var _log: RichTextLabel = $Scroll/Margin/Layout/MidRow/Log
@@ -26,7 +27,7 @@ const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
 @onready var _building_bar: HBoxContainer = $Scroll/Margin/Layout/BuildingBar
 @onready var _building_actions: HBoxContainer = $Scroll/Margin/Layout/BuildingBar/BuildingActions
 @onready var _hand_container: HBoxContainer = $Scroll/Margin/Layout/CardsRow/BottomBar/Hand
-@onready var _end_day_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/EndDayButton
+@onready var _end_day_button: Button = $Scroll/Margin/Layout/TopBar/EndDayButton
 @onready var _level_overlay: ColorRect = $LevelUpOverlay
 @onready var _level_title: Label = $LevelUpOverlay/Panel/PanelMargin/VBox/TitleLabel
 @onready var _reward_buttons: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons
@@ -167,8 +168,14 @@ func _refresh_building_actions() -> void:
 	_building_bar.visible = any_action
 
 
-## BUM: the world darkens for the rest of the run.
+## BUM: the board background flips to its corrupted Act II face and the
+## whole screen darkens for the rest of the run.
+const BOARD_BG_ACT2 := "res://assets/art/board/backgrounds/bg_biome_board_act2.png"
+
+
 func _on_bum_struck(_disaster: DisasterData) -> void:
+	if ResourceLoader.exists(BOARD_BG_ACT2):
+		_background_art.texture = load(BOARD_BG_ACT2)
 	_background.color = Color(0.04, 0.08, 0.045, 0.58)
 
 
@@ -198,9 +205,11 @@ func _on_hand_changed(hand: Array[CardData]) -> void:
 	_refresh_playability()
 
 
-func _on_gather_actions_changed(actions: Array[ActionCardData]) -> void:
+## Used-up gather actions drop out of the list (see available_gather_actions),
+## so playing one removes its card rather than just disabling it.
+func _on_gather_actions_changed(_actions: Array[ActionCardData]) -> void:
 	var cards: Array[CardData] = []
-	for action in actions:
+	for action in _survival.available_gather_actions():
 		cards.append(action)
 	_rebuild_cards(_gather_container, cards, func(_i: int, card: CardData) -> void:
 		_survival.play_gather(card as ActionCardData))
@@ -227,7 +236,7 @@ func _refresh_playability() -> void:
 	var hand_views := _hand_container.get_children()
 	for i in mini(hand_views.size(), hand.size()):
 		(hand_views[i] as CardView).setup(hand[i], _survival.can_play(hand[i]))
-	var gathers := _survival.gather_actions()
+	var gathers := _survival.available_gather_actions()
 	var gather_views := _gather_container.get_children()
 	for i in mini(gather_views.size(), gathers.size()):
 		(gather_views[i] as CardView).setup(gathers[i], _survival.can_play_gather(gathers[i]))

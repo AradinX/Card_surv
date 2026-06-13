@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://bfy4qx1pqw7b7"]
 
-[ext_resource type="Script" path="res://scenes/run.gd" id="1_script"]
-[ext_resource type="Texture2D" path="res://assets/art/backgrounds/run_screen/bg_run_table.png" id="2_run_bg"]
+[ext_resource type="Script" uid="uid://d3xjy4e2jqie5" path="res://scenes/run.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bddvngethakv0" path="res://assets/art/board/backgrounds/bg_biome_board_act1.png" id="2_run_bg"]
 
 [node name="Run" type="Control"]
 layout_mode = 3
@@ -23,6 +23,7 @@ mouse_filter = 2
 texture = ExtResource("2_run_bg")
 expand_mode = 1
 stretch_mode = 6
+self_modulate = Color(0.4, 0.42, 0.47, 1)
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -32,7 +33,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.04, 0.045, 0.035, 0.34)
+color = Color(0.05, 0.06, 0.05, 0.5)
 
 [node name="Scroll" type="ScrollContainer" parent="."]
 layout_mode = 1
@@ -62,13 +63,11 @@ theme_override_constants/separation = 24
 
 [node name="DayLabel" type="Label" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
-size_flags_vertical = 4
 theme_override_font_sizes/font_size = 26
 text = "Dzień 1/30"
 
 [node name="LevelLabel" type="Label" parent="Scroll/Margin/Layout/TopBar"]
 layout_mode = 2
-size_flags_vertical = 4
 theme_override_font_sizes/font_size = 16
 text = "Poziom 1
 XP 0/8"
@@ -82,9 +81,9 @@ layout_mode = 2
 text = "Zdrowie: 10/10"
 
 [node name="HealthBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/HealthBox"]
+modulate = Color(1, 0.45, 0.45, 1)
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
-modulate = Color(1, 0.45, 0.45, 1)
 max_value = 10.0
 value = 10.0
 show_percentage = false
@@ -98,9 +97,9 @@ layout_mode = 2
 text = "Sytość: 8/10"
 
 [node name="HungerBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/HungerBox"]
+modulate = Color(1, 0.8, 0.4, 1)
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
-modulate = Color(1, 0.8, 0.4, 1)
 max_value = 10.0
 value = 8.0
 show_percentage = false
@@ -114,9 +113,9 @@ layout_mode = 2
 text = "Nawodnienie: 8/10"
 
 [node name="ThirstBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/ThirstBox"]
+modulate = Color(0.45, 0.7, 1, 1)
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
-modulate = Color(0.45, 0.7, 1, 1)
 max_value = 10.0
 value = 8.0
 show_percentage = false
@@ -130,9 +129,9 @@ layout_mode = 2
 text = "Ciepło: 8/10"
 
 [node name="WarmthBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/WarmthBox"]
+modulate = Color(1, 0.6, 0.3, 1)
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
-modulate = Color(1, 0.6, 0.3, 1)
 max_value = 10.0
 value = 8.0
 show_percentage = false
@@ -146,12 +145,23 @@ layout_mode = 2
 text = "Energia: 10/10"
 
 [node name="EnergyBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/EnergyBox"]
+modulate = Color(0.6, 1, 0.6, 1)
 custom_minimum_size = Vector2(140, 14)
 layout_mode = 2
-modulate = Color(0.6, 1, 0.6, 1)
 max_value = 10.0
 value = 10.0
 show_percentage = false
+
+[node name="TopBarSpacer" type="Control" parent="Scroll/Margin/Layout/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EndDayButton" type="Button" parent="Scroll/Margin/Layout/TopBar"]
+custom_minimum_size = Vector2(150, 48)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_font_sizes/font_size = 17
+text = "Zakończ dzień"
 
 [node name="ResourcesLabel" type="Label" parent="Scroll/Margin/Layout"]
 layout_mode = 2
@@ -163,17 +173,18 @@ layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="Board" type="GridContainer" parent="Scroll/Margin/Layout/MidRow"]
-layout_mode = 2
-size_flags_vertical = 4
-columns = 3
-theme_override_constants/h_separation = 8
-theme_override_constants/v_separation = 8
-
 [node name="Log" type="RichTextLabel" parent="Scroll/Margin/Layout/MidRow"]
 custom_minimum_size = Vector2(340, 220)
 layout_mode = 2
 scroll_following = true
+
+[node name="Board" type="GridContainer" parent="Scroll/Margin/Layout/MidRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
 
 [node name="CardsRow" type="HBoxContainer" parent="Scroll/Margin/Layout"]
 custom_minimum_size = Vector2(0, 208)
@@ -187,27 +198,10 @@ theme_override_constants/separation = 10
 
 [node name="GatherLabel" type="Label" parent="Scroll/Margin/Layout/CardsRow/GatherBar"]
 layout_mode = 2
-size_flags_vertical = 4
 theme_override_font_sizes/font_size = 16
 text = "Okolica:"
 
 [node name="GatherCards" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow/GatherBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 10
-
-[node name="BuildingBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
-visible = false
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="BuildingLabel" type="Label" parent="Scroll/Margin/Layout/BuildingBar"]
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 16
-text = "Budynki:"
-
-[node name="BuildingActions" type="HBoxContainer" parent="Scroll/Margin/Layout/BuildingBar"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
@@ -223,12 +217,20 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 10
 
-[node name="EndDayButton" type="Button" parent="Scroll/Margin/Layout/CardsRow/BottomBar"]
-custom_minimum_size = Vector2(132, 52)
+[node name="BuildingBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
+visible = false
 layout_mode = 2
-size_flags_vertical = 4
+theme_override_constants/separation = 10
+
+[node name="BuildingLabel" type="Label" parent="Scroll/Margin/Layout/BuildingBar"]
+layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Zakończ dzień"
+text = "Budynki:"
+
+[node name="BuildingActions" type="HBoxContainer" parent="Scroll/Margin/Layout/BuildingBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
 
 [node name="LevelUpOverlay" type="ColorRect" parent="."]
 visible = false
@@ -264,8 +266,8 @@ theme_override_constants/separation = 16
 [node name="TitleLabel" type="Label" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
 text = "Awans! Poziom 2 — wybierz nagrodę"
+horizontal_alignment = 1
 
 [node name="RewardButtons" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
 layout_mode = 2
@@ -331,8 +333,8 @@ theme_override_constants/separation = 14
 [node name="TitleLabel" type="Label" parent="NightEventOverlay/Panel/PanelMargin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-horizontal_alignment = 1
 text = "Nocne zdarzenie"
+horizontal_alignment = 1
 
 [node name="CardSlot" type="CenterContainer" parent="NightEventOverlay/Panel/PanelMargin/VBox"]
 custom_minimum_size = Vector2(170, 220)

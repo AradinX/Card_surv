@@ -277,6 +277,114 @@ karty, akcje biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3
   karty zwiadu i prompty dla `Nieznanego terenu`; sekcje discovery są na
   końcu `ASSET_PLAN_DZIEN_50_GODOT.md`.
 
+### Segregacja assetów + pierwsza warstwa grafiki w grze (2026-06-13)
+
+- Pełny audyt użycia assetów: `docs/asset_plan/asset_usage_audit.md` mapuje
+  każdy katalog `assets/art/` na status WPIĘTE / ZAPAS / _reference. Wniosek:
+  realnie ładowana jest mała część biblioteki, reszta to zapas pod iterację.
+- Nieużywane/odrzucone i materiały referencyjne wyjechały do
+  `assets/_reference/` (z `.gdignore`, poza importem Godota): `unused/`
+  (`bg_biome_board.png` dup, `biome_neighbor_highlight`, `neighbor_connector`,
+  `card_frame_reward`), `concepts/` (historia), `icons_deck_style_candidates/`
+  (kandydat ikon, nigdzie nieużyty), `biomes_greenkey_src/` (surowe źródła).
+- Pierwsza warstwa grafiki realnie w grze:
+  - `main_menu.tscn`: tło `bg_run_table.png` + scrim.
+  - `run.tscn`: tło planszy `bg_biome_board_act1.png`; po BUM `run.gd` podmienia
+    na `bg_biome_board_act2.png` (sygnał `bum_struck`).
+  - `card_view`: ramki per typ karty (akcja/budynek → bazowa, zdarzenie,
+    potwór) + ilustracje Akt I (`*_act1_candidates`, aliasy id→plik).
+  - `biome_tile_view`: złożenie kafla z chroma-keyowanych assetów —
+    tło biomu + ramka `biome_tile_frame` (Akt I) / `biome_corruption_overlay`
+    (Akt II) + nameplate `biome_title_plate` (NinePatchRect, nazwa + sloty) +
+    marker `biome_current_player` na bieżącym kaflu.
+- Chroma-key: 6 assetów biomów dostarczono na surowym `#00FF00`; wycięte do
+  alpha progiem `G>150 ∧ R<120 ∧ B<120 ∧ (G−R)>80 ∧ (G−B)>80` (oszczędza złoto,
+  liście, szmaragdy) + tłumienie green-spillu. Reguła: keyować dopiero po
+  wygenerowaniu, nie ruszać ciemnej zieleni paneli ani klejnotów.
+- Jeszcze ZAPAS (gotowe, niewpięte): `assets/art/ui/*` (paski/przyciski/panele —
+  UI stoi na domyślnym theme), `assets/art/fx/*`, `cards/icons/*`, ciemne
+  zestawy ilustracji Akt II (`illustrations/{actions,buildings}/`),
+  `slot_markers/slot_{empty,selectable}` (pionowe 2:3, nie pasują do
+  poziomego miniaturowego kafla — czekają na panel rozkładu slotów).
+- Testy po zmianach: `load_test` OK, `board_test` OK (200 plansz),
+  `smoke_test` 30/50 (~60%, śr. 26,8 dnia, poziom 8,8) — bez regresji.
+
+### Poprawki wyglądu sceny runu (2026-06-13)
+
+- Kafle biomów: ramka (`Frame`) dostaje lekki overscan (anchory −3,5%…+3,5%),
+  żeby złoty ornament dochodził do krawędzi kafla (wcześniej był wcięty przez
+  przezroczysty margines arta).
+- Nameplate kafla: `NinePatchRect` → zwykły `TextureRect`. NinePatch wymuszał
+  min. szerokość = suma patch-marginesów (~460 px) na ~244 px kaflu, co
+  rozwalało plakietkę (czarne paski) i wypychało liczbę slotów poza kafel.
+  Teraz `biome_title_plate` skaluje się do paska nagłówka, nazwa + sloty
+  trzymają się w środku.
+- Tło planszy przyciemnione/ochłodzone (`BackgroundArt.self_modulate` +
+  mocniejszy scrim), żeby nie konkurowało wizualnie z kaflami lokalizacji.
+- Karty: opis mniejszą czcionką i w szerszym/wyższym oknie (koniec
+  wychodzenia tekstu poza ramkę); koszty pełnymi słowami
+  (Energia/Jedzenie/Drewno/Materiały/Wytrzymałość) zamiast skrótów E/J/D/M.
+- `Zakończ dzień` przeniesiony do prawego górnego rogu (TopBar + spacer);
+  rząd kart okolicy/ręki ma teraz pełną szerokość.
+- Weryfikacja: headless instancjonowanie `biome_tile_view` (normalny +
+  skażony) i `card_view` (12 kart talii) bez błędów; `load`/`board`/`smoke`
+  bez regresji (smoke 34/50).
+
+### Kafel: sloty budowli + układ wg mockupu (2026-06-13)
+
+- Kafel przebudowany pod referencyjny układ gracza: plakietka nazwy
+  wyśrodkowana u góry (nie pełna szerokość), marker gracza
+  (`biome_current_player`) przeniesiony w prawy górny róg. PNG markera
+  przycięty do samego medalionu (415×413), żeby wypełniał róg bez pustego
+  marginesu (poprzednio wyśrodkowany pełnoklatkowy art robił się mały).
+- Dodany rząd slotów budowli u dołu kafla (`SlotsRow`, wyśrodkowany): jeden
+  widget na `building_slots` biomu. Pusty slot = prosty półprzezroczysty
+  prostokąt (`Panel` + `StyleBoxFlat`, cienka złota ramka); zajęty = miniatura
+  artu budynku (`buildings_act1_candidates`, COVERED) z etykietą „Nazwa + N HP"
+  pod spodem, a dla ruiny czerwone „Nazwa + RUINA". Tekstowe `BuildingRows`
+  zastąpione slotami. Ozdobne `slot_markers/slot_{empty,selectable}` odrzucone
+  jako mało czytelne — wracają do statusu ZAPAS.
+- Karty budynków: HP (Wytrzymałość) przeniesione z paska kosztów do opisu
+  (`_format_description`) — koszt pokazuje już tylko surowce budowy.
+- Weryfikacja: headless instancjonowanie kafla z zajętym i zruinowanym
+  slotem + 12 kart bez błędów; `load`/`board`/`smoke` bez regresji
+  (smoke 32/50).
+
+### Drobne poprawki: sloty + karty okolicy (2026-06-13)
+
+- Sloty budowli na kaflu zmniejszone (68×90 → 50×62), maks. 3 na kafel
+  (`MAX_SLOTS`), ułożone z lekkim pionowym przesunięciem (`SLOT_STAGGER`),
+  żeby rząd nie wyglądał jak sztywna siatka. `meadows.tres` building_slots
+  4 → 3 (spójność z limitem).
+- Bug: karty okolicy po użyciu tylko się wyszarzały zamiast znikać. Dodano
+  `SurvivalSystem.available_gather_actions()` (akcje bez zużytych dzisiaj);
+  `run.gd` buduje i odświeża rząd okolicy z tej listy — zużyta karta znika
+  z rzędu (logika 1×/dzień bez zmian, bot/smoke bez regresji).
+
+### Dopieszczenie układu (2026-06-13)
+
+- Sloty: etykieta nazwa/HP mniejsza (8 → 7), więcej miejsca + `clip_text`,
+  żeby tekst nie wystawał poza obrys slotu.
+- Karty: czcionka opisu dobierana do długości tekstu
+  (`CardView._apply_desc_font`, 7–11 px) — długie opisy nie wychodzą już poza
+  okno ramki (Godot nie ma natywnego shrink-to-fit dla Label).
+- `run.tscn` MidRow: log przesunięty na lewą krawędź (stały 340×220), plansza
+  biomów dostała `size_flags_horizontal = expand` → kafle wypełniają resztę
+  szerokości i są większe.
+
+### Renderer: gl_compatibility → Forward Plus (Vulkan) (2026-06-13)
+
+- Na laptopie hybrydowym (iGPU Intel + dGPU NVIDIA) gra renderowana przez
+  OpenGL (`gl_compatibility`) lądowała na iGPU Intela; klatki dla monitora
+  zewnętrznego (podpiętego do RTX 4060) były kopiowane między GPU, przez co
+  monitor zewnętrzny się tnie/„wariuje" (ekran laptopa OK). Porównanie z
+  działającym projektem potwierdziło, że różnicą był renderer.
+- `project.godot`: usunięto override `renderer/rendering_method=gl_compatibility`
+  (+ `.mobile`), dodano tag `"Forward Plus"` w `config/features` → projekt
+  używa domyślnego Forward Plus (Vulkan), który respektuje wybór GPU i
+  prezentuje natywnie na 4060. `max_fps=60` i `vsync_mode=1` bez zmian.
+- Po zmianie wymagany restart edytora; `--import` + `load_test` OK.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
