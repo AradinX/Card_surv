@@ -437,6 +437,39 @@ karty, akcje biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3
   24/50 wygranych bota, srednio 25.7 dnia, zgony po BUM 19. Balans do dalszego
   strojenia po testach recznych.
 
+### FX odkrywania: zwolnienie + chroma-key (2026-06-15)
+
+- `BiomeTileView.play_discovery_fx` przebudowany na WARSTWY zamiast jednego
+  TextureRect przełączającego klatki. Cztery nałożone obrazy mgły, stos od
+  spodu: `fx_tile_reveal_01` → `fx_fog_loop_01` → `fx_tile_reveal_03` →
+  `fx_tile_reveal_02` (wierzch). Tworzone dynamicznie jako dzieci kafla, na
+  pełnej alfie — kafel jest CAŁKOWICIE zakryty od razu (biom nie miga przed
+  animacją). Warstwy gasną od ŚRODKA NA ZEWNĄTRZ shaderem `DISSOLVE_SHADER`
+  (radialny smoothstep: przezroczysty okrąg rośnie od środka ku krawędziom,
+  param `progress` 0→1.25). Zaniki biegną RÓWNOLEGLE z przesunięciem
+  (`set_parallel` + `set_delay`, stagger 0.4s), więc nachodzą na siebie i
+  czytają się jak jedna płynna animacja, a nie kilka osobnych. Czasy
+  [start, czas] per warstwa w `REVEAL_FADE`: reveal_02 [0.0, 0.95], reveal_01
+  [0.4, 1.15], fog_loop [0.55, 0.95]; `fx_tile_reveal_03` zamyka (dissolve +
+  skala →1.22 od środka, `CLOSING_DUR` 1.1) i jest tak zsynchronizowane, by
+  kończyć RÓWNO z fog_loop (~1.5s całość). Każda warstwa dostaje własny `ShaderMaterial`
+  (wspólny `Shader` w `static`). Węzeł `RevealFx` usunięty ze sceny; warstwy
+  tworzone/zwalniane w kodzie (`_make_reveal_layer`, `_clear_reveal_layers`,
+  kolejność w `REVEAL_STACK`/`REVEAL_FADE_ORDER`, sprzątanie na
+  `tween.finished`). `ui_layout_test` sprawdza liczbę utworzonych warstw.
+- 5 klatek FX discovery (`assets/art/fx/discovery/*.png`) wycięte z surowego
+  zielonego tła do alfy. UWAGA: szeroka heurystyka odcienia (każda zieleń)
+  zjadała zgaszone zielone dekoracje lasu — odrzucona. Działający klucz tnie
+  po ODLEGŁOŚCI koloru od dokładnego green-screena (próbka z rogów ≈ RGB
+  20,238,25): d≤80 przezroczyste, 80–145 miękka krawędź + despill, >145
+  pełny art. Las/mgła/iskry są daleko w przestrzeni koloru, więc zostają.
+- Jednorazowy tool `tools/chroma_key_fx.gd` (SceneTree, `-s`) keyuje listę
+  PNG w miejscu — można skierować na kolejne foldery FX (bum/weather/...).
+- WAŻNE: `assets/_reference/concepts/fx_before_imagegen_rework/` to STARSZA
+  wersja FX (czarne rogi, inny styl), NIE źródło green-screena. Green-screenowe
+  oryginały odtwarza się z gita: `git checkout -- assets/art/fx/discovery/*.png`.
+  Weryfikacja: `--import` + `ui_layout_test` OK.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

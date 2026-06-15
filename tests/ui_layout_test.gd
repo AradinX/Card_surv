@@ -81,6 +81,9 @@ func _run() -> void:
 		view.setup(tile, true, "", biome.description)
 		await process_frame
 		assert(view.get_node("TitlePlate/TitleLabel").text == biome.display_name)
+		view.play_discovery_fx()
+		await process_frame
+		assert(view._reveal_layers.size() == BiomeTileView.REVEAL_STACK.size())
 		view.queue_free()
 
 	print("UI layout test OK: %d cards, %d biomes" % [cards.size(), biomes.size()])

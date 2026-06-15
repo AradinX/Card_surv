@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://c04w55kbhie15"]
 
-[ext_resource type="Script" path="res://scenes/result.gd" id="1_script"]
-[ext_resource type="Theme" path="res://ui/button_theme_act1.tres" id="2_button_theme"]
+[ext_resource type="Script" uid="uid://48q4b3l3blhn" path="res://scenes/result.gd" id="1_script"]
+[ext_resource type="Theme" uid="uid://c51mgd2a42ybb" path="res://ui/button_theme_act1.tres" id="2_button_theme"]
 
 [node name="Result" type="Control"]
 layout_mode = 3

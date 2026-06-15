@@ -57,6 +57,7 @@ func _ready() -> void:
 	_survival.stats_changed.connect(_on_stats_changed)
 	_survival.hand_changed.connect(_on_hand_changed)
 	_survival.board_changed.connect(_on_board_changed)
+	_survival.tile_discovered.connect(_on_tile_discovered)
 	_survival.gather_actions_changed.connect(_on_gather_actions_changed)
 	_survival.leveled_up.connect(_on_leveled_up)
 	_survival.bum_struck.connect(_on_bum_struck)
@@ -123,6 +124,11 @@ func _on_stats_changed(state: RunState) -> void:
 
 func _on_board_changed(state: RunState) -> void:
 	_refresh_tiles(state)
+
+
+func _on_tile_discovered(tile_index: int) -> void:
+	if tile_index >= 0 and tile_index < _tile_buttons.size():
+		_tile_buttons[tile_index].play_discovery_fx()
 
 
 func _refresh_tiles(state: RunState) -> void:

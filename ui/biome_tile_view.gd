@@ -14,6 +14,38 @@ const CORRUPTION_FRAME := "res://assets/art/biomes/overlays/biome_corruption_ove
 const TITLE_PLATE := "res://assets/art/biomes/frames/biome_title_plate.png"
 const PLAYER_MARKER := "res://assets/art/biomes/overlays/biome_current_player.png"
 const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_candidates"
+## Discovery fog layers, stacked bottom -> top (reveal_01 at the back,
+## reveal_02 on top). Peeled away in REVEAL_FADE_ORDER, with reveal_03 left for
+## the final dissipating animation.
+const REVEAL_STACK := [
+	["reveal_01", "res://assets/art/fx/discovery/fx_tile_reveal_01.png"],
+	["fog_loop", "res://assets/art/fx/discovery/fx_fog_loop_01.png"],
+	["reveal_03", "res://assets/art/fx/discovery/fx_tile_reveal_03.png"],
+	["reveal_02", "res://assets/art/fx/discovery/fx_tile_reveal_02.png"],
+]
+## Layers faded one after another (slowly); "reveal_03" closes with the
+## dissipating fade + expand.
+## Per-layer dissolve timing [start_delay, duration]; the windows overlap so
+## the reveal reads as one continuous animation rather than separate steps.
+## reveal_03 (closing) is timed to finish together with fog_loop and adds the
+## expand — see CLOSING_DUR / play_discovery_fx.
+const REVEAL_FADE := {
+	"reveal_02": [0.0, 0.95],
+	"reveal_01": [0.4, 1.15],
+	"fog_loop": [0.55, 0.95],
+}
+const CLOSING_DUR := 1.1
+## Radial dissolve: the transparent disc grows from the centre outwards as
+## `progress` rises, so each fog layer clears from the middle to the edges.
+const DISSOLVE_SHADER := "shader_type canvas_item;
+uniform float progress : hint_range(0.0, 1.5) = 0.0;
+uniform float softness : hint_range(0.01, 1.0) = 0.22;
+void fragment() {
+	vec4 col = texture(TEXTURE, UV);
+	float d = distance(UV, vec2(0.5)) / 0.70710678;
+	col.a *= smoothstep(progress - softness, progress, d);
+	COLOR = col;
+}"
 const BIOME_ART_IDS := {
 	"forest": "forest",
 	"meadows": "meadow",
@@ -35,11 +67,80 @@ const SLOT_STAGGER := [16, 0, 9]
 @onready var _slots_row: HBoxContainer = $SlotsRow
 @onready var _buildings_button: TextureButton = $BuildingsButton
 
+var _reveal_tween: Tween
+var _reveal_layers: Dictionary = {}
+static var _dissolve_shader: Shader
+
 
 func _ready() -> void:
 	_buildings_button.pressed.connect(func() -> void:
 		buildings_pressed.emit()
 	)
+
+
+func play_discovery_fx() -> void:
+	if _reveal_tween != null:
+		_reveal_tween.kill()
+	_clear_reveal_layers()
+
+	# Stack the fog as real layers over the tile (bottom -> top), all at full
+	# opacity so the biome stays fully hidden until the mist is peeled away. The
+	# reveal must END on the biome, not start on it.
+	for entry in REVEAL_STACK:
+		var layer := _make_reveal_layer(entry[1])
+		add_child(layer)
+		_reveal_layers[entry[0]] = layer
+
+	var closing: TextureRect = _reveal_layers["reveal_03"]
+	closing.pivot_offset = size * 0.5
+
+	# All dissolves run in parallel with overlapping windows (REVEAL_FADE), so
+	# they read as one continuous animation rather than separate steps. Each
+	# layer clears from its centre outwards via the radial dissolve shader.
+	const DISSOLVE_FULL := 1.25
+	_reveal_tween = create_tween().set_parallel(true)
+	for id in REVEAL_FADE:
+		var timing: Array = REVEAL_FADE[id]
+		_reveal_tween.tween_property(_reveal_layers[id].material,
+			"shader_parameter/progress", DISSOLVE_FULL, timing[1]) \
+			.set_delay(timing[0]).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# Closing layer (reveal_03) finishes together with fog_loop and also expands
+	# from the centre (mist blowing away) for the final beat.
+	var fog_timing: Array = REVEAL_FADE["fog_loop"]
+	var closing_delay: float = fog_timing[0] + fog_timing[1] - CLOSING_DUR
+	_reveal_tween.tween_property(closing.material, "shader_parameter/progress",
+		DISSOLVE_FULL, CLOSING_DUR) \
+		.set_delay(closing_delay).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_reveal_tween.tween_property(closing, "scale", Vector2(1.22, 1.22), CLOSING_DUR) \
+		.set_delay(closing_delay).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_reveal_tween.finished.connect(_clear_reveal_layers)
+
+
+func _make_reveal_layer(path: String) -> TextureRect:
+	var layer := TextureRect.new()
+	layer.texture = load(path)
+	layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.anchor_right = 1.0
+	layer.anchor_bottom = 1.0
+	layer.offset_right = 0.0
+	layer.offset_bottom = 0.0
+	if _dissolve_shader == null:
+		_dissolve_shader = Shader.new()
+		_dissolve_shader.code = DISSOLVE_SHADER
+	var mat := ShaderMaterial.new()
+	mat.shader = _dissolve_shader
+	mat.set_shader_parameter("progress", 0.0)
+	layer.material = mat
+	return layer
+
+
+func _clear_reveal_layers() -> void:
+	for layer in _reveal_layers.values():
+		if is_instance_valid(layer):
+			layer.queue_free()
+	_reveal_layers.clear()
 
 
 func setup(

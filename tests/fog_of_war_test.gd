@@ -15,6 +15,10 @@ func _init() -> void:
 			disasters.append(resource)
 
 	var survival := SurvivalSystem.new()
+	var signal_state := {"tile_index": -1}
+	survival.tile_discovered.connect(func(tile_index: int) -> void:
+		signal_state.tile_index = tile_index
+	)
 	survival.start(character_class, biome_pool, event_cards, card_pool, disasters)
 	survival.begin()
 
@@ -43,6 +47,10 @@ func _init() -> void:
 		return
 
 	survival.move_to(target)
+	if signal_state.tile_index != target:
+		push_error("tile_discovered should emit moved tile index")
+		quit(1)
+		return
 	if not survival.state.board[target].is_discovered:
 		push_error("moving to an unknown tile should discover it")
 		quit(1)
