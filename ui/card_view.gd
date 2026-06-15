@@ -54,12 +54,13 @@ func setup(card: CardData, block_reason: String) -> void:
 	_name_label.text = card.display_name
 	_cost_label.text = _format_costs(card)
 	_desc_label.text = _format_description(card)
-	_apply_desc_font(_desc_label.text)
 	disabled = block_reason != ""
 	tooltip_text = block_reason
 	self_modulate = Color(0.62, 0.62, 0.62, 1.0) if disabled else Color.WHITE
 	_apply_art(card)
 	_apply_text_layout(card)
+	_fit_all_text()
+	call_deferred("_fit_all_text")
 
 
 func _apply_art(card: CardData) -> void:
@@ -88,7 +89,7 @@ func _apply_text_layout(card: CardData) -> void:
 	_cost_label.visible = has_cost_bar
 	if has_cost_bar:
 		_desc_label.anchor_top = 0.575
-		_desc_label.anchor_bottom = 0.805
+		_desc_label.anchor_bottom = 0.815
 	else:
 		_desc_label.anchor_top = 0.575
 		_desc_label.anchor_bottom = 0.93
@@ -110,20 +111,61 @@ func _illustration_path(card: CardData) -> String:
 	return ""
 
 
-## Poor-man's auto-fit: Godot Labels don't shrink text to fit, so pick a font
-## size from the description length so long copy stays inside the frame window.
-func _apply_desc_font(text: String) -> void:
-	var n := text.length()
-	var size := 11
-	if n > 130:
-		size = 7
-	elif n > 105:
-		size = 8
-	elif n > 80:
-		size = 9
-	elif n > 55:
-		size = 10
-	_desc_label.add_theme_font_size_override("font_size", size)
+## Card text has fixed frame windows in the bitmap. Labels are clipped as a
+## backstop, then font size is reduced until the rendered text fits that window.
+func _fit_all_text() -> void:
+	_fit_label_font(_name_label, 14, 7, 2)
+	_fit_label_font(_desc_label, 11, 6, 7)
+	if _cost_label.visible:
+		_fit_label_font(_cost_label, 10, 6, 2)
+
+
+func _fit_label_font(label: Label, max_size: int, min_size: int, max_lines: int) -> void:
+	var box_size := _label_box_size(label)
+	if box_size.x <= 1.0 or box_size.y <= 1.0:
+		label.add_theme_font_size_override("font_size", min_size)
+		return
+
+	for font_size in range(max_size, min_size - 1, -1):
+		if _label_text_fits(label, box_size, font_size, max_lines):
+			label.add_theme_font_size_override("font_size", font_size)
+			return
+	label.add_theme_font_size_override("font_size", min_size)
+
+
+func _label_text_fits(label: Label, box_size: Vector2, font_size: int, max_lines: int) -> bool:
+	var font := label.get_theme_font("font")
+	if font == null:
+		return _estimate_text_fits(label.text, box_size, font_size, max_lines)
+	var measured := font.get_multiline_string_size(
+		label.text,
+		label.horizontal_alignment,
+		box_size.x,
+		font_size,
+		max_lines
+	)
+	return measured.x <= box_size.x + 1.0 and measured.y <= box_size.y + 1.0
+
+
+func _estimate_text_fits(text: String, box_size: Vector2, font_size: int, max_lines: int) -> bool:
+	var chars_per_line := maxi(floori(box_size.x / maxf(font_size * 0.55, 1.0)), 1)
+	var lines := ceili(float(text.length()) / chars_per_line)
+	var line_height := font_size * 1.2
+	return lines <= max_lines and lines * line_height <= box_size.y
+
+
+func _label_box_size(label: Label) -> Vector2:
+	if label.size.x > 1.0 and label.size.y > 1.0:
+		return label.size
+	var base_size := size
+	if base_size.x <= 1.0 or base_size.y <= 1.0:
+		base_size = custom_minimum_size
+	return Vector2(
+		(label.anchor_right - label.anchor_left) * base_size.x
+			+ label.offset_right - label.offset_left,
+		(label.anchor_bottom - label.anchor_top) * base_size.y
+			+ label.offset_bottom - label.offset_top
+	)
 
 
 ## Building cards carry their durability (HP) in the description rather than in

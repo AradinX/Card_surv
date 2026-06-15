@@ -13,6 +13,8 @@ signal day_started(day: int)
 signal stats_changed(state: RunState)
 signal hand_changed(hand: Array[CardData])
 signal board_changed(state: RunState)
+## A previously hidden tile was entered and revealed.
+signal tile_discovered(tile_index: int)
 signal gather_actions_changed(actions: Array[ActionCardData])
 ## A level was gained; the player has state.pending_rewards choices waiting.
 signal leveled_up(level: int)
@@ -42,6 +44,10 @@ const MOVE_ENERGY_COST := 1
 const DAILY_HUNGER_DECAY := 2
 const DAILY_THIRST_DECAY := 2
 const DAILY_WARMTH_DECAY := 1
+const SPRING_FOOD_BONUS := 1
+const SUMMER_EXTRA_THIRST_DECAY := 1
+const AUTUMN_WOOD_BONUS := 1
+const WINTER_EXTRA_WARMTH_DECAY := 1
 const FOOD_HUNGER_VALUE := 2
 const WATER_THIRST_VALUE := 2
 const STARVATION_DAMAGE := 2
@@ -95,19 +101,14 @@ func start(
 
 	state.board = BoardGenerator.generate(biome_pool, _rng)
 	state.current_tile = _rng.randi_range(0, state.board.size() - 1)
+	current_tile().is_discovered = true
 
 	# BUM is sealed at run start: the player never knows the type or the day.
 	if not disaster_pool.is_empty():
 		state.disaster = disaster_pool[_rng.randi_range(0, disaster_pool.size() - 1)]
 		state.bum_day = _rng.randi_range(BUM_DAY_MIN, BUM_DAY_MAX)
 
-	# The board composition shapes the run: biome hazard cards join the
-	# shared event deck for the whole run.
-	var event_pool: Array[CardData] = _base_event_cards.duplicate()
-	for tile in state.board:
-		for event in tile.biome.extra_event_cards:
-			event_pool.append(event)
-	_event_deck = Deck.new(event_pool, _rng)
+	_rebuild_event_deck()
 
 
 ## Starts day 1. Separate from start() so the UI can connect to signals first.
@@ -141,9 +142,18 @@ func move_to(tile_index: int) -> void:
 		return
 	state.energy -= MOVE_ENERGY_COST
 	state.current_tile = tile_index
+	var discovered_now := false
+	if not current_tile().is_discovered:
+		current_tile().is_discovered = true
+		discovered_now = true
 	log_message.emit("Przechodzisz do biomu: %s." % _tile_name(current_tile()))
+	if discovered_now:
+		log_message.emit("Odkrywasz nowy teren: %s." % _tile_name(current_tile()))
+		_rebuild_event_deck()
 	stats_changed.emit(state)
 	board_changed.emit(state)
+	if discovered_now:
+		tile_discovered.emit(tile_index)
 	gather_actions_changed.emit(gather_actions())
 
 
@@ -424,6 +434,7 @@ func _grant_xp(amount: int) -> void:
 func _start_day() -> void:
 	_day_active = true
 	_used_gathers.clear()
+	_update_season_for_day()
 
 	if not state.bum_happened and state.disaster != null:
 		if state.day >= state.bum_day:
@@ -473,9 +484,47 @@ func _check_death() -> bool:
 
 func _draw_cards(count: int) -> void:
 	for i in count:
+		if hand.size() >= HAND_SIZE:
+			return
 		var card := _day_deck.draw()
 		if card != null:
 			hand.append(card)
+
+
+func _update_season_for_day() -> void:
+	var next_season := _season_for_day(state.day)
+	if state.day == 1 or next_season != state.season:
+		state.season = next_season
+		log_message.emit("Pora roku: %s. %s" % [
+			RunState.season_name(state.season),
+			_season_description(state.season),
+		])
+	else:
+		state.season = next_season
+
+
+func _season_for_day(day: int) -> int:
+	if day <= 7:
+		return RunState.Season.SPRING
+	if day <= 14:
+		return RunState.Season.SUMMER
+	if day <= 22:
+		return RunState.Season.AUTUMN
+	return RunState.Season.WINTER
+
+
+func _season_description(season: int) -> String:
+	match season:
+		RunState.Season.SPRING:
+			return "Dzicz budzi sie do zycia: zbieranie jedzenia daje +1."
+		RunState.Season.SUMMER:
+			return "Upal wysusza gardlo: nocne pragnienie spada o 1 mocniej."
+		RunState.Season.AUTUMN:
+			return "Las zrzuca galezie: akcje z drewnem daja +1 drewna."
+		RunState.Season.WINTER:
+			return "Mroz wgryza sie w kosci: cieplo spada o 1 mocniej."
+		_:
+			return ""
 
 
 # --- Card resolution ---
@@ -495,6 +544,12 @@ func _resolve_action(card: ActionCardData) -> void:
 			food_gain += TOOLS_GAIN_BONUS
 		if wood_gain > 0:
 			wood_gain += TOOLS_GAIN_BONUS
+	if state.season == RunState.Season.SPRING and card.food_gain > 0:
+		food_gain += SPRING_FOOD_BONUS
+		log_message.emit("Wiosna sprzyja zbieraniu. +%d jedzenia." % SPRING_FOOD_BONUS)
+	if state.season == RunState.Season.AUTUMN and card.wood_gain > 0:
+		wood_gain += AUTUMN_WOOD_BONUS
+		log_message.emit("Jesien daje suche galezie. +%d drewna." % AUTUMN_WOOD_BONUS)
 	state.food += food_gain
 	state.water += card.water_gain
 	state.wood += wood_gain
@@ -600,22 +655,34 @@ func _trigger_bum() -> void:
 					built.data.display_name, percent, built.hp, max_hp
 				])
 
-	# Act II event deck: generic events + corrupted biome hazards +
-	# disaster events + monsters (each with its copy count).
-	var event_pool: Array[CardData] = _base_event_cards.duplicate()
-	for tile in state.board:
-		for event in tile.biome.corrupted_extra_event_cards:
-			event_pool.append(event)
-	for event in state.disaster.extra_event_cards:
-		event_pool.append(event)
-	for monster in state.disaster.monsters:
-		for copy in monster.copies_in_deck:
-			event_pool.append(monster)
-	_event_deck = Deck.new(event_pool, _rng)
+	_rebuild_event_deck()
 
 	log_message.emit("Świat już nie jest ten sam. Przetrwaj do dnia %d." % WIN_DAY)
 	bum_struck.emit(state.disaster)
 	board_changed.emit(state)
+
+
+func _rebuild_event_deck() -> void:
+	_event_deck = Deck.new(_event_pool(), _rng)
+
+
+func _event_pool() -> Array[CardData]:
+	var event_pool: Array[CardData] = _base_event_cards.duplicate()
+	for tile in state.board:
+		if not tile.is_discovered:
+			continue
+		var biome_events := tile.biome.corrupted_extra_event_cards \
+			if tile.is_corrupted else tile.biome.extra_event_cards
+		for event in biome_events:
+			event_pool.append(event)
+
+	if state.bum_happened and state.disaster != null:
+		for event in state.disaster.extra_event_cards:
+			event_pool.append(event)
+		for monster in state.disaster.monsters:
+			for copy in monster.copies_in_deck:
+				event_pool.append(monster)
+	return event_pool
 
 
 ## Foreshadowing in the last days before BUM (the player senses SOMETHING).
@@ -767,8 +834,13 @@ func _resolve_needs() -> void:
 		state.health = maxi(state.health - STARVATION_DAMAGE, 0)
 		log_message.emit("Głodujesz! -%d zdrowia." % STARVATION_DAMAGE)
 
-	# Thirst: decay, then drink from stock.
-	state.thirst = clampi(state.thirst - DAILY_THIRST_DECAY, 0, RunState.MAX_THIRST)
+	# Thirst: decay, then drink from stock. Summer makes water pressure harsher.
+	var thirst_decay := DAILY_THIRST_DECAY
+	if state.season == RunState.Season.SUMMER:
+		thirst_decay += SUMMER_EXTRA_THIRST_DECAY
+		log_message.emit("Letni upal wysusza cie szybciej. -%d nawodnienia." %
+			SUMMER_EXTRA_THIRST_DECAY)
+	state.thirst = clampi(state.thirst - thirst_decay, 0, RunState.MAX_THIRST)
 	while state.water > 0 and state.thirst <= RunState.MAX_THIRST - WATER_THIRST_VALUE:
 		state.water -= 1
 		state.thirst += WATER_THIRST_VALUE
@@ -778,7 +850,12 @@ func _resolve_needs() -> void:
 		log_message.emit("Odwodnienie! -%d zdrowia." % DEHYDRATION_DAMAGE)
 
 	# Warmth: nights are cold; campfires (passives, applied above) offset it.
-	state.warmth = clampi(state.warmth - DAILY_WARMTH_DECAY, 0, RunState.MAX_WARMTH)
+	var warmth_decay := DAILY_WARMTH_DECAY
+	if state.season == RunState.Season.WINTER:
+		warmth_decay += WINTER_EXTRA_WARMTH_DECAY
+		log_message.emit("Zimowa noc odbiera dodatkowe cieplo. -%d ciepla." %
+			WINTER_EXTRA_WARMTH_DECAY)
+	state.warmth = clampi(state.warmth - warmth_decay, 0, RunState.MAX_WARMTH)
 	if state.warmth <= 0:
 		state.health = maxi(state.health - FREEZING_DAMAGE, 0)
 		log_message.emit("Zamarzasz! -%d zdrowia." % FREEZING_DAMAGE)

@@ -6,5 +6,6 @@ extends Control
 
 
 func _ready() -> void:
+	ButtonSkin.apply_many([_start_button, _quit_button])
 	_start_button.pressed.connect(GameManager.start_new_run)
 	_quit_button.pressed.connect(get_tree().quit)

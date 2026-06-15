@@ -1,0 +1,87 @@
+extends SceneTree
+## Instantiates the card and biome tile views headlessly. This catches script
+## errors in UI-only code paths (text auto-fit, frame selection, tile labels)
+## that the logic smoke tests do not touch.
+
+const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
+const NIGHT_CARD_VIEW_SCENE := preload("res://ui/night_card_view.tscn")
+const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
+const TOP_STATUS_BAR_SCENE := preload("res://ui/top_status_bar_view.tscn")
+
+
+func _init() -> void:
+	call_deferred("_run")
+
+
+func _run() -> void:
+	var root_control := Control.new()
+	root_control.size = Vector2(1280, 720)
+	root.add_child(root_control)
+
+	var cards := CardLibrary.load_cards_from_dir("res://data/cards/actions")
+	cards.append_array(CardLibrary.load_cards_from_dir("res://data/buildings"))
+	cards.append_array(CardLibrary.load_cards_from_dir("res://data/cards/events"))
+	for resource in CardLibrary.load_resources_from_dir("res://data/monsters"):
+		if resource is CardData:
+			cards.append(resource)
+	assert(not cards.is_empty(), "expected cards to instantiate CardView")
+
+	var hud: TopStatusBarView = TOP_STATUS_BAR_SCENE.instantiate()
+	root_control.add_child(hud)
+	hud.setup_max_values()
+	hud.set_day(1, SurvivalSystem.WIN_DAY, RunState.Season.SUMMER)
+	var mock_state := RunState.new()
+	hud.set_state(mock_state, 8)
+	hud.set_act2()
+	await process_frame
+	assert(hud.get_node("Inset/Rows/TopRow/DayLabel").clip_text == true)
+	var season_label := hud.get_node("Inset/Rows/TopRow/SeasonLabel") as Label
+	assert(season_label.text == "Lato")
+	assert(season_label.tooltip_text.contains("Buff:"))
+	assert(season_label.tooltip_text.contains("Debuff:"))
+	assert(season_label.mouse_filter == Control.MOUSE_FILTER_STOP)
+	hud.queue_free()
+
+	for card in cards:
+		var view: CardView = CARD_VIEW_SCENE.instantiate()
+		root_control.add_child(view)
+		view.setup(card, "")
+		await process_frame
+		assert(view.get_node("NameLabel").get_theme_font_size("font_size") >= 7)
+		assert(view.get_node("DescLabel").get_theme_font_size("font_size") >= 6)
+		view.queue_free()
+
+	for card in cards:
+		if not (card is EventCardData or card is MonsterCardData):
+			continue
+		var night_view: NightCardView = NIGHT_CARD_VIEW_SCENE.instantiate()
+		root_control.add_child(night_view)
+		night_view.setup(card, "")
+		await process_frame
+		assert(night_view.get_node("CostLabel").visible == false)
+		assert(night_view.get_node("NameLabel").get_theme_font_size("font_size") >= 8)
+		assert(night_view.get_node("DescLabel").get_theme_font_size("font_size") >= 7)
+		night_view.queue_free()
+
+	var biomes := CardLibrary.load_biomes_from_dir("res://data/biomes")
+	assert(not biomes.is_empty(), "expected biomes to instantiate BiomeTileView")
+	for biome in biomes:
+		var tile := TileState.new()
+		tile.biome = biome
+		var view: BiomeTileView = BIOME_TILE_VIEW_SCENE.instantiate()
+		root_control.add_child(view)
+		view.setup(tile, true, "", biome.description)
+		await process_frame
+		assert(view.get_node("TitlePlate/TitleLabel").get_theme_font_size("font_size") >= 9)
+		view.queue_free()
+
+		tile.is_discovered = true
+		view = BIOME_TILE_VIEW_SCENE.instantiate()
+		root_control.add_child(view)
+		view.setup(tile, true, "", biome.description)
+		await process_frame
+		assert(view.get_node("TitlePlate/TitleLabel").text == biome.display_name)
+		view.queue_free()
+
+	print("UI layout test OK: %d cards, %d biomes" % [cards.size(), biomes.size()])
+	quit(0)

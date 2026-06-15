@@ -211,20 +211,25 @@ To wystarczy, żeby gra wyglądała jak gra, a nie jak debug UI:
 | Asset | Ścieżka | Priorytet | Opis |
 |---|---|---:|---|
 | Główne tło runu | `assets/art/backgrounds/run_screen/bg_run_table.png` | P0 | Ciemny, leśny lub drewniany stół/board jako baza pod całą rozgrywkę. Ma nie konkurować z kartami. |
-| Górny pasek HUD | `assets/art/ui/bars/top_status_bar.png` | P0 | Długi panel na dzień, poziom, XP, zdrowie, sytość, nawodnienie, ciepło, energię. |
+| Górny pasek HUD | `assets/art/ui/panels/top_status_bar_panel.png` | P0 | Długi panel na dzień, poziom, XP, zdrowie, sytość, nawodnienie, ciepło, energię. |
 | Ramka paska statystyki | `assets/art/ui/bars/stat_bar_frame.png` | P0 | Uniwersalna ramka dla poziomu statystyki. |
 | Wypełnienie zdrowia | `assets/art/ui/bars/stat_fill_health.png` | P0 | Czerwone lub krwiste wypełnienie HP. |
 | Wypełnienie sytości | `assets/art/ui/bars/stat_fill_hunger.png` | P0 | Pomarańczowe/żółte wypełnienie sytości. |
 | Wypełnienie nawodnienia | `assets/art/ui/bars/stat_fill_thirst.png` | P0 | Niebieskie wypełnienie wody. |
 | Wypełnienie ciepła | `assets/art/ui/bars/stat_fill_warmth.png` | P0 | Ciepłe, ogniste wypełnienie temperatury. |
 | Wypełnienie energii | `assets/art/ui/bars/stat_fill_energy.png` | P0 | Zielone lub jasne wypełnienie energii. |
+| Wypełnienie XP | `assets/art/ui/bars/stat_fill_xp.png` | P0 | Złote wypełnienie doświadczenia/poziomu. |
 | Panel logów | `assets/art/ui/panels/panel_log_9slice.png` | P0 | Prawy panel z historią dnia. Ciemny, półprzezroczysty, czytelny. |
 | Panel ręki kart | `assets/art/ui/panels/panel_hand_area.png` | P0 | Dolny obszar pod 4–6 kart. Powinien wyglądać jak blat/rowek na karty. |
 | Panel kart zdarzeń/potworów | `assets/art/ui/panels/panel_event_deck_area.png` | P0 | Prawy dolny panel na talie wydarzeń i potworów. |
-| Przycisk „Zakończ dzień” | `assets/art/ui/buttons/button_end_day.png` | P0 | Duży, brązowo-złoty przycisk, czytelny i ciężki wizualnie. |
-| Przycisk zwykły | `assets/art/ui/buttons/button_default_9slice.png` | P0 | Uniwersalny przycisk menu/wyborów. |
-| Przycisk aktywny/hover | `assets/art/ui/buttons/button_hover_9slice.png` | P0 | Jaśniejszy wariant przycisku. |
-| Przycisk disabled | `assets/art/ui/buttons/button_disabled_9slice.png` | P0 | Wygaszony wariant przycisku. |
+| Przycisk primary Akt 1 | `assets/art/ui/buttons/act1/button_primary.png` | P0 | Żywy leśny wariant bazowy dla `Zakończ dzień`, `Dalej`, wyborów nagród, napraw i rozbiórek. |
+| Przycisk primary hover Akt 1 | `assets/art/ui/buttons/act1/button_primary_hover.png` | P0 | Jaśniejszy stan hover dla przycisku Aktu 1. |
+| Przycisk primary pressed Akt 1 | `assets/art/ui/buttons/act1/button_primary_pressed.png` | P0 | Wciśnięty, ciemniejszy stan przycisku Aktu 1. |
+| Przycisk disabled Akt 1 | `assets/art/ui/buttons/act1/button_disabled.png` | P0 | Wygaszony stan przycisku Aktu 1. |
+| Przycisk primary Akt 2 | `assets/art/ui/buttons/act2/button_primary.png` | P0 | Zwiędły leśny wariant bazowy dla interfejsu po BUM. |
+| Przycisk primary hover Akt 2 | `assets/art/ui/buttons/act2/button_primary_hover.png` | P0 | Jaśniejszy stan hover dla przycisku Aktu 2. |
+| Przycisk primary pressed Akt 2 | `assets/art/ui/buttons/act2/button_primary_pressed.png` | P0 | Wciśnięty, ciemniejszy stan przycisku Aktu 2. |
+| Przycisk disabled Akt 2 | `assets/art/ui/buttons/act2/button_disabled.png` | P0 | Wygaszony stan przycisku Aktu 2. |
 | Tooltip panel | `assets/art/ui/panels/panel_tooltip_9slice.png` | P0 | Małe okienko tooltipów kart, ikon i budynków. |
 | Popup wyboru nagrody | `assets/art/ui/panels/panel_reward_overlay.png` | P0 | Overlay na awans poziomu: 1 z 3 nagród. |
 | Panel kosztów karty | `assets/art/ui/panels/panel_card_cost.png` | P0 | Mały pasek/znacznik kosztów na karcie. |
@@ -281,12 +286,12 @@ To wystarczy, żeby gra wyglądała jak gra, a nie jak debug UI:
 
 | Asset | Ścieżka | Priorytet | Opis |
 |---|---|---:|---|
-| Bazowa ramka kart | `assets/art/cards/frames/card_frame_building.png` | P0 | Jedyny finalny szablon ramki dla kart na ręce, zdarzeń, potworów i nagród. Miejsce na nazwę, ilustrację, opis i dolny pasek kosztu/statusu. |
-| Alias ramki zdarzenia | `assets/art/cards/frames/card_frame_event.png` | P0 | Kopia bazowej ramki building, utrzymana jako osobny plik dla kompatybilności importów. |
-| Alias ramki potwora | `assets/art/cards/frames/card_frame_monster.png` | P0 | Kopia bazowej ramki building, utrzymana jako osobny plik dla kompatybilności importów. |
+| Bazowa ramka kart na ręce | `assets/art/cards/frames/card_frame_building.png` | P0 | Finalny szablon dla kart akcji, budynków i kart okolicy. Zastępuje dawny `card_frame_action.png`. Miejsce na nazwę, ilustrację, opis i dolny pasek kosztu/statusu. |
+| Ramka karty zdarzenia | `assets/art/cards/frames/card_frame_event.png` | P0 | Osobna, ręcznie poprawiona ramka dla nocnych zdarzeń. |
+| Ramka karty potwora | `assets/art/cards/frames/card_frame_monster.png` | P0 | Osobna, ręcznie poprawiona ramka dla potworów. |
 | Ramka karty biomu | `assets/art/cards/frames/card_frame_biome.png` | P1 | Używana w kolekcji/tooltipach biomów. |
 | Ramka karty katastrofy | `assets/art/cards/frames/card_frame_disaster.png` | P1 | Duża, dramatyczna ramka dla BUM/typu katastrofy. |
-| Alias ramki nagrody poziomu | `assets/art/cards/frames/card_frame_reward.png` | P0 | Kopia bazowej ramki building, utrzymana jako osobny plik dla kompatybilności importów. |
+| Ramka nagrody poziomu | `assets/art/cards/frames/card_frame_reward.png` | P2 | Obecnie brak osobnego finalnego pliku; nagrody korzystają z widoku zwykłej karty / ramki building. |
 | Rewers akcji | `assets/art/cards/backs/card_back_action.png` | P0 | Motyw dłoni/ogniska/ekwipunku. |
 | Rewers zdarzeń | `assets/art/cards/backs/card_back_event.png` | P0 | Motyw nocy, gwiazd, lasu. |
 | Rewers potworów | `assets/art/cards/backs/card_back_monster.png` | P0 | Motyw plagi, pazurów, zębów. |
@@ -521,8 +526,8 @@ Poniższa lista jest dobra jako pierwsze zadanie dla Codexa, zanim zaczniesz mas
 W tej kolejności:
 
 1. `bg_run_table.png` — tło run screen.
-2. `top_status_bar.png`, `panel_log_9slice.png`, `panel_hand_area.png`, `button_end_day.png`.
-3. `card_frame_building.png` oraz jego kopie kompatybilności: `card_frame_event.png`, `card_frame_monster.png`, `card_frame_reward.png`.
+2. `top_status_bar_panel.png`, `panel_log_9slice.png`, `panel_hand_area.png`, button states z `assets/art/ui/buttons/act1/` i `assets/art/ui/buttons/act2/`.
+3. `card_frame_building.png` dla akcji/budynków/okolicy oraz osobne `card_frame_event.png`, `card_frame_monster.png`.
 4. Ikony: zdrowie, sytość, nawodnienie, ciepło, energia, XP, jedzenie, woda, drewno, materiały, obrona, naprawa, ruina.
 5. Biomy: Las, Łąki, Góry + wersje Plagi.
 6. Sloty: empty, selectable, occupied, damaged, ruin.

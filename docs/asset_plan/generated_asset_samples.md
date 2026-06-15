@@ -238,6 +238,41 @@ Notes:
   polished UI art.
 - FX are simple overlay sprites intended for quick integration and iteration.
 
+## UI polish pass - top status bar panel
+
+Status: generated with built-in `imagegen` for the first dedicated HUD polish
+pass. The source was generated on a raw pure green background and converted to
+alpha locally, then cropped to the visible panel bounds.
+
+Production files:
+
+```text
+assets/art/ui/panels/top_status_bar_panel.png              2100x483 alpha
+assets/_reference/ui_greenkey_src/top_status_bar_panel_raw_green.png
+docs/asset_plan/previews/preview_top_status_bar_panel_on_dark.png
+```
+
+Direction: wide ornamental HUD panel for day, level, stat bars and resource
+text. Dark carved wood body, muted forest-green inset, brass/gold corners,
+leaf motifs, no text, no icons, no labels. Intended to be used as a scalable
+top bar background in Godot; editable text and stat bars remain separate.
+
+Update: first heavy wood version was judged too massive for the current UI
+direction. Two lighter wreath candidates were generated for act-specific HUD
+styling:
+
+```text
+assets/art/ui/panels/top_status_bar_panel_act1_wreath_candidate.png       2147x407 alpha
+assets/art/ui/panels/top_status_bar_panel_act2_withered_candidate.png     2102x503 alpha
+assets/_reference/ui_greenkey_src/top_status_bar_panel_act1_wreath_raw_green.png
+assets/_reference/ui_greenkey_src/top_status_bar_panel_act2_withered_raw_green.png
+docs/asset_plan/previews/preview_top_status_bar_wreath_candidates.png
+```
+
+Act I direction: delicate living wreath made of meadow grass, flowers, berries
+and light vines. Act II direction: same light wreath language, but wilted,
+thorny and plague-tinted, with a small dead-crow/skull/feather motif.
+
 ## Board background and connector replacement pass
 
 Status: `imagegen` replacement pass for board art. Board backgrounds now have
@@ -381,18 +416,18 @@ Update 2026-06-12: the original deterministic flat frames were rejected
 described in the `card_frame_action_v3` section below. The flat originals
 are archived in `assets/art/concepts/cards/legacy_flat_frames/`.
 
-Update 2026-06-13: the card frame direction was unified. `card_frame_building.png`
-is now the only final visual card frame. `card_frame_event.png`,
-`card_frame_monster.png`, and `card_frame_reward.png` are compatibility copies
-of that same bitmap. `card_frame_action.png` was removed from final assets.
+Update 2026-06-13: the action frame was retired. `card_frame_building.png`
+is the final shared frame for action, building, gather and reward-choice card
+views. `card_frame_event.png` and `card_frame_monster.png` remain separate
+manual corrections for night events and monsters. `card_frame_action.png` was
+removed from final assets.
 
 Generated / created files:
 
 ```text
 assets/art/cards/frames/card_frame_building.png  1024x1536
-assets/art/cards/frames/card_frame_event.png     1024x1536, copy of building
-assets/art/cards/frames/card_frame_monster.png   1024x1536, copy of building
-assets/art/cards/frames/card_frame_reward.png    1024x1536, copy of building
+assets/art/cards/frames/card_frame_event.png     1024x1536, separate manual correction
+assets/art/cards/frames/card_frame_monster.png   1024x1536, separate manual correction
 assets/art/cards/frames/card_art_mask.png        754x483 @ (135, 307)
 
 assets/art/cards/backs/card_back_action.png      1024x1536
@@ -414,9 +449,8 @@ Final paths (all 1024x1536, upscaled nearest-neighbor from 688x1024):
 
 ```text
 assets/art/cards/frames/card_frame_building.png
-assets/art/cards/frames/card_frame_event.png     copy of building
-assets/art/cards/frames/card_frame_monster.png   copy of building
-assets/art/cards/frames/card_frame_reward.png    copy of building
+assets/art/cards/frames/card_frame_event.png     separate manual correction
+assets/art/cards/frames/card_frame_monster.png   separate manual correction
 assets/art/cards/frames/card_art_mask.png        754x483 @ (135, 307)
 ```
 

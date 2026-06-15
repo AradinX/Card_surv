@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://cu3guuph780v7"]
 
-[ext_resource type="Script" path="res://ui/card_view.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://bxfr5hlyb48fd" path="res://ui/card_view.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://beutd8ychv4ef" path="res://assets/art/cards/frames/card_frame_building.png" id="2_qmoqq"]
 
 [node name="CardView" type="Button"]
 custom_minimum_size = Vector2(132, 198)
@@ -16,14 +17,14 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+texture = ExtResource("2_qmoqq")
 expand_mode = 1
-stretch_mode = 0
 
 [node name="Illustration" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.12
-anchor_top = 0.20
+anchor_top = 0.2
 anchor_right = 0.88
 anchor_bottom = 0.565
 grow_horizontal = 2
@@ -38,26 +39,35 @@ anchors_preset = -1
 anchor_left = 0.12
 anchor_top = 0.045
 anchor_right = 0.88
-anchor_bottom = 0.145
+anchor_bottom = 0.168
+offset_left = 2.1600008
+offset_top = 2.0899992
+offset_right = -2.159996
+offset_bottom = -4.264
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.96, 0.88, 0.68, 1)
 theme_override_colors/font_shadow_color = Color(0.08, 0.05, 0.03, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 14
 text = "Nazwa karty"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
+clip_text = true
 
 [node name="CostLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.07
-anchor_top = 0.82
+anchor_top = 0.825
 anchor_right = 0.93
 anchor_bottom = 0.975
+offset_left = 6.76
+offset_top = 7.650009
+offset_right = -7.760002
+offset_bottom = -5.050003
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.93, 0.82, 0.57, 1)
@@ -69,14 +79,18 @@ text = "Energia 1"
 horizontal_alignment = 1
 vertical_alignment = 1
 autowrap_mode = 2
+clip_text = true
 
 [node name="DescLabel" type="Label" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.1
+anchor_left = 0.085
 anchor_top = 0.575
-anchor_right = 0.9
-anchor_bottom = 0.805
+anchor_right = 0.915
+anchor_bottom = 0.815
+offset_left = 3.7799997
+offset_top = 2.1500015
+offset_right = -3.7800064
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.98, 0.93, 0.79, 1)
@@ -87,3 +101,4 @@ theme_override_font_sizes/font_size = 9
 text = "Opis karty"
 vertical_alignment = 1
 autowrap_mode = 2
+clip_text = true

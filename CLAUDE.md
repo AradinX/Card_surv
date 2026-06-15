@@ -385,6 +385,58 @@ karty, akcje biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3
   prezentuje natywnie na 4060. `max_fps=60` i `vsync_mode=1` bez zmian.
 - Po zmianie wymagany restart edytora; `--import` + `load_test` OK.
 
+### Czytelność kart i ramek biomów (2026-06-13)
+
+- `card_frame_action.png` został wycofany z finalnych assetów. Karty akcji,
+  budynków, okolicy i wyborów nagród używają `card_frame_building.png`.
+  `card_frame_event.png` i `card_frame_monster.png` zostają osobnymi,
+  ręcznie poprawionymi ramkami i nie są kopiami building.
+- `card_view`: pola nazwy, opisu i kosztu są traktowane jako sztywne okna
+  tekstu. Label ma `clip_text`, a skrypt mierzy tekst i zmniejsza font
+  w zadanych granicach, żeby tytuł/opis nie wychodziły poza ramkę karty.
+- `night_card_view`: osobna scena dla kart nocnych zdarzeń i potworów w
+  popupie nocy. Dziedziczy po `CardView`, ale ma własne okna tekstu dopasowane
+  do `card_frame_event.png` i `card_frame_monster.png`. Ręka, okolica i nagrody
+  nadal używają `card_view.tscn`.
+- `biome_tile_view`: `biome_title_plate` jest wyświetlany szerzej i wyżej na
+  kaflu, z mniejszym fontem oraz auto-fit dla nazwy biomu i licznika slotów.
+- `top_status_bar_view`: górny HUD został wydzielony do osobnej sceny z
+  ramką Aktu I/Aktu II, fixed layoutem, clippingiem tekstów, paskami statystyk,
+  zasobami i przyciskiem końca dnia. `run.gd` przekazuje do niej stan runu,
+  a po BUM wywołuje `set_act2()`.
+
+### Vertical slice: fog of war / odkrywanie mapy (2026-06-15)
+
+- `TileState` ma teraz `is_discovered`. Po starcie runu odkryty jest tylko
+  kafel startowy; pozostale kafle sa zakryte jako `Nieznany teren`.
+- Wejscie na sasiedni zakryty kafel kosztuje standardowo 1 energie i odkrywa
+  jego biom, sloty, akcje zbierania oraz budynki. Log dopisuje komunikat
+  `Odkrywasz nowy teren`.
+- `BiomeTileView` ma osobny tryb renderowania kafla nieodkrytego: nie pokazuje
+  prawdziwej nazwy biomu, slotow, budynkow ani ikon budynkow. Sasiedni zakryty
+  kafel dostaje tooltip informujacy, ze wejscie odkryje teren.
+- Nocna talia zdarzen jest przebudowywana z hazardow tylko odkrytych biomow.
+  Po BUM ta sama zasada dotyczy skorumpowanych hazardow; zdarzenia katastrofy
+  i potwory dochodza dopiero w Akcie II. To sprawia, ze eksploracja realnie
+  zwieksza pule ryzyka, a nie jest tylko efektem wizualnym.
+- Dodano `tests/fog_of_war_test.gd`; sprawdza, ze startuje dokladnie jeden
+  odkryty kafel i ze pierwszy ruch odkrywa kolejny.
+
+### Vertical slice: pory roku (2026-06-15)
+
+- `RunState` ma teraz `season` (`SPRING`, `SUMMER`, `AUTUMN`, `WINTER`).
+  Harmonogram 30-dniowego vertical slice'a: dni 1-7 Wiosna, 8-14 Lato,
+  15-22 Jesien, 23-30 Zima.
+- Pora roku zmienia sie o swicie i wpisuje komunikat do logu. HUD pokazuje
+  ja obok dnia (`Dzien X/30  Wiosna/Lato/Jesien/Zima`).
+- Pierwsze modyfikatory sezonowe sa celowo male i bez nowych kart:
+  Wiosna daje +1 jedzenia przy akcjach zbierajacych jedzenie, Lato zwieksza
+  nocny spadek nawodnienia o 1, Jesien daje +1 drewna przy akcjach z drewnem,
+  Zima zwieksza nocny spadek ciepla o 1.
+- Dodano `tests/season_test.gd`; sprawdza przejscia sezonow. Smoke po zmianie:
+  24/50 wygranych bota, srednio 25.7 dnia, zgony po BUM 19. Balans do dalszego
+  strojenia po testach recznych.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -397,8 +449,11 @@ Testy headless (bez otwierania edytora; po dodaniu nowych klas najpierw
 ```
 Godot_v4.5.1-stable_win64_console.exe --headless --path . --import
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/smoke_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/fog_of_war_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/season_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/board_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/load_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/ui_layout_test.gd
 ```
 
 - `smoke_test` — naiwny bot rozgrywa 50 pełnych runów na planszy (karty
@@ -406,6 +461,9 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/load_test.gd
   wygraną/przegraną.
 - `board_test` — niezmienniki 200 wygenerowanych plansz + sąsiedztwo kafli.
 - `load_test` — poprawność typów ręcznie pisanych zasobów `.tres`.
+- `season_test` — harmonogram pór roku w 30-dniowym vertical slice.
+- `ui_layout_test` — headless instancjonowanie kart i kafli, łapie błędy
+  w UI-only kodzie typu auto-fit tekstu i dobór ramek.
 
 Poza tym testujemy ręcznie przez rozegranie runu w edytorze.
 

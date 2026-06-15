@@ -1,0 +1,63 @@
+[gd_resource type="Theme" load_steps=11 format=3 uid="uid://c51mgd2a42ybb"]
+
+[ext_resource type="Texture2D" uid="uid://depv8g8pkdp3q" path="res://assets/art/ui/buttons/act1/button_disabled.png" id="1_6ltpc"]
+[ext_resource type="Texture2D" uid="uid://cykvq57owcdr1" path="res://assets/art/ui/buttons/act1/button_primary_hover.png" id="2_xn5rj"]
+[ext_resource type="Texture2D" uid="uid://bh8lukc5bc664" path="res://assets/art/ui/buttons/act1/button_primary_pressed.png" id="3_odbaq"]
+[ext_resource type="Texture2D" uid="uid://i8gpuor7by2v" path="res://assets/art/ui/buttons/act1/button_primary.png" id="4_gncow"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_e8ivk"]
+content_margin_left = 26.0
+content_margin_top = 10.0
+content_margin_right = 26.0
+content_margin_bottom = 10.0
+texture = ExtResource("1_6ltpc")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_diq5a"]
+content_margin_left = 26.0
+content_margin_top = 10.0
+content_margin_right = 26.0
+content_margin_bottom = 10.0
+texture = ExtResource("2_xn5rj")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_5ks0y"]
+content_margin_left = 26.0
+content_margin_top = 10.0
+content_margin_right = 26.0
+content_margin_bottom = 10.0
+texture = ExtResource("2_xn5rj")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_e3pqd"]
+content_margin_left = 26.0
+content_margin_top = 10.0
+content_margin_right = 26.0
+content_margin_bottom = 10.0
+texture = ExtResource("3_odbaq")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2xrw1"]
+content_margin_left = 26.0
+content_margin_top = 10.0
+content_margin_right = 26.0
+content_margin_bottom = 10.0
+texture = ExtResource("4_gncow")
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ucbjd"]
+content_margin_left = 26.0
+content_margin_top = 10.0
+content_margin_right = 26.0
+content_margin_bottom = 10.0
+texture = ExtResource("3_odbaq")
+
+[resource]
+Button/colors/font_color = Color(0.98, 0.93, 0.76, 1)
+Button/colors/font_disabled_color = Color(0.58, 0.57, 0.48, 1)
+Button/colors/font_hover_color = Color(1, 0.97, 0.78, 1)
+Button/colors/font_pressed_color = Color(0.86, 0.78, 0.54, 1)
+Button/colors/font_shadow_color = Color(0.035, 0.025, 0.015, 1)
+Button/constants/shadow_offset_x = 1
+Button/constants/shadow_offset_y = 1
+Button/styles/disabled = SubResource("StyleBoxTexture_e8ivk")
+Button/styles/focus = SubResource("StyleBoxTexture_diq5a")
+Button/styles/hover = SubResource("StyleBoxTexture_5ks0y")
+Button/styles/hover_pressed = SubResource("StyleBoxTexture_e3pqd")
+Button/styles/normal = SubResource("StyleBoxTexture_2xrw1")
+Button/styles/pressed = SubResource("StyleBoxTexture_ucbjd")

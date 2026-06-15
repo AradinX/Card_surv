@@ -8,6 +8,7 @@ extends Control
 
 
 func _ready() -> void:
+	ButtonSkin.apply_many([_retry_button, _menu_button])
 	if GameManager.last_run_won:
 		_result_label.text = "WYGRANA!"
 		_result_label.modulate = Color(0.5, 1.0, 0.5)

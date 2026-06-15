@@ -11,8 +11,10 @@ const MAX_HUNGER := 10
 const MAX_THIRST := 10
 const MAX_WARMTH := 10
 const MAX_ENERGY := 10
+enum Season {SPRING, SUMMER, AUTUMN, WINTER}
 
 @export var day: int = 1
+@export var season: int = Season.SPRING
 @export var max_health: int = MAX_HEALTH
 @export var max_energy: int = MAX_ENERGY
 @export var health: int = MAX_HEALTH
@@ -49,3 +51,17 @@ const MAX_ENERGY := 10
 @export var disaster: DisasterData
 @export var bum_day: int = 0
 @export var bum_happened: bool = false
+
+
+static func season_name(value: int) -> String:
+	match value:
+		Season.SPRING:
+			return "Wiosna"
+		Season.SUMMER:
+			return "Lato"
+		Season.AUTUMN:
+			return "Jesien"
+		Season.WINTER:
+			return "Zima"
+		_:
+			return "?"

@@ -1,7 +1,26 @@
-[gd_scene load_steps=3 format=3 uid="uid://bfy4qx1pqw7b7"]
+[gd_scene load_steps=8 format=3 uid="uid://bfy4qx1pqw7b7"]
 
 [ext_resource type="Script" uid="uid://d3xjy4e2jqie5" path="res://scenes/run.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bddvngethakv0" path="res://assets/art/board/backgrounds/bg_biome_board_act1.png" id="2_run_bg"]
+[ext_resource type="PackedScene" uid="uid://cio2exxm3lor0" path="res://ui/top_status_bar_view.tscn" id="3_top_bar"]
+[ext_resource type="Theme" uid="uid://c51mgd2a42ybb" path="res://ui/button_theme_act1.tres" id="4_button_theme"]
+[ext_resource type="Texture2D" uid="uid://butp5oqb6kx5i" path="res://assets/art/ui/panels/log_panel_act1.png" id="5_log_panel_act1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_log"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_building_popup"]
+bg_color = Color(0.025, 0.055, 0.03, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.78, 0.64, 0.28, 0.85)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 10
 
 [node name="Run" type="Control"]
 layout_mode = 3
@@ -13,6 +32,7 @@ grow_vertical = 2
 script = ExtResource("1_script")
 
 [node name="BackgroundArt" type="TextureRect" parent="."]
+self_modulate = Color(0.4, 0.42, 0.47, 1)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -23,7 +43,6 @@ mouse_filter = 2
 texture = ExtResource("2_run_bg")
 expand_mode = 1
 stretch_mode = 6
-self_modulate = Color(0.4, 0.42, 0.47, 1)
 
 [node name="Background" type="ColorRect" parent="."]
 layout_mode = 1
@@ -49,133 +68,52 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
+theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_bottom = 8
 
 [node name="Layout" type="VBoxContainer" parent="Scroll/Margin"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
-[node name="TopBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
+[node name="TopStatusBar" parent="Scroll/Margin/Layout" instance=ExtResource("3_top_bar")]
 layout_mode = 2
-theme_override_constants/separation = 24
-
-[node name="DayLabel" type="Label" parent="Scroll/Margin/Layout/TopBar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 26
-text = "Dzień 1/30"
-
-[node name="LevelLabel" type="Label" parent="Scroll/Margin/Layout/TopBar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Poziom 1
-XP 0/8"
-
-[node name="HealthBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
-layout_mode = 2
-size_flags_vertical = 4
-
-[node name="HealthLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/HealthBox"]
-layout_mode = 2
-text = "Zdrowie: 10/10"
-
-[node name="HealthBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/HealthBox"]
-modulate = Color(1, 0.45, 0.45, 1)
-custom_minimum_size = Vector2(140, 14)
-layout_mode = 2
-max_value = 10.0
-value = 10.0
-show_percentage = false
-
-[node name="HungerBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
-layout_mode = 2
-size_flags_vertical = 4
-
-[node name="HungerLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/HungerBox"]
-layout_mode = 2
-text = "Sytość: 8/10"
-
-[node name="HungerBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/HungerBox"]
-modulate = Color(1, 0.8, 0.4, 1)
-custom_minimum_size = Vector2(140, 14)
-layout_mode = 2
-max_value = 10.0
-value = 8.0
-show_percentage = false
-
-[node name="ThirstBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
-layout_mode = 2
-size_flags_vertical = 4
-
-[node name="ThirstLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/ThirstBox"]
-layout_mode = 2
-text = "Nawodnienie: 8/10"
-
-[node name="ThirstBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/ThirstBox"]
-modulate = Color(0.45, 0.7, 1, 1)
-custom_minimum_size = Vector2(140, 14)
-layout_mode = 2
-max_value = 10.0
-value = 8.0
-show_percentage = false
-
-[node name="WarmthBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
-layout_mode = 2
-size_flags_vertical = 4
-
-[node name="WarmthLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/WarmthBox"]
-layout_mode = 2
-text = "Ciepło: 8/10"
-
-[node name="WarmthBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/WarmthBox"]
-modulate = Color(1, 0.6, 0.3, 1)
-custom_minimum_size = Vector2(140, 14)
-layout_mode = 2
-max_value = 10.0
-value = 8.0
-show_percentage = false
-
-[node name="EnergyBox" type="VBoxContainer" parent="Scroll/Margin/Layout/TopBar"]
-layout_mode = 2
-size_flags_vertical = 4
-
-[node name="EnergyLabel" type="Label" parent="Scroll/Margin/Layout/TopBar/EnergyBox"]
-layout_mode = 2
-text = "Energia: 10/10"
-
-[node name="EnergyBar" type="ProgressBar" parent="Scroll/Margin/Layout/TopBar/EnergyBox"]
-modulate = Color(0.6, 1, 0.6, 1)
-custom_minimum_size = Vector2(140, 14)
-layout_mode = 2
-max_value = 10.0
-value = 10.0
-show_percentage = false
-
-[node name="TopBarSpacer" type="Control" parent="Scroll/Margin/Layout/TopBar"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="EndDayButton" type="Button" parent="Scroll/Margin/Layout/TopBar"]
-custom_minimum_size = Vector2(150, 48)
-layout_mode = 2
-size_flags_vertical = 4
-theme_override_font_sizes/font_size = 17
-text = "Zakończ dzień"
-
-[node name="ResourcesLabel" type="Label" parent="Scroll/Margin/Layout"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 15
-text = "Jedzenie: 2   |   Woda: 1   |   Drewno: 0   |   Materiały: 0   |   Narzędzia: nie"
 
 [node name="MidRow" type="HBoxContainer" parent="Scroll/Margin/Layout"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 16
 
-[node name="Log" type="RichTextLabel" parent="Scroll/Margin/Layout/MidRow"]
-custom_minimum_size = Vector2(340, 220)
+[node name="LogPanel" type="Control" parent="Scroll/Margin/Layout/MidRow"]
+clip_contents = true
+custom_minimum_size = Vector2(340, 255)
 layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LogPanelArt" type="TextureRect" parent="Scroll/Margin/Layout/MidRow/LogPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_log_panel_act1")
+expand_mode = 1
+
+[node name="Log" type="RichTextLabel" parent="Scroll/Margin/Layout/MidRow/LogPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 48.0
+offset_top = 49.0
+offset_right = -40.0
+offset_bottom = -47.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/default_color = Color(0.19, 0.145, 0.09, 1)
+theme_override_styles/normal = SubResource("StyleBoxEmpty_log")
 scroll_following = true
 
 [node name="Board" type="GridContainer" parent="Scroll/Margin/Layout/MidRow"]
@@ -187,50 +125,89 @@ theme_override_constants/v_separation = 8
 columns = 3
 
 [node name="CardsRow" type="HBoxContainer" parent="Scroll/Margin/Layout"]
-custom_minimum_size = Vector2(0, 208)
+custom_minimum_size = Vector2(0, 204)
 layout_mode = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 12
 
 [node name="GatherBar" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow"]
-custom_minimum_size = Vector2(388, 208)
+custom_minimum_size = Vector2(416, 204)
 layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="GatherLabel" type="Label" parent="Scroll/Margin/Layout/CardsRow/GatherBar"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Okolica:"
+size_flags_horizontal = 0
+theme_override_constants/separation = 8
 
 [node name="GatherCards" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow/GatherBar"]
 layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
 [node name="BottomBar" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow"]
-custom_minimum_size = Vector2(0, 208)
+custom_minimum_size = Vector2(0, 204)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Hand" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow/BottomBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_constants/separation = 8
 
-[node name="BuildingBar" type="HBoxContainer" parent="Scroll/Margin/Layout"]
+[node name="EndDayButton" type="Button" parent="Scroll/Margin/Layout/CardsRow/BottomBar"]
+custom_minimum_size = Vector2(220, 88)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 8
+theme = ExtResource("4_button_theme")
+theme_override_font_sizes/font_size = 18
+text = "Koniec dnia"
+clip_text = true
+
+[node name="BuildingActionPopup" type="PanelContainer" parent="."]
 visible = false
-layout_mode = 2
-theme_override_constants/separation = 10
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -720.0
+offset_top = -448.0
+offset_right = -28.0
+offset_bottom = -104.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_building_popup")
 
-[node name="BuildingLabel" type="Label" parent="Scroll/Margin/Layout/BuildingBar"]
+[node name="PopupMargin" type="MarginContainer" parent="BuildingActionPopup"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "Budynki:"
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 14
+theme_override_constants/margin_bottom = 12
 
-[node name="BuildingActions" type="HBoxContainer" parent="Scroll/Margin/Layout/BuildingBar"]
+[node name="VBox" type="VBoxContainer" parent="BuildingActionPopup/PopupMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="HBoxContainer" parent="BuildingActionPopup/PopupMargin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BuildingLabel" type="Label" parent="BuildingActionPopup/PopupMargin/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 10
+theme_override_font_sizes/font_size = 28
+text = "Budynki"
+
+[node name="CloseButton" type="Button" parent="BuildingActionPopup/PopupMargin/VBox/Header"]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "X"
+clip_text = true
+
+[node name="BuildingActions" type="VBoxContainer" parent="BuildingActionPopup/PopupMargin/VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
 
 [node name="LevelUpOverlay" type="ColorRect" parent="."]
 visible = false
@@ -266,7 +243,7 @@ theme_override_constants/separation = 16
 [node name="TitleLabel" type="Label" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Awans! Poziom 2 — wybierz nagrodę"
+text = "Awans! Poziom 2 â€” wybierz nagrodÄ™"
 horizontal_alignment = 1
 
 [node name="RewardButtons" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
@@ -274,24 +251,27 @@ layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="EnergyButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
-custom_minimum_size = Vector2(200, 64)
+custom_minimum_size = Vector2(260, 100)
 layout_mode = 2
+theme = ExtResource("4_button_theme")
 theme_override_font_sizes/font_size = 16
 text = "+1 maks. energii"
 
 [node name="HealthButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
-custom_minimum_size = Vector2(200, 64)
+custom_minimum_size = Vector2(260, 100)
 layout_mode = 2
+theme = ExtResource("4_button_theme")
 theme_override_font_sizes/font_size = 16
 text = "+1 maks. zdrowia
 (+2 leczenia)"
 
 [node name="CardButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
-custom_minimum_size = Vector2(200, 64)
+custom_minimum_size = Vector2(260, 100)
 layout_mode = 2
+theme = ExtResource("4_button_theme")
 theme_override_font_sizes/font_size = 16
 text = "Nowa karta do talii
-(wybór 1 z 3)"
+(wybĂłr 1 z 3)"
 
 [node name="CardChoices" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
 visible = false
@@ -337,12 +317,13 @@ text = "Nocne zdarzenie"
 horizontal_alignment = 1
 
 [node name="CardSlot" type="CenterContainer" parent="NightEventOverlay/Panel/PanelMargin/VBox"]
-custom_minimum_size = Vector2(170, 220)
+custom_minimum_size = Vector2(190, 280)
 layout_mode = 2
 
 [node name="ContinueButton" type="Button" parent="NightEventOverlay/Panel/PanelMargin/VBox"]
-custom_minimum_size = Vector2(180, 48)
+custom_minimum_size = Vector2(260, 96)
 layout_mode = 2
 size_flags_horizontal = 4
+theme = ExtResource("4_button_theme")
 theme_override_font_sizes/font_size = 18
 text = "Dalej"

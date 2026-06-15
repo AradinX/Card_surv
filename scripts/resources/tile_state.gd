@@ -5,5 +5,6 @@ extends Resource
 ## face of their biome (is_corrupted = true).
 
 @export var biome: BiomeData
+@export var is_discovered: bool = false
 @export var is_corrupted: bool = false
 @export var buildings: Array[BuildingState] = []

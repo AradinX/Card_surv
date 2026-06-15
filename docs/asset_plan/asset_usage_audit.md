@@ -41,12 +41,15 @@ Legenda: **[WPIĘTE]** = ładowane przez scenę lub skrypt w czasie gry ·
   slotów budynków" (osobny panel kafla), wtedy wejdą.
 
 ## cards/
-- `frames/card_frame_action.png` — **[WPIĘTE]** domyślna ramka (akcje/budynki
-  używają jej przez `_frame_path`; uwaga: kod stałą nazywa `FRAME_BUILDING`).
-- `frames/card_frame_event.png` — **[WPIĘTE]** ramka kart zdarzeń (`card_view`).
-- `frames/card_frame_monster.png` — **[WPIĘTE]** ramka kart potworów.
+- `frames/card_frame_building.png` — **[WPIĘTE]** bazowa ramka dla kart akcji,
+  budynków, kart okolicy i wyborów nagród (`card_view::_frame_path`).
+  Zastępuje usunięte `card_frame_action.png`.
+- `frames/card_frame_event.png` — **[WPIĘTE]** osobna, ręcznie poprawiona ramka
+  kart zdarzeń (`card_view`).
+- `frames/card_frame_monster.png` — **[WPIĘTE]** osobna, ręcznie poprawiona
+  ramka kart potworów.
 - `frames/card_frame_reward.png` — **[_reference/unused]** (brak osobnego
-  widoku nagrody-karty; nagroda używa zwykłej ramki).
+  widoku nagrody-karty; nagroda używa zwykłej ramki building).
 - `illustrations/actions_act1_candidates/*` — **[WPIĘTE]** ilustracje akcji
   (jasny zestaw Akt I) przez `ACTION_ART_DIR` + aliasy.
 - `illustrations/buildings_act1_candidates/*` — **[WPIĘTE]** ilustracje
@@ -65,11 +68,14 @@ Legenda: **[WPIĘTE]** = ładowane przez scenę lub skrypt w czasie gry ·
   referencji w kodzie. Do podpięcia przy animacjach BUM/pogody/odkrywania.
 
 ## ui/
-- `bars/`, `buttons/`, `panels/`, `icons/` (19 plików) — **[ZAPAS]**, **żaden
-  nie jest wpięty**. Jedyne trafienia w repo to auto-generowane `.import`
-  i plany w `docs/`. UI gry stoi dziś na domyślnym theme Godota; to pierwsze
-  produkcyjne placeholdery do wymiany skórki (9-slice buttony/panele, paski
-  statystyk, top bar). Wymagają złożenia własnego `Theme`/StyleBox w Godot.
+- `panels/top_status_bar_panel_act1_wreath_candidate.png` — **[WPIĘTE]**
+  jako tło sceny `ui/top_status_bar_view.tscn`, górny HUD w Akcie I.
+- `panels/top_status_bar_panel_act2_withered_candidate.png` — **[WPIĘTE]**
+  podmieniane przez `TopStatusBarView.set_act2()` po BUM, tło górnego HUD-u
+  w Akcie II.
+- `bars/`, `buttons/`, pozostałe `panels/`, `icons/` — **[ZAPAS]**.
+  Większość UI gry nadal stoi na domyślnym theme Godota; te assety czekają
+  na wymianę skórek pasków, przycisków, panelu logu i popupów.
 
 ## fonts/
 - pusty — brak własnych fontów (domyślny font silnika).

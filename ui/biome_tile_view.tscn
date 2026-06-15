@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://bf2arcvxsr0x5"]
 
-[ext_resource type="Script" path="res://ui/biome_tile_view.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://d3ayou6ei3i22" path="res://ui/biome_tile_view.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://c8q8jxwp1c7vw" path="res://assets/art/biomes/frames/biome_title_plate.png" id="2_myg5o"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/icons/icon_building_slot_house.png" id="3_building_icon"]
 
 [node name="BiomeTileView" type="Button"]
 custom_minimum_size = Vector2(260, 165)
@@ -41,46 +43,32 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
-stretch_mode = 0
 
 [node name="TitlePlate" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.235
-anchor_top = 0.035
-anchor_right = 0.765
-anchor_bottom = 0.235
+anchor_left = 0.19
+anchor_top = 0.025
+anchor_right = 0.81
+anchor_bottom = 0.285
+offset_bottom = 3.9750023
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+texture = ExtResource("2_myg5o")
 expand_mode = 1
-stretch_mode = 0
 
 [node name="TitleLabel" type="Label" parent="TitlePlate"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.1
-anchor_top = 0.14
-anchor_right = 0.63
-anchor_bottom = 0.86
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.98, 0.9, 0.65, 1)
-theme_override_colors/font_shadow_color = Color(0.05, 0.04, 0.02, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 18
-text = "Las"
-vertical_alignment = 1
-autowrap_mode = 2
-
-[node name="SlotsLabel" type="Label" parent="TitlePlate"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.63
-anchor_top = 0.14
-anchor_right = 0.9
-anchor_bottom = 0.86
+anchor_top = 0.18
+anchor_right = 0.66
+anchor_bottom = 0.82
+offset_left = 15.480005
+offset_top = 3.4375
+offset_right = 10.207993
+offset_bottom = -6.5625
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_colors/font_color = Color(0.98, 0.9, 0.65, 1)
@@ -88,9 +76,33 @@ theme_override_colors/font_shadow_color = Color(0.05, 0.04, 0.02, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 14
+text = "Las"
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="SlotsLabel" type="Label" parent="TitlePlate"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.66
+anchor_top = 0.18
+anchor_right = 0.9
+anchor_bottom = 0.82
+offset_left = 11.207993
+offset_top = -0.8470001
+offset_right = -7.0
+offset_bottom = -0.8470001
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.98, 0.9, 0.65, 1)
+theme_override_colors/font_shadow_color = Color(0.05, 0.04, 0.02, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
 text = "0/3"
 horizontal_alignment = 2
 vertical_alignment = 1
+clip_text = true
 
 [node name="PlayerMarker" type="TextureRect" parent="."]
 visible = false
@@ -116,5 +128,22 @@ anchor_bottom = 0.94
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-alignment = 1
 theme_override_constants/separation = 8
+alignment = 1
+
+[node name="BuildingsButton" type="TextureButton" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.79
+anchor_top = 0.67
+anchor_right = 0.96
+anchor_bottom = 0.94
+grow_horizontal = 2
+grow_vertical = 2
+tooltip_text = "Budynki"
+texture_normal = ExtResource("3_building_icon")
+texture_hover = ExtResource("3_building_icon")
+texture_pressed = ExtResource("3_building_icon")
+ignore_texture_size = true
+stretch_mode = 5
