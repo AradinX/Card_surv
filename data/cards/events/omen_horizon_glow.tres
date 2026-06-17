@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "omen_horizon_glow"
+display_name = "Łuna na horyzoncie"
+description = "Zielonkawa poświata nie gaśnie. -1 energii następnego dnia, +1 materiału z popiołu."
+materials_delta = 1
+next_day_energy_delta = -1
+weight = 10
+cooldown_days = 2
+category = "omen"
+severity = "minor"

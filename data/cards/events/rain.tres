@@ -11,3 +11,7 @@ health_delta = -1
 warmth_delta = -1
 water_delta = 1
 shelter_protects = true
+weight = 9
+cooldown_days = 2
+category = "weather"
+severity = "medium"

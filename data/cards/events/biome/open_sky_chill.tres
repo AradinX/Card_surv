@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "open_sky_chill"
+display_name = "Chłód otwartego nieba"
+description = "Na otwartej łące nie ma jak się ogrzać. -2 ciepła (schronienie chroni)."
+warmth_delta = -2
+shelter_protects = true
+weight = 9
+cooldown_days = 2
+category = "biome"
+severity = "minor"
+tags = PackedStringArray("meadow")

@@ -8,3 +8,5 @@ id = "lucky_find"
 display_name = "Znalezisko"
 description = "Natrafiasz na porzucony plecak. +2 materiałów."
 materials_delta = 2
+category = "neutral"
+severity = "minor"

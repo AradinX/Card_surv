@@ -9,3 +9,7 @@ display_name = "Burza"
 description = "Wichura i pioruny szaleją całą noc. -3 zdrowia (schronienie chroni)."
 health_delta = -3
 shelter_protects = true
+weight = 7
+cooldown_days = 3
+category = "weather"
+severity = "major"

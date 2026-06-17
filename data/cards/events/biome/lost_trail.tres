@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "lost_trail"
+display_name = "Zgubiony szlak"
+description = "Gęstwina zaprowadziła donikąd. -2 energii następnego dnia."
+next_day_energy_delta = -2
+weight = 7
+cooldown_days = 3
+max_per_run = 2
+category = "biome"
+severity = "medium"
+tags = PackedStringArray("forest")

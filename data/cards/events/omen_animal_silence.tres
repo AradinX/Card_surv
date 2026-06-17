@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "omen_animal_silence"
+display_name = "Cisza zwierząt"
+description = "Las wstrzymał oddech. Ani ptaka, ani świerszcza."
+weight = 10
+cooldown_days = 2
+category = "omen"
+severity = "minor"

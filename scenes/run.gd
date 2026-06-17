@@ -11,6 +11,37 @@ const LOG_PANEL_ACT2 := "res://assets/art/ui/panels/log_panel_act2.png"
 const LOG_TEXT_ACT2 := Color(0.82, 0.78, 0.64, 1.0)
 const REPAIR_ICON := "res://assets/art/ui/icons/icon_repair_round.png"
 const RUIN_ICON := "res://assets/art/ui/icons/icon_ruin_round.png"
+## BUM transition FX (fullscreen overlays). Additive ones sit on black, the
+## rest are chroma-keyed to alpha; see tools/chroma_key_blue.gd.
+const BUM_FX := {
+	"omen": "res://assets/art/fx/bum/fx_omen_glow.png",
+	"flash": "res://assets/art/fx/bum/fx_bum_flash.png",
+	"shock": "res://assets/art/fx/bum/fx_shockwave_ring.png",
+	"petals": "res://assets/art/fx/bum/fx_blast_petals.png",
+	"rift1": "res://assets/art/fx/bum/fx_sky_rift_01.png",
+	"rift2": "res://assets/art/fx/bum/fx_sky_rift_02.png",
+	"crack": "res://assets/art/fx/bum/fx_screen_crack_overlay.png",
+	"wilt": "res://assets/art/fx/bum/fx_wilt_overlay.png",
+	"rot": "res://assets/art/fx/corruption/fx_rot_wipe.png",
+	"cloud1": "res://assets/art/fx/corruption/fx_plague_cloud_01.png",
+	"cloud2": "res://assets/art/fx/corruption/fx_plague_cloud_02.png",
+	"vignette": "res://assets/art/fx/corruption/fx_corruption_vignette.png",
+	"motes": "res://assets/art/fx/corruption/fx_spore_motes_loop.png",
+}
+const BUM_FX_ADDITIVE := ["omen", "flash", "motes"]
+## Night event card reveal: backs to flip from, fullscreen accent FX.
+const CARD_BACK := {
+	"event": "res://assets/art/cards/backs/card_back_event.png",
+	"monster": "res://assets/art/cards/backs/card_back_monster.png",
+}
+const NIGHT_FX := {
+	"spotlight": "res://assets/art/ui/overlay_night_spotlight.png",
+	"glow": "res://assets/art/fx/cards/fx_card_reveal_glow.png",
+	"burst": "res://assets/art/fx/cards/fx_card_reveal_burst.png",
+	"shine": "res://assets/art/fx/cards/fx_card_shine_sweep.png",
+	"dust": "res://assets/art/fx/cards/fx_card_dust_puff.png",
+}
+const NIGHT_CARD_SIZE := Vector2(132, 198)
 
 @onready var _background: ColorRect = $Background
 @onready var _background_art: TextureRect = $BackgroundArt
@@ -39,6 +70,8 @@ var _survival: SurvivalSystem
 var _tile_buttons: Array[BiomeTileView] = []
 var _button_act := 1
 var _building_popup_requested := false
+var _night_fx: Array[Node] = []
+var _night_tween: Tween
 
 
 func _ready() -> void:
@@ -281,6 +314,12 @@ const BOARD_BG_ACT2 := "res://assets/art/board/backgrounds/bg_biome_board_act2.p
 
 
 func _on_bum_struck(_disaster: DisasterData) -> void:
+	_play_bum_fx()
+
+
+## Swap the whole screen to its Act II look. Triggered at the flash peak of the
+## BUM animation so the player never sees the UI flip "raw".
+func _apply_act2_look() -> void:
 	if ResourceLoader.exists(BOARD_BG_ACT2):
 		_background_art.texture = load(BOARD_BG_ACT2)
 	_button_act = 2
@@ -290,6 +329,118 @@ func _on_bum_struck(_disaster: DisasterData) -> void:
 		_log_panel_art.texture = load(LOG_PANEL_ACT2)
 	_log.add_theme_color_override("default_color", LOG_TEXT_ACT2)
 	_background.color = Color(0.04, 0.08, 0.045, 0.58)
+
+
+## Cataclysm: a layered fullscreen sequence — dread glow, blast (flash +
+## shockwave + torn petals), the sky tearing, then creeping rot/plague that
+## wipes the lush board over to its corrupted Act II face. A dark vignette and
+## drifting spores stay for the rest of the run.
+func _play_bum_fx() -> void:
+	for id in BUM_FX:
+		if not ResourceLoader.exists(BUM_FX[id]):
+			_apply_act2_look()
+			return
+
+	var fx := Control.new()
+	add_child(fx)
+	fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var center := size * 0.5
+	var omen := _make_fx_layer("omen", fx)
+	var flash := _make_fx_layer("flash", fx)
+	var shock := _make_fx_layer("shock", fx)
+	shock.pivot_offset = center
+	shock.scale = Vector2(0.15, 0.15)
+	var petals := _make_fx_layer("petals", fx)
+	petals.pivot_offset = center
+	petals.scale = Vector2(0.6, 0.6)
+	var rift1 := _make_fx_layer("rift1", fx)
+	var rift2 := _make_fx_layer("rift2", fx)
+	var crack := _make_fx_layer("crack", fx)
+	var wilt := _make_fx_layer("wilt", fx)
+	var rot := _make_fx_layer("rot", fx)
+	var cloud1 := _make_fx_layer("cloud1", fx)
+	var cloud2 := _make_fx_layer("cloud2", fx)
+	# Persistent Act II atmosphere — parented to the scene, then moved to sit
+	# just above the board background and BELOW the gameplay UI, so it blends
+	# into the backdrop instead of covering the HUD and cards. The transient fx
+	# container stays on top (added later) for the blast.
+	var vignette := _make_fx_layer("vignette", self)
+	var motes := _make_fx_layer("motes", self)
+	var bg_index := _background_art.get_index()
+	move_child(vignette, bg_index + 1)
+	move_child(motes, bg_index + 2)
+
+	var t := create_tween().set_parallel(true)
+	# 1) Dread glow swells and fades.
+	t.tween_property(omen, "modulate:a", 0.7, 0.25)
+	t.tween_property(omen, "modulate:a", 0.0, 0.6).set_delay(0.55)
+	# 2) Blast: flash, expanding shockwave ring and torn petals. The Act II look
+	# is swapped in under the flash peak.
+	t.tween_property(flash, "modulate:a", 1.0, 0.08).set_delay(0.25)
+	t.tween_property(flash, "modulate:a", 0.0, 0.5).set_delay(0.42)
+	t.tween_callback(_apply_act2_look).set_delay(0.34)
+	t.tween_property(shock, "modulate:a", 0.9, 0.1).set_delay(0.26)
+	t.tween_property(shock, "scale", Vector2(1.55, 1.55), 0.6) \
+		.set_delay(0.26).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(shock, "modulate:a", 0.0, 0.35).set_delay(0.55)
+	t.tween_property(petals, "modulate:a", 1.0, 0.12).set_delay(0.28)
+	t.tween_property(petals, "scale", Vector2(1.3, 1.3), 0.75) \
+		.set_delay(0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	t.tween_property(petals, "modulate:a", 0.0, 0.5).set_delay(0.62)
+	# 3) The sky tears (rift_01 -> rift_02) and the screen cracks.
+	t.tween_property(rift1, "modulate:a", 0.95, 0.2).set_delay(0.5)
+	t.tween_property(rift1, "modulate:a", 0.0, 0.3).set_delay(0.82)
+	t.tween_property(rift2, "modulate:a", 0.95, 0.3).set_delay(0.8)
+	t.tween_property(crack, "modulate:a", 0.8, 0.25).set_delay(0.6)
+	# 4) Rot and plague creep in and wipe the board to Act II; the pretty Act I
+	# flowers wilt and brown along the ground.
+	t.tween_property(rot, "modulate:a", 1.0, 0.65).set_delay(0.85)
+	t.tween_property(wilt, "modulate:a", 1.0, 0.7).set_delay(0.8)
+	t.tween_property(cloud1, "modulate:a", 0.9, 0.7).set_delay(0.9)
+	t.tween_property(cloud2, "modulate:a", 0.85, 0.7).set_delay(1.05)
+	# 5) Persistent atmosphere settles in.
+	t.tween_property(vignette, "modulate:a", 1.0, 0.8).set_delay(1.45)
+	t.tween_property(motes, "modulate:a", 0.5, 1.0).set_delay(1.6)
+	# 6) Transient corruption fades out, revealing the settled Act II board.
+	t.tween_property(rift2, "modulate:a", 0.0, 0.6).set_delay(1.7)
+	t.tween_property(crack, "modulate:a", 0.0, 0.7).set_delay(1.7)
+	t.tween_property(rot, "modulate:a", 0.0, 0.9).set_delay(2.0)
+	t.tween_property(wilt, "modulate:a", 0.0, 0.9).set_delay(2.05)
+	t.tween_property(cloud1, "modulate:a", 0.0, 0.8).set_delay(2.1)
+	t.tween_property(cloud2, "modulate:a", 0.0, 0.8).set_delay(2.2)
+
+	t.finished.connect(func() -> void:
+		if is_instance_valid(fx):
+			fx.queue_free()
+		_loop_spore_motes(motes)
+	)
+
+
+func _make_fx_layer(id: String, parent: Control) -> TextureRect:
+	var layer := TextureRect.new()
+	layer.texture = load(BUM_FX[id])
+	layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.modulate.a = 0.0
+	parent.add_child(layer)
+	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	if id in BUM_FX_ADDITIVE:
+		var mat := CanvasItemMaterial.new()
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		layer.material = mat
+	return layer
+
+
+## Gentle breathing loop for the lingering spore haze.
+func _loop_spore_motes(motes: TextureRect) -> void:
+	if not is_instance_valid(motes):
+		return
+	var loop := create_tween().set_loops()
+	loop.tween_property(motes, "modulate:a", 0.28, 3.5).set_trans(Tween.TRANS_SINE)
+	loop.tween_property(motes, "modulate:a", 0.5, 3.5).set_trans(Tween.TRANS_SINE)
 
 
 func _apply_button_skin() -> void:
@@ -317,11 +468,124 @@ func _apply_close_button_skin() -> void:
 
 func _on_night_card_drawn(card: CardData) -> void:
 	_clear_night_card()
+	_night_overlay.visible = true
+
+	# Front and back are both direct children of the slot's CenterContainer, so
+	# they land on the exact same centred rect. The card flips from back to front.
 	var view: NightCardView = NIGHT_CARD_VIEW_SCENE.instantiate()
 	_night_card_slot.add_child(view)
 	view.setup(card, "")
 	view.focus_mode = Control.FOCUS_NONE
-	_night_overlay.visible = true
+	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	view.pivot_offset = NIGHT_CARD_SIZE * 0.5
+	view.scale = Vector2(0.0, 1.0)
+	view.visible = false
+
+	var is_monster := card is MonsterCardData
+	var back := TextureRect.new()
+	back.texture = load(CARD_BACK["monster" if is_monster else "event"])
+	back.custom_minimum_size = NIGHT_CARD_SIZE
+	back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	back.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	back.pivot_offset = NIGHT_CARD_SIZE * 0.5
+	_night_card_slot.add_child(back)
+
+	_play_night_reveal(view, back, _night_tint(card))
+
+
+## Reveal FX tint by event category (monsters red, weather blue, biome green,
+## disaster sickly purple, omen amber, neutral warm gold).
+func _night_tint(card: CardData) -> Color:
+	if card is MonsterCardData:
+		return Color(1.0, 0.46, 0.4)
+	var category := str(card.get("category")) if card is EventCardData else ""
+	match category:
+		"weather":
+			return Color(0.62, 0.82, 1.0)
+		"biome":
+			return Color(0.72, 1.0, 0.62)
+		"disaster":
+			return Color(0.82, 0.52, 1.0)
+		"omen":
+			return Color(1.0, 0.72, 0.32)
+		"monster":
+			return Color(1.0, 0.46, 0.4)
+		_:
+			return Color(1.0, 0.92, 0.72)
+
+
+## The card flips from its back to its front while a spotlight, glow, sparks,
+## a shine sweep and a dust puff sell the reveal. Spotlight + glow linger behind
+## the panel; the rest are one-shot. `tint` colours the glow/burst per category.
+func _play_night_reveal(view: Control, back: Control, tint: Color) -> void:
+
+	# Backdrop glow behind the panel (does not wash the card face).
+	var spotlight := _spawn_night_fx("spotlight", get_viewport_rect().size, true, Color.WHITE, 0)
+	var glow := _spawn_night_fx("glow", Vector2(560, 560), true, tint, 1)
+	# One-shot accents on top.
+	var burst := _spawn_night_fx("burst", Vector2(620, 620), true, tint, -1)
+	burst.scale = Vector2(0.6, 0.6)
+	var shine := _spawn_night_fx("shine", Vector2(220, 320), true, Color.WHITE, -1)
+	var dust := _spawn_night_fx("dust", Vector2(360, 180), true, tint, -1)
+	dust.position.y += 120.0
+
+	# Hold on the card back so the player reads it before it flips.
+	const HOLD := 0.95
+
+	if _night_tween != null:
+		_night_tween.kill()
+	_night_tween = create_tween().set_parallel(true)
+	# Dust puff as the card lands (at the very start).
+	_night_tween.tween_property(dust, "modulate:a", 0.7, 0.15)
+	_night_tween.tween_property(dust, "modulate:a", 0.0, 0.4).set_delay(0.2)
+	# Spotlight settles in immediately and frames the held back.
+	_night_tween.tween_property(spotlight, "modulate:a", 0.55, 0.45)
+	# Glow blooms as the flip begins.
+	_night_tween.tween_property(glow, "modulate:a", 0.7, 0.45).set_delay(HOLD)
+	# The flip: back turns to edge, swap back->front, front turns out. Both are
+	# pivoted at their centre, so the card stays centred throughout.
+	_night_tween.tween_property(back, "scale", Vector2(0.0, 1.0), 0.22) \
+		.set_delay(HOLD).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_night_tween.tween_callback(func() -> void:
+		back.visible = false
+		view.visible = true
+	).set_delay(HOLD + 0.22)
+	_night_tween.tween_property(view, "scale", Vector2(1.0, 1.0), 0.24) \
+		.set_delay(HOLD + 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	# Shine sweeps across during the flip.
+	var sx := shine.position.x
+	_night_tween.tween_property(shine, "modulate:a", 0.85, 0.15).set_delay(HOLD + 0.15)
+	_night_tween.tween_property(shine, "position:x", sx + 90.0, 0.4) \
+		.set_delay(HOLD + 0.15).set_trans(Tween.TRANS_SINE)
+	_night_tween.tween_property(shine, "modulate:a", 0.0, 0.2).set_delay(HOLD + 0.45)
+	# Burst pops at the reveal moment.
+	_night_tween.tween_property(burst, "modulate:a", 0.9, 0.1).set_delay(HOLD + 0.3)
+	_night_tween.tween_property(burst, "scale", Vector2(1.35, 1.35), 0.55) \
+		.set_delay(HOLD + 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_night_tween.tween_property(burst, "modulate:a", 0.0, 0.4).set_delay(HOLD + 0.55)
+
+
+func _spawn_night_fx(id: String, fx_size: Vector2, additive: bool, tint: Color, behind: int) -> TextureRect:
+	var layer := TextureRect.new()
+	layer.texture = load(NIGHT_FX[id])
+	layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	layer.size = fx_size
+	layer.position = get_viewport_rect().size * 0.5 - fx_size * 0.5
+	layer.pivot_offset = fx_size * 0.5
+	layer.modulate = Color(tint.r, tint.g, tint.b, 0.0)
+	if additive:
+		var mat := CanvasItemMaterial.new()
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		layer.material = mat
+	_night_overlay.add_child(layer)
+	# behind >= 0: move under the panel (backdrop); -1: stay on top (accent).
+	if behind >= 0:
+		_night_overlay.move_child(layer, behind)
+	_night_fx.append(layer)
+	return layer
 
 
 func _hide_night_event() -> void:
@@ -330,6 +594,13 @@ func _hide_night_event() -> void:
 
 
 func _clear_night_card() -> void:
+	if _night_tween != null:
+		_night_tween.kill()
+		_night_tween = null
+	for node in _night_fx:
+		if is_instance_valid(node):
+			node.queue_free()
+	_night_fx.clear()
 	for child in _night_card_slot.get_children():
 		_night_card_slot.remove_child(child)
 		child.queue_free()

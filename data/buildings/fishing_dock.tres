@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BuildingCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/building_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "building_fishing_dock"
+display_name = "Port rybacki"
+description = "Sieci pełne ryb (+2 jedzenia dziennie)."
+energy_cost = 2
+wood_cost = 3
+materials_cost = 1
+max_hp = 8
+food_gain = 2

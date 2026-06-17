@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "omen_black_drops"
+display_name = "Czarne krople"
+description = "Z nieba spada lepka, ciemna rosa. -1 ciepła, -1 wody."
+warmth_delta = -1
+water_delta = -1
+weight = 8
+cooldown_days = 3
+category = "omen"
+severity = "medium"

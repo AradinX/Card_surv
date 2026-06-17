@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "warm_wind"
+display_name = "Ciepły wiatr"
+description = "Łagodny, suchy wiatr. +1 ciepła, -1 nawodnienia."
+warmth_delta = 1
+thirst_delta = -1
+weight = 9
+cooldown_days = 2
+category = "weather"
+severity = "minor"

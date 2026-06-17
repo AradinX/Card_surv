@@ -8,3 +8,5 @@ id = "fog"
 display_name = "Gęsta mgła"
 description = "Niewiele widać na krok. -1 energii następnego dnia."
 next_day_energy_delta = -1
+category = "weather"
+severity = "minor"

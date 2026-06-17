@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "dry_heat"
+display_name = "Suchy upał"
+description = "Skwar wysusza gardło. -2 nawodnienia, -1 energii następnego dnia."
+thirst_delta = -2
+next_day_energy_delta = -1
+weight = 8
+cooldown_days = 3
+max_per_run = 2
+category = "weather"
+severity = "medium"

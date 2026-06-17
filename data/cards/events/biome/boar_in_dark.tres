@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "boar_in_dark"
+display_name = "Dzik w ciemności"
+description = "Coś dużego przedziera się przez zarośla. -1 zdrowia, -1 jedzenia (schronienie chroni)."
+health_delta = -1
+food_delta = -1
+shelter_protects = true
+weight = 8
+cooldown_days = 3
+max_per_run = 2
+category = "biome"
+severity = "medium"
+tags = PackedStringArray("forest")

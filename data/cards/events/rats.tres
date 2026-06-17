@@ -8,3 +8,7 @@ id = "rats"
 display_name = "Szczury"
 description = "Gryzonie dobrały się do zapasów. -2 jedzenia."
 food_delta = -2
+weight = 8
+cooldown_days = 2
+category = "biome"
+severity = "medium"

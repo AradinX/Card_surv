@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "ground_frost"
+display_name = "Przymrozek"
+description = "Nad ranem szron ścina ziemię. -2 ciepła (schronienie chroni)."
+warmth_delta = -2
+shelter_protects = true
+weight = 8
+cooldown_days = 3
+max_per_run = 2
+category = "weather"
+severity = "medium"

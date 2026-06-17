@@ -9,3 +9,7 @@ display_name = "Wilki"
 description = "Wataha krąży wokół obozu. -3 zdrowia, -1 jedzenia."
 health_delta = -3
 food_delta = -1
+weight = 6
+cooldown_days = 3
+category = "biome"
+severity = "major"

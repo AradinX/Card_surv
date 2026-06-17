@@ -9,3 +9,7 @@ display_name = "Zimna noc"
 description = "Temperatura spada poniżej zera. -3 ciepła (schronienie chroni)."
 warmth_delta = -3
 shelter_protects = true
+weight = 8
+cooldown_days = 2
+category = "weather"
+severity = "medium"

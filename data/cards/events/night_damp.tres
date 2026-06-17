@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "night_damp"
+display_name = "Nocna wilgoć"
+description = "Mokre powietrze wciska chłód pod skórę. -1 ciepła (schronienie chroni)."
+warmth_delta = -1
+shelter_protects = true
+weight = 9
+cooldown_days = 2
+max_per_run = 2
+category = "weather"
+severity = "minor"

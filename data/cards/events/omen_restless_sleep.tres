@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "omen_restless_sleep"
+display_name = "Niespokojny sen"
+description = "Sny są ciężkie i lepkie. -1 zdrowia, -1 energii następnego dnia."
+health_delta = -1
+next_day_energy_delta = -1
+weight = 8
+cooldown_days = 3
+category = "omen"
+severity = "medium"

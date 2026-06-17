@@ -9,3 +9,5 @@ display_name = "Wędrowiec"
 description = "Nieznajomy dzieli się zapasami przy ognisku. +1 jedzenia, +1 materiałów."
 food_delta = 1
 materials_delta = 1
+category = "neutral"
+severity = "minor"

@@ -470,6 +470,143 @@ karty, akcje biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3
   oryginały odtwarza się z gita: `git checkout -- assets/art/fx/discovery/*.png`.
   Weryfikacja: `--import` + `ui_layout_test` OK.
 
+### Animacja BUM: przejście Akt I → Akt II (2026-06-15)
+
+- 13 nowych assetów FX wygenerowanych (GPT Image przez Codex) wg tabeli z
+  rozmowy: `assets/art/fx/bum/*` (omen_glow, bum_flash, shockwave_ring,
+  blast_petals, sky_rift_01/02, screen_crack_overlay, wilt_overlay) i
+  `assets/art/fx/corruption/*` (rot_wipe, plague_cloud_01/02, corruption_vignette,
+  spore_motes_loop). Pełnoekranowe 16:9, text-free.
+- Pipeline: wycinanki dostarczone na solid blue `#0000FF`, additive (omen/flash/
+  motes) na czerni. Nowy tool `tools/chroma_key_blue.gd` (klucz po odległości od
+  `#0000FF`, INNER 90 / OUTER 150 + despill) wyciął 10 niebieskich do alfy;
+  czarne zostają i wpinane są z `CanvasItemMaterial` blend `add`.
+- `run.gd`: dawny natychmiastowy `_on_bum_struck` zastąpiony `_play_bum_fx` —
+  warstwowa, nachodząca sekwencja (`create_tween().set_parallel` + `set_delay`):
+  (1) łuna omenu, (2) błysk + rozszerzający się shockwave_ring + rozrzut płatków,
+  (3) pęknięcie nieba rift_01→02 + screen_crack, (4) wpełzająca zgnilizna/plaga
+  wycierająca planszę na Akt II + więdnące kwiaty (`wilt_overlay`, dolny pas,
+  transient), (5) stała ciemna winieta + dryfujące zarodniki
+  (pętla oddychania alfą). Podmiana wyglądu Aktu II (`_apply_act2_look`: tło,
+  scrim, skórki przycisków, HUD, log) odpalana w szczycie błysku (~0.34s), więc
+  gracz nie widzi „surowego" flipa UI. Całość ~3s; brak assetów → fallback do
+  natychmiastowego `_apply_act2_look`. Stała winieta + zarodniki są po animacji
+  przenoszone (`move_child`) tuż nad tło planszy a POD UI gameplayu, więc wtapiają
+  się w tło i nie zasłaniają HUD/kart (transientowy blast zostaje na wierzchu).
+- Weryfikacja: `--import` bez błędów, `ui_layout_test` OK, `smoke_test` 31/50
+  (~62%, bez regresji).
+
+### Animacja: odsłonięcie nocnej karty (flip) (2026-06-16)
+
+- 5 nowych assetów FX (GPT Image przez Codex): `fx/cards/fx_card_reveal_glow`,
+  `fx_card_shine_sweep`, `fx_card_reveal_burst`, `fx_card_dust_puff` oraz
+  `ui/overlay_night_spotlight`. Glow/shine/dust/spotlight na czerni/granacie
+  (additive), tylko `reveal_burst` na solid blue → wycięty `chroma_key_blue.gd`.
+  Rewersy do flipa już istniały (`cards/backs/card_back_{event,monster}`).
+- `run.gd` `_on_night_card_drawn`: karta wjeżdża REWERSEM i obraca się do frontu —
+  rewers jest przytrzymany (`HOLD` 0.95s, żeby gracz go przeczytał), potem flip
+  z podmianą back→front w połowie (0.22s); pozostałe fazy przesunięte o `HOLD`.
+  Rewers (`TextureRect`) i front (`NightCardView`) to BEZPOŚREDNIE dzieci
+  `CardSlot` (CenterContainer centruje oba w tym samym rect 132×198, pivot w
+  środku), flipowane osobno przez `scale.x` — karta kończy wyśrodkowana
+  (wcześniejszy wrapper `Control` na full-rect zostawiał przesunięcie). Rewers
+  dobierany po typie karty (monster/event).
+- FX (`_spawn_night_fx`, fullscreen w `NightEventOverlay`): spotlight + glow
+  wchodzą pod panel (`move_child`, backdrop — nie zmywają lica karty) i zostają;
+  shine przejeżdża po karcie w trakcie flipa; burst (iskry) strzela w momencie
+  odsłonięcia (skala 0.6→1.35, additive); dust puff przy „lądowaniu". Tint
+  czerwony dla potworów, ciepły złoty dla zdarzeń. Wszystko sprzątane w
+  `_clear_night_card` (FX + tween killowane przy ukryciu/następnej karcie).
+- Weryfikacja: `--import` bez błędów, `ui_layout_test` OK.
+
+### Aktywna pula nocnych zdarzeń (2026-06-16)
+
+- Prosta talia zdarzeń (`Deck`) zastąpiona `systems/night_event_pool.gd`
+  (`NightEventPool`): ważony losowy dobór z cooldownami, limitami na run
+  i tagami. Historia (ostatni dzień użycia, licznik) PRZETRWA przebudowy puli
+  — discovery/BUM zmieniają tylko zestaw kandydatów, nie pamięć cooldownów.
+- `EventCardData` dostał pola `weight` (domyślnie 10), `cooldown_days`,
+  `max_per_run` (0 = bez limitu) i `tags` — wszystkie wstecznie zgodne, więc
+  istniejące karty bez zmian działają jak dotąd (waga jednolita). Potwory biorą
+  udział w puli z wagą = `copies_in_deck`, bez cooldownu i limitu (wracają).
+- `SurvivalSystem`: `_event_deck` → `_night_pool`; `draw()` bierze dzień,
+  potwory/zdarzenia nie są już „odkładane" do talii (pula sama steruje
+  powtarzalnością). Gdy wszystko na cooldownie, cooldowny są rozluźniane (noc
+  nigdy nie jest „pusta"), ale limity zawsze obowiązują.
+- „Spokojny wieczór" (`calm_day`, zerowe delty) to teraz pełnoprawna karta puli
+  z podbitą wagą (24) — prawdziwa neutralna noc, nie brak zdarzenia.
+- KATEGORIE + SEVERITY: `EventCardData` ma `category`
+  (`neutral/weather/biome/omen/monster/disaster`) i `severity`
+  (`minor/medium/major`); wpisane we wszystkie 14 zdarzeń (potwory =
+  kategoria `monster`, severity z `damage_to_player`). Pula używa ich do:
+  - PACING: nie losuje dwóch nocy `major` z rzędu (rozluźniane tylko gdy nie
+    ma alternatywy, więc noc nigdy nie jest pusta);
+  - FAZY: `NightEventPool.Phase` (ACT1/OMEN/ACT2) mnoży wagi kategorii
+    (`PHASE_CATEGORY_MULT`) — w oknie omenów omeny ×5, przed nim ×0;
+  - DEDUPLIKACJA po `id` (biomy odwołują się do kart bazowych — jedna ważona
+    pozycja na kartę).
+- UI: `run.gd` `_night_tint` koloruje glow/burst odsłonięcia wg kategorii
+  (monster=czerwony, weather=błękit, biome=zieleń, disaster=fiolet, omen=
+  bursztyn, neutral=ciepłe złoto).
+- Omeny (foreshadowing w logu) startują teraz od stałego `OMEN_START_DAY = 7`
+  (zamiast 3 dni przed BUM), więc zawsze zdążą się pojawić przed BUM (13–16).
+- Strojenie przykładowe: Burza (w7, cd3, major), Choroba (w6, cd4, max3,
+  major), Wilki (w6, cd3, major), Zimna noc/Ulewa (cd2, medium), Szczury
+  (cd2, medium), zdarzenia Plagi (cd2, medium). Reszta na domyślnej wadze 10.
+- `tests/night_pool_test.gd`: niezmienniki limitu, cooldownu, biasu wag i
+  pacingu „bez 2× major" (seedowany RNG). Smoke 37/50 (~74%, śr. 28,5 dnia) —
+  pacing złagodził serie kar (anty-frustracja), do ewentualnego doważenia.
+
+### Odblokowane 11 budynków (2026-06-16)
+
+- Art budynków wyprzedzał dane — 11 ilustracji (Farma, Port rybacki, Spiżarnia,
+  Pułapki, Drwalnia, Magazyn drewna, Kamieniołom, Warsztat, Filtr wodny,
+  Zielarnia, Wieża obserwacyjna) nie miało kart `.tres`. Dodano `BuildingCardData`
+  w `data/buildings/` (id = nazwa pliku artu `building_*`, więc grafika i token
+  na kaflu wskakują bez zmian w kodzie). `GameManager` ładuje cały katalog →
+  same wchodzą do puli nagród awansu. Talia budynków: 4 → 15.
+- Pasywy oparte WYŁĄCZNIE o wpięte pola (`food/water/wood/materials_gain`,
+  `health_delta`, `defense`) — specjale `slow_spoilage`/`unlock_crafting` nadal
+  no-op, więc Spiżarnia/Warsztat działają przez zwykłe +1 jedzenia / +1 mat.
+- Balans: smoke 40/50 (~80%, śr. 29 dni) — wzrost, bo bot chciwie buduje, a
+  więcej produkcyjnych budynków = większy dochód. Do doważenia (koszty/HP/pasywy
+  albo mocniejszy Akt II). `load`/`ui_layout` (51 kart) OK.
+
+### Rozszerzenie puli zdarzeń z bazy GPT (2026-06-16)
+
+- Z dokumentu `dzien_50_baza_kart_v0_1.md` (baza ~108 zdarzeń od GPT) wdrożono
+  BEZPIECZNY podzbiór **28 kart** — tylko te działające na obecnych mechanikach;
+  warunki niewspierane (sezon/biom/budynek, losowość, mitygacje, obrażenia
+  budynku ze zdarzeń) „zbakowano" na stałe efekty albo usunięto. Status i lista
+  zablokowanych mechanik: nagłówek w tamtym pliku.
+- Dodane: NEUTRAL 4, WEATHER 9, OMEN 6 (bazowe w `data/cards/events/`), BIOME 5
+  (`events/biome/`, wpięte w `extra_event_cards` Lasu/Łąk/Gór) i DISASTER/Plaga 4
+  (`events/plague/`, wpięte w `plague.tres`). Pula zdarzeń: 18 → 42 (+4 potwory).
+- OMEN jako pełne karty (wcześniej tylko logi): kategoria `omen` pojawia się
+  wyłącznie w oknie dzień≥7→BUM — `NightEventPool.PHASE_CATEGORY_MULT` daje omen
+  ×5 w fazie OMEN, ×0 w ACT1 i ACT2.
+- Balans: smoke 43/50 (~86%, śr. 29 dni, zgony po BUM 6) — WZROST, bo nadmiar
+  kart minor/neutral rozcieńcza rzadkie majory (łagodniejsze noce). Wymaga
+  osobnego przejścia balansowego (wagi/severity kar albo silniejszy Akt II/BUM).
+  `load`/`night_pool`/`ui_layout` (70 kart) OK.
+
+### Dokręcenie trudności (2026-06-16)
+
+- Gra była za łatwa (naiwny bot ~86%, „kemping na jednym kaflu + zagraj wszystkie
+  karty" przechodził). Zacieśniono ekonomię przetrwania:
+  - `DAILY_HUNGER_DECAY` 2→3, `DAILY_WARMTH_DECAY` 1→2 (nawodnienie zostaje 2);
+    jedzenie i ciepło to teraz realna, ciągła presja (Ognisko staje się celem
+    early game, nie luksusem).
+  - `RunState.MAX_ENERGY` 10→9 — nie da się już zrobić wszystkiego w jeden dzień,
+    trzeba priorytetyzować.
+  - Kary deprywacji i próg BUM bez zmian (testowane warianty 3/3/2 + dmg 3 +
+    BUM 25% przestrzeliły do ~10–16%; cofnięte).
+- Tuning botem (iteracyjnie, smoke 50 runów): 86% → **36%** wygranych (śr. ~24
+  dni). Akt II to teraz ściana (większość zgonów po BUM), zgodnie z założeniem
+  „przetrwanie ma dawać satysfakcję". Cel dla świadomej gry: wyżej niż bot.
+- Pozostałe testy bez regresji (`load`/`night_pool`/`board`/`fog`/`season`/
+  `ui_layout` OK).
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -487,6 +624,7 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/season_test.g
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/board_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/load_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/ui_layout_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/night_pool_test.gd
 ```
 
 - `smoke_test` — naiwny bot rozgrywa 50 pełnych runów na planszy (karty
@@ -497,6 +635,8 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/ui_layout_tes
 - `season_test` — harmonogram pór roku w 30-dniowym vertical slice.
 - `ui_layout_test` — headless instancjonowanie kart i kafli, łapie błędy
   w UI-only kodzie typu auto-fit tekstu i dobór ramek.
+- `night_pool_test` — niezmienniki aktywnej puli nocnych zdarzeń: limit
+  na run, odstęp cooldownu i bias wag (seedowany RNG).
 
 Poza tym testujemy ręcznie przez rozegranie runu w edytorze.
 
@@ -532,6 +672,8 @@ systems/              logika gry, NIEZALEŻNA od scen i UI (RefCounted + sygnał
                         naprawy/ruiny/rozbiórka, warunki końca
   board_generator.gd    generacja planszy 6 kafli (3×2) + sąsiedztwo
   deck.gd               generyczna talia (dobieranie, odrzut, przetasowanie)
+  night_event_pool.gd   ważona pula nocnych zdarzeń (wagi, cooldowny, limity,
+                        tagi; historia trwa między przebudowami puli)
   card_library.gd       ładowanie zasobów .tres z katalogów data/
 scenes/               sceny + ich skrypty (tylko UI i podpięcie sygnałów)
   main_menu, run (plansza + ręka + okolica + log), result
@@ -575,17 +717,19 @@ menu -> **run (cała wyprawa na jednym ekranie)** -> wynik
    efekt i podsumowanie nocy są rozliczane oraz logowane.
 
 Balans (stałe w `run_state.gd`, `survival_system.gd`): startowe maks.
-statystyki 10 (zdrowie/energia rosną nagrodami awansu), energia 10/dzień
-(cap maks.+1 ze Słonecznym porankiem), ruch 1 energii, sytość i nawodnienie
--2 dziennie, ciepło -1 dziennie, 1 jedzenie = +2 sytości (Kucharz: +3),
-1 woda = +2 nawodnienia, głód/odwodnienie/mróz -2 zdrowia dziennie, Szałas
--2 obrażeń z chronionych zdarzeń, narzędzia +1 do zysku jedzenia/drewna,
-XP: +1 karta/akcja biomu, +3 budynek, próg 8 + 4×(poziom−1), wygrana
-w dniu 30. BUM: dzień 13–16, uszkodzenia budynków 10–80%, ruina poniżej
-50% maks. HP, naprawa 1 energia + 1 drewno/2 HP, rozbiórka ruiny 1 energia
-+ zwrot połowy surowców, Szałas -2 obrażeń także od potworów, Palisada
-defense 2 (kafel). Punkt odniesienia: naiwny bot ze smoke testu wygrywa
-~56–62% runów (śr. ~27 dni, śr. poziom ~9); sam Akt I wygrywał ~90%.
+statystyki 10 (zdrowie/energia rosną nagrodami awansu), energia **9/dzień**
+(cap maks.+1 ze Słonecznym porankiem), ruch 1 energii, **sytość -3 dziennie,
+nawodnienie -2 dziennie, ciepło -2 dziennie** (Lato +1 do nawodnienia, Zima +1
+do ciepła), 1 jedzenie = +2 sytości (Kucharz: +3), 1 woda = +2 nawodnienia,
+głód/odwodnienie/mróz -2 zdrowia dziennie, Szałas -2 obrażeń z chronionych
+zdarzeń, narzędzia +1 do zysku jedzenia/drewna, XP: +1 karta/akcja biomu,
++3 budynek, próg 8 + 4×(poziom−1), wygrana w dniu 30. BUM: dzień 13–16,
+uszkodzenia budynków 10–80%, ruina poniżej 50% maks. HP, naprawa 1 energia
++ 1 drewno/2 HP, rozbiórka ruiny 1 energia + zwrot połowy surowców, Szałas
+-2 obrażeń także od potworów, Palisada defense 2 (kafel). Punkt odniesienia
+po dokręceniu trudności (2026-06-16): naiwny bot ze smoke testu wygrywa
+**~36%** runów (śr. ~24 dni); Akt II jest teraz prawdziwym wyzwaniem
+(większość zgonów po BUM). Świadoma gra ma celować wyżej.
 
 ## Dane jako zasoby
 
@@ -633,8 +777,12 @@ w systemach).
 - Fog-of-war planszy: dodać stan odkrycia kafli do `TileState`/`RunState`,
   ukryć dane nieodkrytych kafli w UI, odkrywać kafel po ruchu; dopiero
   odkryte biomy powinny aktywować swoje zdarzenia w nocnej puli.
-- Nocne zdarzenia: zastąpić prostą talię zdarzeń aktywną pulą z wagami,
-  cooldownami, limitami i tagami; dodać popup dużej karty przed rozliczeniem.
+- Nocne zdarzenia: aktywna pula z wagami/cooldownami/limitami/tagami +
+  kategoriami/severity + pacingiem (bez 2× major) + fazami GOTOWA
+  (`NightEventPool`). Pozostało: powiększyć pulę kart (obecnie ~14 zdarzeń +
+  4 potwory — mało na pełny run), dodać karty kategorii `omen` (są tylko logi),
+  doważyć balans (smoke ~74%) i docelowy popup z rozliczeniem po „OK"
+  (obecnie efekty liczą się w tle, popup tylko prezentuje kartę).
 - `BoardGenerator` używa wstrzykiwanego RNG (`SurvivalSystem` ma własny) —
   gotowe pod seedowane runy.
 - Kolejne kroki wg README sekcja 10 (każdy osobną decyzją): uproszczone

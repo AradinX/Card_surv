@@ -33,17 +33,18 @@ const BUM_DAY_MAX := 16
 ## Each building rolls this damage percent range when BUM strikes.
 const BUM_DAMAGE_PERCENT_MIN := 10
 const BUM_DAMAGE_PERCENT_MAX := 80
-## Scripted dawn omens start this many days before BUM (foreshadowing).
-const OMEN_DAYS_BEFORE := 3
+## Scripted dawn omens start on this day (foreshadowing), so they always show
+## before BUM (which strikes day 13-16) regardless of the rolled BUM day.
+const OMEN_START_DAY := 7
 const REPAIR_ENERGY_COST := 1
 const DEMOLISH_ENERGY_COST := 1
 ## Tearing down a ruin refunds about half of the build resources.
 const DEMOLISH_REFUND_DIVISOR := 2
 const HAND_SIZE := 4
 const MOVE_ENERGY_COST := 1
-const DAILY_HUNGER_DECAY := 2
+const DAILY_HUNGER_DECAY := 3
 const DAILY_THIRST_DECAY := 2
-const DAILY_WARMTH_DECAY := 1
+const DAILY_WARMTH_DECAY := 2
 const SPRING_FOOD_BONUS := 1
 const SUMMER_EXTRA_THIRST_DECAY := 1
 const AUTUMN_WOOD_BONUS := 1
@@ -71,7 +72,8 @@ var hand: Array[CardData] = []
 
 var _rng := RandomNumberGenerator.new()
 var _day_deck: Deck
-var _event_deck: Deck
+## Weighted active pool for night events (weights, cooldowns, per-run caps).
+var _night_pool: NightEventPool
 ## Level-up card reward pool: action cards and (extra copies of) buildings.
 var _card_pool: Array[CardData] = []
 ## Generic events shared by both acts; biome/disaster extras come on top.
@@ -343,7 +345,7 @@ func end_day() -> void:
 	hand_changed.emit(hand)
 
 	_resolve_building_passives()
-	var night_card := _event_deck.draw()
+	var night_card := _night_pool.draw(state.day, _night_phase())
 	if night_card != null:
 		night_card_drawn.emit(night_card)
 	if night_card is MonsterCardData:
@@ -439,7 +441,7 @@ func _start_day() -> void:
 	if not state.bum_happened and state.disaster != null:
 		if state.day >= state.bum_day:
 			_trigger_bum()
-		elif state.bum_day - state.day <= OMEN_DAYS_BEFORE:
+		elif state.day >= OMEN_START_DAY:
 			_log_omen()
 	# Energy may exceed the cap by one (e.g. the Sunny Morning event).
 	state.energy = clampi(
@@ -663,7 +665,11 @@ func _trigger_bum() -> void:
 
 
 func _rebuild_event_deck() -> void:
-	_event_deck = Deck.new(_event_pool(), _rng)
+	if _night_pool == null:
+		_night_pool = NightEventPool.new(_rng)
+	# Rebuild keeps the cooldown/limit history; only the candidate set changes
+	# (discovery reveals biome hazards, BUM adds disaster events + monsters).
+	_night_pool.set_candidates(_event_pool())
 
 
 func _event_pool() -> Array[CardData]:
@@ -679,10 +685,19 @@ func _event_pool() -> Array[CardData]:
 	if state.bum_happened and state.disaster != null:
 		for event in state.disaster.extra_event_cards:
 			event_pool.append(event)
+		# Each monster appears once; the pool weights it by copies_in_deck.
 		for monster in state.disaster.monsters:
-			for copy in monster.copies_in_deck:
-				event_pool.append(monster)
+			event_pool.append(monster)
 	return event_pool
+
+
+## Run phase for the night pool's category weighting.
+func _night_phase() -> int:
+	if state.bum_happened:
+		return NightEventPool.Phase.ACT2
+	if state.day >= OMEN_START_DAY:
+		return NightEventPool.Phase.OMEN
+	return NightEventPool.Phase.ACT1
 
 
 ## Foreshadowing in the last days before BUM (the player senses SOMETHING).
@@ -716,7 +731,7 @@ func _resolve_monster_attack(monster: MonsterCardData) -> void:
 	if monster.damage_to_buildings > 0:
 		_monster_attack_building(monster)
 
-	_event_deck.discard(monster)
+	# The pool handles recurrence via weight; nothing to discard.
 	board_changed.emit(state)
 
 
@@ -809,7 +824,6 @@ func _resolve_event(event: EventCardData) -> void:
 	state.wood = maxi(state.wood + event.wood_delta, 0)
 	state.materials = maxi(state.materials + event.materials_delta, 0)
 	state.next_day_energy_delta += event.next_day_energy_delta
-	_event_deck.discard(event)
 
 
 func _has_night_protection() -> bool:

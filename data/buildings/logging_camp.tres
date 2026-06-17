@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="BuildingCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/building_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "building_logging_camp"
+display_name = "Drwalnia"
+description = "Stały dopływ drewna (+2 drewna dziennie)."
+energy_cost = 2
+wood_cost = 1
+materials_cost = 2
+max_hp = 9
+wood_gain = 2

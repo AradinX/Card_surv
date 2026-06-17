@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "plague_spores"
+display_name = "Zarodniki w powietrzu"
+description = "Powietrze gęstnieje od zarodników. -1 zdrowia, -1 ciepła."
+health_delta = -1
+warmth_delta = -1
+weight = 7
+cooldown_days = 3
+max_per_run = 3
+category = "disaster"
+severity = "medium"

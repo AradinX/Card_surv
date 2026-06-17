@@ -7,3 +7,6 @@ script = ExtResource("1_script")
 id = "calm_day"
 display_name = "Spokojny wieczór"
 description = "Nic się nie dzieje. Czasem to najlepsze, co może się przytrafić."
+weight = 24
+category = "neutral"
+severity = "minor"

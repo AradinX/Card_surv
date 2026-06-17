@@ -8,3 +8,5 @@ id = "berry_patch"
 display_name = "Jagodowa polana"
 description = "Krzaki uginają się od owoców. +2 jedzenia."
 food_delta = 2
+category = "neutral"
+severity = "minor"

@@ -10,7 +10,7 @@ const MAX_HEALTH := 10
 const MAX_HUNGER := 10
 const MAX_THIRST := 10
 const MAX_WARMTH := 10
-const MAX_ENERGY := 10
+const MAX_ENERGY := 9
 enum Season {SPRING, SUMMER, AUTUMN, WINTER}
 
 @export var day: int = 1

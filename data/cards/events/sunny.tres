@@ -8,3 +8,5 @@ id = "sunny"
 display_name = "Słoneczny poranek"
 description = "Budzisz się wypoczęty. +1 energii następnego dnia."
 next_day_energy_delta = 1
+category = "neutral"
+severity = "minor"

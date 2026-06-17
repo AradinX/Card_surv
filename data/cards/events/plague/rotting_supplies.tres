@@ -8,3 +8,6 @@ id = "rotting_supplies"
 display_name = "Gnijące zapasy"
 description = "Plaga sięga do spiżarni. -2 jedzenia."
 food_delta = -2
+cooldown_days = 2
+category = "disaster"
+severity = "medium"

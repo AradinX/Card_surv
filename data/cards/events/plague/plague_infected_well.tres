@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "plague_infected_well"
+display_name = "Skażona studnia"
+description = "Woda cuchnie zgnilizną. -2 wody, -1 zdrowia."
+health_delta = -1
+water_delta = -2
+weight = 5
+cooldown_days = 5
+max_per_run = 2
+category = "disaster"
+severity = "major"
