@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="CharacterClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_class_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/decks/hunter_deck.tres" id="2_deck"]
+
+[resource]
+script = ExtResource("1_script")
+id = "hunter"
+display_name = "Łowca"
+unlock_order = 3
+description = "Lekki żołądek — głód spada wolniej (−1/dzień), a jedzenie syci nieco lepiej (+20%)."
+starter_deck = ExtResource("2_deck")
+food_hunger_multiplier = 1.2
+hunger_rate_delta = -1

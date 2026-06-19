@@ -42,6 +42,13 @@ const NIGHT_FX := {
 	"dust": "res://assets/art/fx/cards/fx_card_dust_puff.png",
 }
 const NIGHT_CARD_SIZE := Vector2(132, 198)
+## Ambient / feedback FX (all optional — guarded by ResourceLoader.exists, so a
+## missing or mid-regeneration asset simply skips the effect).
+const WEATHER_RAIN := "res://assets/art/fx/weather/fx_rain_overlay.png"
+const WEATHER_SNOW := "res://assets/art/fx/weather/fx_snow_overlay.png"
+const CLAW_FX := "res://assets/art/fx/monster_attack/fx_claw_slash.png"
+const HEAL_FX := "res://assets/art/fx/cards/fx_heal_spark.png"
+const RESOURCE_FX := "res://assets/art/fx/cards/fx_resource_gain.png"
 
 @onready var _background: ColorRect = $Background
 @onready var _background_art: TextureRect = $BackgroundArt
@@ -49,12 +56,17 @@ const NIGHT_CARD_SIZE := Vector2(132, 198)
 @onready var _board_grid: GridContainer = $Scroll/Margin/Layout/MidRow/Board
 @onready var _log_panel_art: TextureRect = $Scroll/Margin/Layout/MidRow/LogPanel/LogPanelArt
 @onready var _log: RichTextLabel = $Scroll/Margin/Layout/MidRow/LogPanel/Log
+@onready var _gather_bar: HBoxContainer = $Scroll/Margin/Layout/CardsRow/GatherBar
 @onready var _gather_container: HBoxContainer = $Scroll/Margin/Layout/CardsRow/GatherBar/GatherCards
 @onready var _building_bar: PanelContainer = $BuildingActionPopup
 @onready var _building_close_button: Button = $BuildingActionPopup/PopupMargin/VBox/Header/CloseButton
+@onready var _building_label: Label = $BuildingActionPopup/PopupMargin/VBox/Header/BuildingLabel
 @onready var _building_actions: VBoxContainer = $BuildingActionPopup/PopupMargin/VBox/BuildingActions
 @onready var _hand_container: HBoxContainer = $Scroll/Margin/Layout/CardsRow/BottomBar/Hand
-@onready var _end_day_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/EndDayButton
+@onready var _build_scroll: ScrollContainer = $Scroll/Margin/Layout/CardsRow/BottomBar/BuildScroll
+@onready var _build_cards: HBoxContainer = $Scroll/Margin/Layout/CardsRow/BottomBar/BuildScroll/BuildCards
+@onready var _build_toggle_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/BuildToggleButton
+@onready var _end_day_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/EndDayButton
 @onready var _level_overlay: ColorRect = $LevelUpOverlay
 @onready var _level_title: Label = $LevelUpOverlay/Panel/PanelMargin/VBox/TitleLabel
 @onready var _reward_buttons: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons
@@ -70,8 +82,12 @@ var _survival: SurvivalSystem
 var _tile_buttons: Array[BiomeTileView] = []
 var _button_act := 1
 var _building_popup_requested := false
+var _build_mode := false
+var _build_confirm: ConfirmationDialog
+var _pending_build: BuildingCardData
 var _night_fx: Array[Node] = []
 var _night_tween: Tween
+var _weather_overlay: TextureRect
 
 
 func _ready() -> void:
@@ -83,6 +99,7 @@ func _ready() -> void:
 
 	_top_status_bar.setup_max_values()
 	_apply_button_skin()
+	_create_weather_overlay()
 
 	_create_tile_buttons()
 
@@ -97,7 +114,10 @@ func _ready() -> void:
 	_survival.night_card_drawn.connect(_on_night_card_drawn)
 	_survival.log_message.connect(_on_log_message)
 	_end_day_button.pressed.connect(_on_end_day_pressed)
+	_build_toggle_button.pressed.connect(_on_build_toggle_pressed)
+	_setup_build_confirm()
 	_building_close_button.pressed.connect(_hide_building_popup)
+	_building_label.text = "Naprawa / rozbiórka"
 	_energy_button.pressed.connect(_on_reward_energy)
 	_health_button.pressed.connect(_on_reward_health)
 	_card_button.pressed.connect(_on_reward_card)
@@ -141,11 +161,14 @@ func _hide_building_popup() -> void:
 
 func _on_end_day_pressed() -> void:
 	_hide_building_popup()
+	if _build_mode:
+		_set_build_mode(false)
 	_survival.end_day()
 
 
 func _on_day_started(day: int) -> void:
 	_top_status_bar.set_day(day, SurvivalSystem.WIN_DAY, _survival.state.season)
+	_update_weather()
 
 
 func _on_stats_changed(state: RunState) -> void:
@@ -153,10 +176,14 @@ func _on_stats_changed(state: RunState) -> void:
 	_top_status_bar.set_state(state, _survival.xp_to_next_level())
 	_refresh_playability()
 	_refresh_tiles(state)
+	if _build_mode:
+		_refresh_build_playability()
 
 
 func _on_board_changed(state: RunState) -> void:
 	_refresh_tiles(state)
+	if _build_mode:
+		_refresh_build_cards()
 
 
 func _on_tile_discovered(tile_index: int) -> void:
@@ -190,10 +217,11 @@ func _refresh_building_actions() -> void:
 
 	var buildings := _survival.current_tile().buildings
 	if buildings.is_empty():
-		_building_popup_requested = false
-		_building_bar.visible = false
-		return
-
+		var empty := Label.new()
+		empty.text = "Brak budowli na tym kaflu."
+		empty.add_theme_font_size_override("font_size", 14)
+		empty.add_theme_color_override("font_color", Color(0.82, 0.76, 0.58, 1.0))
+		_building_actions.add_child(empty)
 	for i in buildings.size():
 		var built := buildings[i]
 		var row := HBoxContainer.new()
@@ -271,6 +299,95 @@ func _refresh_building_actions() -> void:
 			row.add_child(status)
 
 	_building_bar.visible = _building_popup_requested
+
+
+## --- Build mode ---
+## The "Budowanie" button swaps the gather/hand card rows for a scrollable
+## catalog of buildings; clicking a card asks for confirmation before placing it
+## on the current tile.
+
+
+func _setup_build_confirm() -> void:
+	_build_confirm = ConfirmationDialog.new()
+	_build_confirm.title = "Postawić budowlę?"
+	_build_confirm.ok_button_text = "Buduj"
+	_build_confirm.cancel_button_text = "Anuluj"
+	_build_confirm.confirmed.connect(_on_build_confirmed)
+	add_child(_build_confirm)
+
+
+func _on_build_toggle_pressed() -> void:
+	_set_build_mode(not _build_mode)
+
+
+func _set_build_mode(enabled: bool) -> void:
+	_build_mode = enabled
+	_gather_bar.visible = not enabled
+	_hand_container.visible = not enabled
+	_build_scroll.visible = enabled
+	_build_toggle_button.text = "Akcje" if enabled else "Budowanie"
+	if enabled:
+		_hide_building_popup()
+		_refresh_build_cards()
+
+
+## Catalog of buildings as cards, greyed out when they can't be placed on the
+## current tile (no slot / can't afford). Costs reflect class + post-BUM surcharge.
+func _refresh_build_cards() -> void:
+	for child in _build_cards.get_children():
+		_build_cards.remove_child(child)
+		child.queue_free()
+	for building in _survival.building_catalog():
+		var view: CardView = CARD_VIEW_SCENE.instantiate()
+		_build_cards.add_child(view)
+		view.setup(building, _survival.can_build(building), _build_cost_summary(building))
+		view.pressed.connect(_on_build_card_pressed.bind(building))
+
+
+## Update greying of existing build cards without rebuilding the row (cheaper on
+## frequent stats changes, avoids flicker).
+func _refresh_build_playability() -> void:
+	var catalog := _survival.building_catalog()
+	var views := _build_cards.get_children()
+	for i in mini(views.size(), catalog.size()):
+		(views[i] as CardView).setup(
+			catalog[i], _survival.can_build(catalog[i]), _build_cost_summary(catalog[i])
+		)
+
+
+func _on_build_card_pressed(building: BuildingCardData) -> void:
+	var block: String = _survival.can_build(building)
+	if block != "":
+		_on_log_message(block)
+		return
+	_pending_build = building
+	_build_confirm.dialog_text = "%s\nKoszt: %s\n\nPostawić na tym kaflu?" % [
+		building.display_name,
+		_build_cost_summary(building),
+	]
+	_build_confirm.popup_centered()
+
+
+func _on_build_confirmed() -> void:
+	if _pending_build == null:
+		return
+	_survival.build(_pending_build)
+	_pending_build = null
+	if _build_mode:
+		_refresh_build_cards()
+
+
+## Effective build cost (class discount + post-BUM surcharge) as a player string.
+func _build_cost_summary(b: BuildingCardData) -> String:
+	var cost: Dictionary = _survival.effective_build_cost(b)
+	var parts: Array[String] = ["%d energii" % int(cost["energy"])]
+	if int(cost["wood"]) > 0:
+		parts.append("%d drewna" % int(cost["wood"]))
+	if int(cost["materials"]) > 0:
+		parts.append("%d mat." % int(cost["materials"]))
+	if int(cost["food"]) > 0:
+		parts.append("%d jedz." % int(cost["food"]))
+	return ", ".join(parts)
 
 
 func _make_building_cost_label(text: String) -> Label:
@@ -443,6 +560,109 @@ func _loop_spore_motes(motes: TextureRect) -> void:
 	loop.tween_property(motes, "modulate:a", 0.5, 3.5).set_trans(Tween.TRANS_SINE)
 
 
+# --- Ambient & feedback FX ---
+
+
+## A subtle weather layer behind the gameplay UI (above the scrim, below the
+## board), swapped by season. Never covers popups since it sits under the UI.
+func _create_weather_overlay() -> void:
+	_weather_overlay = TextureRect.new()
+	_weather_overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_weather_overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_weather_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_weather_overlay.modulate.a = 0.5
+	_weather_overlay.visible = false
+	add_child(_weather_overlay)
+	_weather_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	move_child(_weather_overlay, _background.get_index() + 1)
+
+
+## Rain in spring/autumn, snow in winter, clear in summer.
+func _update_weather() -> void:
+	if _weather_overlay == null:
+		return
+	var path := ""
+	match _survival.state.season:
+		RunState.Season.WINTER:
+			path = WEATHER_SNOW
+		RunState.Season.SPRING, RunState.Season.AUTUMN:
+			path = WEATHER_RAIN
+		_:
+			path = ""
+	if path == "" or not ResourceLoader.exists(path):
+		_weather_overlay.visible = false
+		return
+	_weather_overlay.texture = load(path)
+	_weather_overlay.visible = true
+
+
+## A quick claw-slash flash over the night card when a monster attacks.
+func _spawn_claw_flash() -> void:
+	if not ResourceLoader.exists(CLAW_FX):
+		return
+	var sz := Vector2(380, 380)
+	var claw := TextureRect.new()
+	claw.texture = load(CLAW_FX)
+	claw.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	claw.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	claw.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	claw.size = sz
+	claw.position = get_viewport_rect().size * 0.5 - sz * 0.5
+	claw.pivot_offset = sz * 0.5
+	claw.modulate = Color(1, 1, 1, 0)
+	claw.scale = Vector2(0.7, 0.7)
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	claw.material = mat
+	_night_overlay.add_child(claw)
+	_night_fx.append(claw)
+	# Strike just after the card has flipped to its monster face.
+	var t := create_tween()
+	t.tween_interval(1.25)
+	t.tween_property(claw, "modulate:a", 1.0, 0.07)
+	t.parallel().tween_property(claw, "scale", Vector2(1.15, 1.15), 0.18)
+	t.tween_property(claw, "modulate:a", 0.0, 0.28)
+
+
+## Pops a heal/resource sparkle over a just-played card.
+func _card_feedback_fx(card: CardData, view: Control) -> void:
+	if not (card is ActionCardData):
+		return
+	var action := card as ActionCardData
+	var path := ""
+	if action.health_delta > 0:
+		path = HEAL_FX
+	elif action.food_gain > 0 or action.water_gain > 0 \
+			or action.wood_gain > 0 or action.materials_gain > 0:
+		path = RESOURCE_FX
+	if path == "" or not ResourceLoader.exists(path):
+		return
+	_spawn_world_fx(path, view.global_position + view.size * 0.5, Vector2(150, 150))
+
+
+## A one-shot additive sparkle at a screen point, auto-freed when it finishes.
+func _spawn_world_fx(path: String, center: Vector2, fx_size: Vector2) -> void:
+	var fx := TextureRect.new()
+	fx.texture = load(path)
+	fx.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	fx.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fx.size = fx_size
+	fx.position = center - fx_size * 0.5
+	fx.pivot_offset = fx_size * 0.5
+	fx.modulate.a = 0.0
+	fx.scale = Vector2(0.7, 0.7)
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	fx.material = mat
+	add_child(fx)
+	var t := create_tween()
+	t.tween_property(fx, "modulate:a", 1.0, 0.1)
+	t.parallel().tween_property(fx, "scale", Vector2(1.2, 1.2), 0.32)
+	t.tween_property(fx, "modulate:a", 0.0, 0.3)
+	t.tween_callback(fx.queue_free)
+
+
 func _apply_button_skin() -> void:
 	ButtonSkin.apply_many([
 		_energy_button,
@@ -492,6 +712,8 @@ func _on_night_card_drawn(card: CardData) -> void:
 	_night_card_slot.add_child(back)
 
 	_play_night_reveal(view, back, _night_tint(card))
+	if is_monster:
+		_spawn_claw_flash()
 
 
 ## Reveal FX tint by event category (monsters red, weather blue, biome green,
@@ -633,7 +855,12 @@ func _rebuild_cards(
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		container.add_child(view)
 		view.setup(cards[i], "")
-		view.pressed.connect(on_pressed.bind(i, cards[i]))
+		var card := cards[i]
+		var index := i
+		# Sparkle feedback fires before the card resolves (and frees the view).
+		view.pressed.connect(func() -> void:
+			_card_feedback_fx(card, view)
+			on_pressed.call(index, card))
 
 
 ## Energy/resources may change without the hand changing (e.g. Rest), so

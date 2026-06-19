@@ -10,7 +10,12 @@ const MAX_HEALTH := 10
 const MAX_HUNGER := 10
 const MAX_THIRST := 10
 const MAX_WARMTH := 10
-const MAX_ENERGY := 9
+const MAX_ENERGY := 8
+## Base storage caps (raised by storage buildings — see SurvivalSystem caps).
+const MAX_FOOD := 8
+const MAX_WATER := 8
+const MAX_WOOD := 12
+const MAX_MATERIALS := 12
 enum Season {SPRING, SUMMER, AUTUMN, WINTER}
 
 @export var day: int = 1
@@ -22,8 +27,8 @@ enum Season {SPRING, SUMMER, AUTUMN, WINTER}
 @export var thirst: int = 8
 @export var warmth: int = 8
 @export var energy: int = MAX_ENERGY
-@export var food: int = 2
-@export var water: int = 2
+@export var food: int = 3
+@export var water: int = 3
 @export var wood: int = 0
 @export var materials: int = 0
 @export var has_tools: bool = false

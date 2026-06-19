@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CharacterClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_class_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/decks/herbalist_deck.tres" id="2_deck"]
+
+[resource]
+script = ExtResource("1_script")
+id = "herbalist"
+display_name = "Zielarka"
+description = "Każdego ranka leczysz się o 1 zdrowia. Skupiona na ziołach — masz większy apetyt (+1 głodu/dzień), a jedzenie syci mniej (−10%)."
+unlock_order = 2
+starter_deck = ExtResource("2_deck")
+food_hunger_multiplier = 0.9
+hunger_rate_delta = 1
+daily_health_regen = 1

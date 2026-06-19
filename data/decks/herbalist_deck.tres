@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DeckData" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/deck_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/cards/actions/herbs.tres" id="2_herbs"]
+[ext_resource type="Resource" path="res://data/cards/actions/huddle.tres" id="3_huddle"]
+[ext_resource type="Resource" path="res://data/cards/actions/first_aid.tres" id="4_aid"]
+[ext_resource type="Resource" path="res://data/cards/actions/forage.tres" id="5_forage"]
+[ext_resource type="Resource" path="res://data/cards/actions/dried_meat.tres" id="6_meat"]
+[ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="7_water"]
+[ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="8_rest"]
+[ext_resource type="Resource" path="res://data/cards/actions/scout.tres" id="9_scout"]
+[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="10_explore"]
+
+[resource]
+script = ExtResource("1_script")
+cards = [ExtResource("2_herbs"), ExtResource("3_huddle"), ExtResource("4_aid"), ExtResource("5_forage"), ExtResource("6_meat"), ExtResource("7_water"), ExtResource("8_rest"), ExtResource("9_scout"), ExtResource("10_explore")]

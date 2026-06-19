@@ -8,6 +8,11 @@
 extends SceneTree
 
 const TARGETS := [
+	"res://assets/art/fx/weather/fx_rain_overlay.png",
+	"res://assets/art/fx/weather/fx_snow_overlay.png",
+	"res://assets/art/fx/weather/fx_frost_edges.png",
+	"res://assets/art/fx/fire/fx_burn_marks.png",
+	"res://assets/art/fx/smoke/fx_smoke_loop.png",
 	"res://assets/art/fx/bum/fx_shockwave_ring.png",
 	"res://assets/art/fx/bum/fx_blast_petals.png",
 	"res://assets/art/fx/bum/fx_sky_rift_01.png",
@@ -30,7 +35,11 @@ const OUTER := 150.0  # >= : fully opaque (real FX art)
 
 
 func _init() -> void:
-	for path in TARGETS:
+	var targets: Array = TARGETS
+	var requested := OS.get_cmdline_user_args()
+	if not requested.is_empty():
+		targets = requested
+	for path in targets:
 		_process_image(path)
 	quit()
 

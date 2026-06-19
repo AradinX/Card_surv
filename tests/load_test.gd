@@ -12,18 +12,15 @@ func _init() -> void:
 	if starter is DeckData:
 		var deck := starter as DeckData
 		print("starter_deck: %d cards" % deck.cards.size())
-		if deck.cards.size() != 12:
-			push_error("starter deck should have 12 cards")
+		# Buildings live in the always-available catalog now, so the starter
+		# deck is action cards only.
+		if deck.cards.size() != 9:
+			push_error("starter deck should have 9 cards")
 			failures += 1
-		var has_building := false
 		for card in deck.cards:
-			if card == null or not (card is ActionCardData or card is BuildingCardData):
-				push_error("starter deck contains an entry that is neither action nor building")
+			if card == null or not (card is ActionCardData):
+				push_error("starter deck should contain only action cards")
 				failures += 1
-			has_building = has_building or card is BuildingCardData
-		if not has_building:
-			push_error("starter deck should contain at least one building card")
-			failures += 1
 	else:
 		push_error("starter_deck.tres did not load as DeckData")
 		failures += 1

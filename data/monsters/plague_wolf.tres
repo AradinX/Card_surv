@@ -8,6 +8,6 @@ id = "plague_wolf"
 display_name = "Zarażony wilk"
 description = "Ślepia świecą zielenią. Poluje na ciebie, nie na twoje mury."
 disaster_id = "plague"
-damage_to_player = 3
+damage_to_player = 4
 damage_to_buildings = 0
 copies_in_deck = 2

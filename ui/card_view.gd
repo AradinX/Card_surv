@@ -50,9 +50,12 @@ const MONSTER_ART_ALIASES := {
 }
 
 
-func setup(card: CardData, block_reason: String) -> void:
+## `cost_override` lets the caller show a context-dependent cost (e.g. the
+## effective build cost incl. class discount + post-BUM surcharge) instead of the
+## card's static base cost.
+func setup(card: CardData, block_reason: String, cost_override: String = "") -> void:
 	_name_label.text = card.display_name
-	_cost_label.text = _format_costs(card)
+	_cost_label.text = cost_override if cost_override != "" else _format_costs(card)
 	_desc_label.text = _format_description(card)
 	disabled = block_reason != ""
 	tooltip_text = block_reason

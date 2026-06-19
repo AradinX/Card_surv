@@ -12,3 +12,4 @@ wood_cost = 2
 materials_cost = 1
 max_hp = 8
 food_gain = 1
+food_cap_bonus = 6

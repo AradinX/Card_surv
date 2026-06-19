@@ -18,6 +18,13 @@ extends CardData
 ## Reduces monster damage dealt to buildings (Act II defense).
 @export var defense: int = 0
 
+@export_group("Storage caps")
+## Raises the run's storage cap for a resource while this building stands.
+@export var food_cap_bonus: int = 0
+@export var water_cap_bonus: int = 0
+@export var wood_cap_bonus: int = 0
+@export var materials_cap_bonus: int = 0
+
 @export_group("Passive per-day effects")
 @export var health_delta: int = 0
 @export var hunger_delta: int = 0

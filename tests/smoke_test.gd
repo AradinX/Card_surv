@@ -1,12 +1,14 @@
 extends SceneTree
 ## Headless smoke test of the full board-survival loop (no UI). A naive bot
-## plays hand cards and biome gather actions greedily, wanders the board,
-## and the test verifies every run terminates in a win or a loss.
+## plays hand cards and biome gather actions greedily, builds from the catalog,
+## wanders the board, and the test verifies every run terminates in a win/loss.
 ##
 ## Run:
 ##   godot --headless --path . -s tests/smoke_test.gd
 
 const RUNS := 50
+## Smaller sample per non-default class — a balance signal, not a hard gate.
+const CLASS_SAMPLE := 30
 const MAX_DAYS_GUARD := 200
 const BOT_MOVES_PER_DAY := 2
 
@@ -16,7 +18,10 @@ func _init() -> void:
 	var biome_pool := CardLibrary.load_biomes_from_dir("res://data/biomes")
 	var event_cards := CardLibrary.load_cards_from_dir("res://data/cards/events")
 	var card_pool := CardLibrary.load_cards_from_dir("res://data/cards/actions")
-	card_pool.append_array(CardLibrary.load_cards_from_dir("res://data/buildings"))
+	var building_catalog: Array[BuildingCardData] = []
+	for res in CardLibrary.load_cards_from_dir("res://data/buildings"):
+		if res is BuildingCardData:
+			building_catalog.append(res)
 	var disaster_pool: Array[DisasterData] = []
 	for resource in CardLibrary.load_resources_from_dir("res://data/disasters"):
 		if resource is DisasterData:
@@ -25,11 +30,12 @@ func _init() -> void:
 		"cook class with a starter deck is required")
 	assert(biome_pool.size() >= 3, "expected at least 3 biomes")
 	assert(event_cards.size() >= 10, "expected at least 10 event cards")
-	assert(card_pool.size() >= 20, "expected at least 20 cards in the reward pool")
+	assert(card_pool.size() >= 20, "expected at least 20 action cards in the reward pool")
+	assert(building_catalog.size() >= 4, "expected at least 4 buildings in the catalog")
 	assert(disaster_pool.size() >= 1, "expected at least 1 disaster type")
-	print("Pool: %d biomes, %d events, %d reward cards, %d disasters, starter deck %d cards" % [
-		biome_pool.size(), event_cards.size(), card_pool.size(), disaster_pool.size(),
-		character_class.starter_deck.cards.size()
+	print("Pool: %d biomes, %d events, %d reward cards, %d buildings, %d disasters, starter deck %d cards" % [
+		biome_pool.size(), event_cards.size(), card_pool.size(), building_catalog.size(),
+		disaster_pool.size(), character_class.starter_deck.cards.size()
 	])
 
 	var rng := RandomNumberGenerator.new()
@@ -38,9 +44,12 @@ func _init() -> void:
 	var total_days := 0
 	var total_levels := 0
 	var bum_deaths := 0
+	# Act I (early game) deaths = losses BEFORE the cataclysm (bum never struck).
+	var act1_deaths := 0
+	var act1_death_days := 0
 	for run_index in RUNS:
 		var outcome := _play_run(
-			character_class, biome_pool, event_cards, card_pool, disaster_pool, rng
+			character_class, biome_pool, event_cards, card_pool, disaster_pool, building_catalog, rng
 		)
 		if not outcome.ended:
 			push_error("Run %d did not terminate!" % run_index)
@@ -49,12 +58,42 @@ func _init() -> void:
 		wins += 1 if outcome.won else 0
 		total_days += outcome.days
 		total_levels += outcome.level
-		if outcome.bum and not outcome.won:
-			bum_deaths += 1
-	print("Smoke test OK: %d/%d runs won (cel: dzień %d), śr. %.1f dni, śr. poziom %.1f, zgony po BUM: %d" % [
+		if not outcome.won:
+			if outcome.bum:
+				bum_deaths += 1
+			else:
+				act1_deaths += 1
+				act1_death_days += outcome.days
+	var act1_avg_day := (float(act1_death_days) / act1_deaths) if act1_deaths > 0 else 0.0
+	print("Smoke test OK: %d/%d runs won (cel: dzień %d), śr. %.1f dni, śr. poziom %.1f" % [
 		wins, RUNS, SurvivalSystem.WIN_DAY,
-		float(total_days) / RUNS, float(total_levels) / RUNS, bum_deaths
+		float(total_days) / RUNS, float(total_levels) / RUNS
 	])
+	print("  Zgony: Akt I (przed BUM) = %d (śr. dzień %.1f), Akt II (po BUM) = %d" % [
+		act1_deaths, act1_avg_day, bum_deaths
+	])
+
+	# Per-class balance signal — the new classes have their own starter decks.
+	print("Talie klas (%d runów każda):" % CLASS_SAMPLE)
+	for resource in CardLibrary.load_resources_from_dir("res://data/classes"):
+		if not (resource is CharacterClassData):
+			continue
+		var cclass := resource as CharacterClassData
+		var class_wins := 0
+		var class_days := 0
+		for i in CLASS_SAMPLE:
+			var outcome := _play_run(
+				cclass, biome_pool, event_cards, card_pool, disaster_pool, building_catalog, rng
+			)
+			if not outcome.ended:
+				push_error("Class %s run did not terminate!" % cclass.id)
+				quit(1)
+				return
+			class_wins += 1 if outcome.won else 0
+			class_days += outcome.days
+		print("  [%s] %d/%d wygranych, śr. %.1f dni" % [
+			cclass.display_name, class_wins, CLASS_SAMPLE, float(class_days) / CLASS_SAMPLE
+		])
 	quit(0)
 
 
@@ -64,6 +103,7 @@ func _play_run(
 	event_cards: Array[CardData],
 	card_pool: Array[CardData],
 	disaster_pool: Array[DisasterData],
+	building_catalog: Array[BuildingCardData],
 	rng: RandomNumberGenerator,
 ) -> Dictionary:
 	var survival := SurvivalSystem.new()
@@ -73,7 +113,7 @@ func _play_run(
 		outcome.won = won
 		outcome.days = days
 	)
-	survival.start(character_class, biome_pool, event_cards, card_pool, disaster_pool)
+	survival.start(character_class, biome_pool, event_cards, card_pool, disaster_pool, building_catalog)
 	survival.begin()
 
 	for day_guard in MAX_DAYS_GUARD:
@@ -124,6 +164,15 @@ func _play_day(
 				continue
 			if survival.can_play_gather(card) == "":
 				survival.play_gather(card)
+				played = true
+				break
+		if played:
+			continue
+
+		# ...then build the first affordable building with a free local slot...
+		for building in survival.building_catalog():
+			if survival.can_build(building) == "":
+				survival.build(building)
 				played = true
 				break
 		if played:

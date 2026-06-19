@@ -607,6 +607,212 @@ karty, akcje biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3
 - Pozostałe testy bez regresji (`load`/`night_pool`/`board`/`fog`/`season`/
   `ui_layout` OK).
 
+### Przemodelowanie ekonomii: capy + budowanie z katalogu + zasoby per biom (2026-06-18)
+
+Trzy powiązane zmiany na prośbę gracza (gra była za łatwa: hoarding 100 jedzenia,
+„kemping" na jednym kaflu, długie czekanie aż budynek się wylosuje):
+
+- **#1 Capy magazynowania.** `RunState` ma `MAX_FOOD/WATER` 8, `MAX_WOOD/MATERIALS`
+  12; `SurvivalSystem` clampuje KAŻDY przyrost zasobu (`_add_food/water/wood/
+  materials`, używane wszędzie — akcje, pasywy, zdarzenia, explore, zwrot z
+  rozbiórki). `BuildingCardData` dostał `*_cap_bonus`; budynki magazynowe
+  podnoszą cap (Spiżarnia +6 jedz., Magazyn +8 drewna, Filtr/Studnia +4 wody,
+  Warsztat +6 mat.) — dają wreszcie sens i ograniczają hoarding.
+- **#3 Budynki poza talią.** Budynki nie są już kartami w talii ani nagrodą
+  awansu — `SurvivalSystem` ma `_building_catalog` (z `GameManager`), API
+  `building_catalog()`/`can_build()`/`build()`, a `run.gd` dodaje sekcję
+  „Postaw budynek" w popupie kafla (medalion widoczny też na pustym bieżącym
+  kaflu). Nagroda „karta" = tylko akcje (koniec rozcieńczania budynkami). KLUCZ:
+  budować można TYLKO w Akcie I; po BUM `can_build` blokuje — to przywraca wagę
+  katastrofie (brak darmowej odbudowy).
+- **#2 Zasoby per biom.** Silne akcje zbierania (Rąb drewno, Poluj, Szukaj
+  materiałów) zostają TYLKO jako akcje biomów (przypięte do kafla 1×/dzień):
+  Las = drewno+mięso, Łąki = jedzenie, Góry = materiały+woda. Talia startowa
+  przebudowana na utility + lekkie fallbacki (Zbieractwo ×2, Źródło, Odpoczynek,
+  Opatrz rany, Zwiad, Narzędzia, Zioła, Eksploruj). Surowiec zdobywasz głównie
+  TAM, gdzie występuje → wymusza ruch (anty-kemping). Sloty biomów 3/3/2 → 2/2/2.
+- Dokręcony decay (3/3/3) i energia 8; BUM rujnuje 60–80% (wszystko → ruina,
+  bez odbudowy); potwory Plagi zbuffowane.
+- Tuning botem (iteracyjnie, ~12 przebiegów smoke): 86% → **46%** wygranych,
+  śr. ~25 dni, zgony skupione w Akcie II (22/50). Świadoma gra celuje wyżej;
+  do dalszego strojenia po playteście. Testy `load`/`board`/`night_pool`/`fog`/
+  `season`/`ui_layout` bez regresji (`load`/`smoke` zaktualizowane pod nową
+  talię 9 kart i katalog budynków).
+- ZNANE: przy progu BUM 60% wszystkie budynki giną — inwestycja w budynki Aktu I
+  nie „przenosi się" do Aktu II (świadomy wybór: katastrofa = czysta karta).
+  Do rozważenia później: częściowe ocalenie + trudniejszy Akt II inną drogą.
+
+### Tryb budowania (toggle) + budowa po BUM za karę (2026-06-19)
+
+- **Nowy UI budowania (wg mockupu gracza).** Budowa wyszła z bocznego popupu do
+  trybu przełączanego: przycisk **„Budowanie"** (ta sama ramka/wymiary co
+  „Koniec dnia", w kolumnie nad nim). Klik podmienia rząd kart okolicy i ręki na
+  **przewijalny katalog budynków jako karty** (`BuildScroll`/`BuildCards`,
+  poziomy suwak); napis na przycisku zmienia się na **„Akcje"** i wraca do kart
+  biomu/akcji. Karty budynków szarzeją, gdy nie stać / brak slotu na bieżącym
+  kaflu. Tryb auto-wyłącza się przy „Koniec dnia". Boczny popup kafla
+  (`BuildingActionPopup`) zostaje, ale już TYLKO do naprawy/rozbiórki.
+- **Potwierdzenie budowy.** Klik karty budynku otwiera `ConfirmationDialog`
+  („Buduj"/„Anuluj") z nazwą i efektywnym kosztem — koniec przypadkowego
+  stawiania.
+- **Budowa po BUM wróciła, ale za karę** (decyzja gracza: wygoda bez rozbrojenia
+  katastrofy). `can_build` nie blokuje już po BUM; zamiast tego w Akcie II każdy
+  budynek kosztuje **+3 energii, +5 drewna, +5 materiałów** (`POST_BUM_BUILD_*_
+  SURCHARGE`, wliczone w `_building_*_cost`). Nowe API `effective_build_cost()`
+  podaje UI realny koszt (zniżka klasy + dopłata po BUM).
+- Balans: smoke **33/50 (~66%)**, śr. 26,8 dnia, zgony po BUM 15 — pośrodku
+  między Aktem-I-only (~46%) a darmową odbudową (~84% przy dopłacie +1/+2/+2).
+  Akt II nadal realnie zabija. Pozostałe testy bez regresji.
+
+### Meta-progresja: złote monety + ruletka klas + efektywny koszt na karcie (2026-06-19)
+
+- **Efektywny koszt budowy na karcie.** `CardView.setup` dostał opcjonalny
+  `cost_override` — w trybie „Budowanie" karta pokazuje teraz realny koszt
+  (zniżka klasy + dopłata po BUM) wprost na liście, nie tylko w oknie
+  potwierdzenia. Zgodne wstecznie (ręka/okolica/nagrody bez zmian).
+- **Złote monety.** Za każdy WYGRANY run +1 złota moneta (`MetaState.gold_coins`).
+  `GameManager._on_run_ended` nalicza i zapisuje; ekran wyniku pokazuje „+1 złota
+  moneta!". Stan trwa między uruchomieniami — `MetaState` zapisuje się do
+  `user://meta_state.tres` (`load_or_new`/`save`, `CACHE_MODE_IGNORE`).
+- **Ruletka postaci.** Za 3 monety (`MetaState.SPIN_COST`) `GameManager.
+  spin_roulette()` odejmuje monety, losuje 1 z jeszcze ZABLOKOWANYCH klas,
+  odblokowuje ją i zapisuje. Menu główne: licznik monet, `OptionButton` z
+  odblokowanymi postaciami (wybór = `selected_class_id`, używany przez
+  `start_new_run`), przycisk „Ruletka postaci (3 monety)" + overlay z animacją
+  slot-machine (miganie nazw → ląduje na wygranej). Wyłączony, gdy < 3 monet lub
+  wszystko odblokowane.
+- **3 nowe klasy** (`data/classes/`): Budowlaniec (−1 surowiec, +4 HP budowli,
+  jedzenie −20%), Wojskowy (−1 obrażeń od potworów, +1 głodu/dzień, +1 energii
+  budowy), Łowca (głód −1/dzień, jedzenie +20%). Modyfikatory wpięte w
+  `survival_system`. Kucharz zawsze odblokowany; reszta z ruletki. `GameManager`
+  ładuje cały `data/classes/` do `class_catalog`. (Talie: patrz wpis niżej.)
+- Testy: `load` (4 klasy), `ui_layout`, `smoke`, `board`, `night_pool`, `fog`,
+  `season` bez regresji. Menu/wynik/run — sceny z autoloadem, niesprawdzalne
+  przez `-s`; ścieżki węzłów zweryfikowane z `.tscn`.
+
+### Unikalne talie startowe klas (2026-06-19)
+
+- Nowe klasy nie współdzielą już talii Kucharza — każda ma własną
+  `data/decks/*_deck.tres` (9 kart akcji), spójną z modyfikatorami:
+  - **Kucharz** (`starter_deck`): generalista/jedzenie (bez zmian — baza smoke).
+  - **Budowlaniec** (`builder_deck`): Chrust→Ciesielka→Wytwórz narzędzia
+    (bootstrap drewno→materiały) + Opatrz rany/Zbieractwo/Źródło/Odpoczynek/Eksploruj.
+  - **Łowca** (`hunter_deck`): zwiad/eksploracja (Daleka wyprawa, Eksploruj,
+    Zwiad×2) + 2× Zioła (pewne leczenie) + Zbieractwo/Źródło/Odpoczynek.
+    Modyfikator sam ogarnia głód, więc talia NIE dubluje jedzenia (to zabijało
+    pierwszą wersję — była 1/30).
+  - **Wojskowy** (`soldier_deck`): tempo/regeneracja (Adrenalina, Uczta, Opatrz
+    rany, Zioła) + Zbieractwo/Źródło/Odpoczynek/Zwiad/Eksploruj.
+- `smoke_test` rozszerzony: po głównym przebiegu (Kucharz) gra `CLASS_SAMPLE=30`
+  runów każdą klasą i wypisuje win-rate (sygnał balansu, nie twardy gate).
+  Wynik: Budowlaniec ~77%, Kucharz ~70%, Łowca ~73%, Wojskowy ~57% — wariety
+  bez złamanej klasy. Wojskowy najtrudniejszy (większy głód + bot psuje sobie
+  grę adrenaliną; człowiek zagra wyżej). LEKCJA: klasa z modyfikatorem na dany
+  zasób nie powinna dublować go w talii — lepiej dać jej brakujące narzędzia
+  (leczenie/utility), inaczej karty są „martwe" i klasa pada po BUM.
+- ZAPAS na przyszłość: po 1 sygnaturowej (unikalnej) karcie na klasę — wymaga
+  nowych `ActionCardData` (+ ew. obsługi nowego `special`).
+
+### Save/load + drabinka klas + 3 nowe klasy + 7 kart akcji (2026-06-19)
+
+- **Save/load runu.** `RunState` (już `Resource` z `@export`) serializuje się do
+  `user://run_save.tres` (`ResourceSaver`/`ResourceLoader`, karty/biomy/klasa jako
+  ext-ref po ścieżce; `TileState`/`BuildingState` inline). `GameManager`:
+  `save_run`/`has_saved_run`/`delete_saved_run`/`continue_run`; **autozapis na
+  każdym świcie** (`day_started`), kasowanie zapisu przy `run_ended` i przy „Nowa
+  gra". `SurvivalSystem.resume(state, ...)` odbudowuje niepersystowane pomocniki
+  (pula nagród, katalog budowli, kandydaci nocnej puli) i wznawia od świtu dnia
+  (postęp W TRAKCIE dnia nie jest zapisywany — granulacja per dzień). Menu:
+  przycisk **„Kontynuuj"** (aktywny tylko gdy jest zapis). `tests/save_load_test.gd`
+  sprawdza round-trip wszystkich pól + odbudowę systemu.
+- **Drabinka klas (ruletka easiest→hardest).** `CharacterClassData.unlock_order`;
+  `GameManager.spin_roulette()` odblokowuje teraz NAJŁATWIEJSZĄ jeszcze
+  zablokowaną klasę (nie losową), a `unlocked_classes()` sortuje po order.
+  Kolejność: Kucharz(0) → Budowlaniec(1) → Zielarka(2) → Łowca(3) → Strateg(4)
+  → Wędrowiec(5) → Wojskowy(6).
+- **Nowe pola modyfikatorów** (`CharacterClassData`, domyślne = brak zmian, wpięte
+  w `survival_system`): `thirst_rate_delta`, `warmth_rate_delta`,
+  `move_energy_delta` (`move_energy_cost()`), `bonus_hand_cards` (większa ręka),
+  `daily_health_regen` (leczenie o świcie), `xp_multiplier`, oraz `start_food/
+  water/wood/materials`.
+- **3 nowe klasy z umiejętnościami:** Zielarka (regen +1 HP/świt, talia leków;
+  apetyt +1), Strateg (+1 karta/świt, XP +25%; budowa +1 energii), Wędrowiec
+  (darmowy ruch, start +2 jedz./+2 wody; +1 utraty ciepła/dzień). Każda z własną
+  talią (`data/decks/*_deck.tres`).
+- **7 nowych kart akcji** (`data/cards/actions/`): Bukłak (+3 wody), Suszone mięso
+  (+2 jedz.), Bandaż (+3 zdr., 1 mat.), Otul się (+3 ciepła), Przekąska (+1 jedz.,
+  0 energii), Rozejrzyj się (`explore`), Głęboki sen (+2 zdr.). Wchodzą do puli
+  nagród awansu (27 kart) — bez generacji wood/materials (te zostają per-biom).
+- Balans (smoke, 30 runów/klasa): Zielarka ~97% (najłatwiejsza, wczesny unlock) →
+  Kucharz/Budowlaniec/Łowca/Wędrowiec ~77–80% → Strateg ~73% → Wojskowy ~53%
+  (najtrudniejszy). Główny przebieg 37/50 (~74%). Lekcja powtórzona: nowa klasa z
+  jedną kartą leczenia (pierwsze Łowca/Wędrowiec) pada po BUM — trzeba 2 źródła HP.
+- Testy: cała ósemka zielona (`load` 7 klas, `save_load`, `ui_layout` 77 kart,
+  `smoke`, `board`, `night_pool`, `fog`, `season`).
+
+### Wpięcie FX: pogoda / pazur / iskry / dym ruin (2026-06-19)
+
+- Wpięte 4 efekty (każdy pod `ResourceLoader.exists`, więc działa na obecnych
+  i na zregenerowanych assetach — plug-and-play):
+  - **Pogoda sezonowa** (`run.gd _create_weather_overlay`/`_update_weather`):
+    deszcz wiosną/jesienią, śnieg zimą, czysto latem. Subtelna warstwa nad
+    scrimem a pod UI (nie zasłania popupów).
+  - **Pazur potwora** (`_spawn_claw_flash`): additywny błysk `fx_claw_slash` nad
+    nocną kartą, gdy wylosowano potwora (tuż po flipie).
+  - **Iskry kart** (`_card_feedback_fx`/`_spawn_world_fx`): `fx_heal_spark` przy
+    karcie z `health_delta>0`, `fx_resource_gain` przy karcie z zyskiem zasobu —
+    pojawia się nad zagrywaną kartą (pozycja łapana przed odświeżeniem ręki).
+  - **Dym ruin** (`biome_tile_view _add_ruin_smoke`): pętla `fx_smoke_loop` nad
+    slotem zruinowanego budynku (Akt II); tweeny czyszczone w `_clear_slots`.
+- Niewpięte zostaje: ogień na ruinach (`fx_small_fire_loop`) i mróz zimą
+  (`fx_frost_edges`) — łatwe do dołożenia obok istniejących haków.
+
+### 2 nowe klasy (Skaut, Informatyk) + HP klas + losowa ruletka (2026-06-19)
+
+- **Nowe pola `CharacterClassData`:** `health_bonus` (maks. HP gracza +/−) i
+  `max_energy_bonus` (maks. energia/dzień). Wpięte w `survival_system.start()`
+  (klamrowane do ≥1); start zasobów klamrowany do [0, cap].
+- **Skaut (`scout`) — nowa klasa DOMYŚLNA** (`MetaState.STARTING_CLASS_ID` cook→
+  scout; Kucharz wchodzi do puli ruletki). Forgiving starter: +1 HP, budowa −1
+  surowiec, −1 pragnienia/dzień, start +2 mat.; jedzenie i potwory normalne.
+  Talia: scavenge (materiały gdziekolwiek — sygnatura) + sustain (forage/dried_
+  meat/find_water/rest/first_aid/herbs/woodcraft/scout).
+- **Informatyk (`informatyk`) — najtrudniejsza klasa (challenge).** Same debuffy:
+  −2 energii, +1 głodu/dzień, +1 obrażeń od potworów (`monster_damage_reduction
+  = -1`), budowa +1 energii, −1 HP, start −1 jedz./−1 wody. „Dusza": szybko się
+  uczy — XP +25% (comeback przez nagrody awansu).
+- **HP klas (urozmaicenie):** Wojskowy +3 (twardziel — był najsłabszy, teraz
+  realnie tankuje Akt II), Budowlaniec +1, Skaut +1, Informatyk −1.
+- **Ruletka znów LOSOWA** (`spin_roulette` losuje z zablokowanych, nie po
+  `unlock_order`). `unlock_order` zostaje tylko do sortowania listy w menu.
+- Balans (smoke, 30 runów/klasa, n=30 więc ±szum): Zielarka ~100% > Skaut ~93%
+  > Wędrowiec/Strateg ~83% > Kucharz/Łowca ~77% > Budowlaniec ~70% > Wojskowy
+  ~50–65% > **Informatyk ~37% (najtrudniejszy, zgodnie z założeniem)**. Główny
+  przebieg (Kucharz) 42/50. 9 klas total.
+
+### Poduszka na start + metryka zgonów Akt I/II (2026-06-19)
+
+- Diagnoza: `smoke_test` rozbija teraz zgony na **Akt I (przed BUM)** vs **Akt II
+  (po BUM)**. Okazało się, że early game NIE jest przeciążony — ~93% zgonów bota
+  to Akt II (przy 2/2 starcie: 1 zgon Akt I na 50 runów, dzień 5).
+- Mimo to start bywał odczuwalnie ciasny dla człowieka (cienki margines + nauka),
+  więc `RunState` startuje teraz z **3 jedzenia / 3 wody** (było 2/2). Bonusy klas
+  (`start_food/water`) stackują się na wierzch.
+- Efekt (smoke): zgony Akt I 1→**0**, Akt II 13→12 (bez zmian), win-rate 72→76%.
+  Czysto early-game easing — Akt II nietknięty.
+- Dodatkowo: deprywacja (głód/odwodnienie/mróz) w **Akcie I bije za −1 HP, po BUM
+  za −2** (`_deprivation_damage()` wg `bum_happened`). Ocaleni wchodzą w BUM
+  zdrowsi → smoke 76→80%, zgony Akt II 12→10. Akt II dalej jest ścianą.
+
+### Wpięcie ilustracji zdarzeń nocnych (2026-06-19)
+
+- 37/42 ilustracji zdarzeń (pixel art, GPT Image) dostarczone przez gracza
+  przeniesione z roboczego `events/` (root) do
+  `assets/art/cards/illustrations/events/` — `card_view`/`night_card_view`
+  ładują je automatycznie po `<id>.png`, zero zmian w kodzie. Brak jeszcze:
+  5 zdarzeń Plagi (plague_fever/infected_well/larvae/spores, rotting_supplies)
+  + 2 skażone akcje (murky_water, tainted_hunt) — renderują się z samą ramką.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -625,6 +831,7 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/board_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/load_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/ui_layout_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/night_pool_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/save_load_test.gd
 ```
 
 - `smoke_test` — naiwny bot rozgrywa 50 pełnych runów na planszy (karty
@@ -657,10 +864,12 @@ data/monsters/        karty potworów Aktu II (.tres, MonsterCardData)
 data/disasters/       typy katastrofy BUM (.tres, DisasterData)
 data/classes/         klasy postaci (.tres, CharacterClassData)
 scripts/
-  game_manager.gd     autoload "GameManager": przepływ scen
+  game_manager.gd     autoload "GameManager": przepływ scen, katalog klas,
+                      wybór postaci, ruletka odblokowań (meta)
   run_state.gd        RunState (Resource): stan runu — statystyki, zasoby,
                       talia gracza, plansza, pozycja (gotowy pod save/load)
-  meta_state.gd       MetaState (Resource): placeholder pod meta-progresję
+  meta_state.gd       MetaState (Resource): meta-progresja zapisywana do
+                      user:// — złote monety + odblokowane klasy (ruletka)
   resources/          definicje zasobów danych: CardData + pochodne
                       (Action/Building/Monster/Event), DeckData, BiomeData,
                       DisasterData, CharacterClassData oraz stan runtime
@@ -698,11 +907,12 @@ menu -> **run (cała wyprawa na jednym ekranie)** -> wynik
 ### Pętla dnia (na planszy)
 
 1. Świt: świeże przetasowanie pełnej talii gracza (akcje + niezbudowane
-   budynki), ręka 4 kart, energia 10 (modyfikatory zdarzeń z poprzedniego
+   akcje), ręka 4 kart, energia 8 (modyfikatory zdarzeń z poprzedniego
    dnia działają tutaj), licznik akcji biomu wyzerowany.
-2. Gracz zagrywa karty z ręki (akcje natychmiastowe; budynek = zdjęcie
-   karty z talii na slot bieżącego kafla), korzysta z akcji zbierania
-   bieżącego biomu (każda 1×/dzień) i przemieszcza się na sąsiednie kafle
+2. Gracz zagrywa karty akcji z ręki (natychmiastowe), korzysta z akcji
+   zbierania bieżącego biomu (każda 1×/dzień), stawia budynki z KATALOGU
+   na slot bieżącego kafla (tryb „Budowanie" — karty budynków + potwierdzenie;
+   po BUM dostępne, ale z dopłatą) i przemieszcza się na sąsiednie kafle
    (1 energia); kończy dzień przyciskiem.
 3. Noc (obecnie): pasywy budynków (globalne, ruiny pomijane) → karta
    z talii zdarzeń: zwykłe zdarzenie (Szałas łagodzi chronione) ALBO po BUM
@@ -717,19 +927,26 @@ menu -> **run (cała wyprawa na jednym ekranie)** -> wynik
    efekt i podsumowanie nocy są rozliczane oraz logowane.
 
 Balans (stałe w `run_state.gd`, `survival_system.gd`): startowe maks.
-statystyki 10 (zdrowie/energia rosną nagrodami awansu), energia **9/dzień**
-(cap maks.+1 ze Słonecznym porankiem), ruch 1 energii, **sytość -3 dziennie,
-nawodnienie -2 dziennie, ciepło -2 dziennie** (Lato +1 do nawodnienia, Zima +1
-do ciepła), 1 jedzenie = +2 sytości (Kucharz: +3), 1 woda = +2 nawodnienia,
-głód/odwodnienie/mróz -2 zdrowia dziennie, Szałas -2 obrażeń z chronionych
-zdarzeń, narzędzia +1 do zysku jedzenia/drewna, XP: +1 karta/akcja biomu,
-+3 budynek, próg 8 + 4×(poziom−1), wygrana w dniu 30. BUM: dzień 13–16,
-uszkodzenia budynków 10–80%, ruina poniżej 50% maks. HP, naprawa 1 energia
-+ 1 drewno/2 HP, rozbiórka ruiny 1 energia + zwrot połowy surowców, Szałas
--2 obrażeń także od potworów, Palisada defense 2 (kafel). Punkt odniesienia
-po dokręceniu trudności (2026-06-16): naiwny bot ze smoke testu wygrywa
-**~36%** runów (śr. ~24 dni); Akt II jest teraz prawdziwym wyzwaniem
-(większość zgonów po BUM). Świadoma gra ma celować wyżej.
+statystyki 10 (zdrowie/energia rosną nagrodami awansu), **energia 8/dzień**
+(cap maks.+1 ze Słonecznym porankiem), ruch 1 energii, **sytość/nawodnienie/
+ciepło -3 dziennie** (Lato +1 do nawodnienia, Zima +1 do ciepła), 1 jedzenie =
++2 sytości (Kucharz: +3), 1 woda = +2 nawodnienia, głód/odwodnienie/mróz -2
+zdrowia dziennie. **Capy magazynowania:** jedzenie/woda 8, drewno/materiały 12;
+budynki magazynowe podnoszą cap (Spiżarnia +6 jedz., Magazyn +8 drewna, Filtr/
+Studnia +4 wody, Warsztat +6 mat.) — nadwyżka ponad cap przepada (koniec
+hoardingu). Szałas -2 obrażeń z chronionych zdarzeń i od potworów, narzędzia +1
+do zysku jedzenia/drewna, XP: +1 karta/akcja biomu, +3 budynek, próg
+8 + 4×(poziom−1), wygrana w dniu 30. **Budynki: budowane z katalogu w trybie
+„Budowanie" (karty + potwierdzenie, nie z talii); po BUM dostępne, ale z dopłatą
++3 energii / +5 drewna / +5 materiałów.** BUM:
+dzień 13–16, uszkodzenia budynków **60–80%** (ruina poniżej 50% maks. HP — przy
+tym progu BUM rujnuje praktycznie wszystko; odbudowa w Akcie II jest droga),
+naprawa 1 energia + 1 drewno/2 HP, rozbiórka ruiny 1 energia
++ zwrot połowy surowców, Palisada defense 2 (kafel). Potwory Plagi (po buffie):
+Zgnilec 3/3, Zarażony wilk 4/0, Krucza chmara 2/2, Rój szczurów 0/3. Punkt
+odniesienia (2026-06-19, po starcie 3/3 + deprywacji Akt I −1): naiwny bot
+wygrywa **~80%** (śr. ~29 dni), zgony skupione w Akcie II (~10/50, Akt I ~0).
+Świadoma gra ma celować wyżej; trudność świadomie przesunięta w stronę Aktu II.
 
 ## Dane jako zasoby
 
@@ -752,8 +969,9 @@ w systemach).
   night_protection). Docelowo do dodania pod aktywną pulę nocnych zdarzeń:
   `weight`, `cooldown_days`, `max_per_run`, `tags` oraz kategoria/ciężar
   (`neutral/weather/biome/omen/monster/disaster`, `minor/medium/major`).
-- `DeckData`: lista kart — akcje i budynki (kopie = wielokrotne wpisy
-  tego samego zasobu)
+- `DeckData`: lista kart akcji (kopie = wielokrotne wpisy tego samego zasobu);
+  budynki NIE są już w talii — buduje się je z katalogu (`SurvivalSystem.
+  building_catalog()`)
 - `BiomeData`: `building_slots` (2–4), `gather_cards` (akcje dostępne
   tylko na kaflu, każda 1×/dzień), `extra_event_cards` (zagrożenia biomu
   dokładane do talii zdarzeń runu) + komplet pól `corrupted_*` (rewers
@@ -768,9 +986,10 @@ w systemach).
 
 ## Punkty rozbudowy (NIE implementować bez decyzji)
 
-- `MetaState` — pusty placeholder; tu trafią kolekcja, odblokowania
-  (biomy/katastrofy/klasy) i drabinka trudności (README sekcja 8,
-  milestone 2).
+- `MetaState` — działa: złote monety (1 za wygrany run) + odblokowane klasy,
+  zapis do `user://meta_state.tres`. Ruletka (3 monety) losuje nową klasę z
+  zablokowanych. DO ZROBIENIA tu jeszcze: kolekcja kart, odblokowania biomów/
+  katastrof i drabinka trudności (README sekcja 8, milestone 2).
 - `RunState` jest `Resource` z `@export` (w tym plansza, talia, postęp
   poziomów oraz `disaster`/`bum_day`/`bum_happened`) — gotowy pod
   save/load.

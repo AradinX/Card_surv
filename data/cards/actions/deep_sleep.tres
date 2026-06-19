@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "deep_sleep"
+display_name = "Głęboki sen"
+description = "Prześpij część dnia, by dojść do siebie. +2 zdrowia."
+energy_cost = 1
+health_delta = 2

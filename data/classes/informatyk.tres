@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="CharacterClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_class_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/decks/informatyk_deck.tres" id="2_deck"]
+
+[resource]
+script = ExtResource("1_script")
+id = "informatyk"
+display_name = "Informatyk"
+description = "Całe życie przy klawiaturze — dzicz go miażdży. Mniej energii (−2), szybszy głód (+1/dzień), potwory ranią mocniej (+1), budowa droższa (+1 energii), mniej zapasów na start i kruche zdrowie (−1 HP). Jego jedyny atut: chłonie wiedzę jak gąbka — XP +25%."
+unlock_order = 8
+starter_deck = ExtResource("2_deck")
+build_energy_cost_delta = 1
+monster_damage_reduction = -1
+hunger_rate_delta = 1
+health_bonus = -1
+max_energy_bonus = -2
+xp_multiplier = 1.25
+start_food = -1
+start_water = -1

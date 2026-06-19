@@ -51,6 +51,8 @@ const BIOME_ART_IDS := {
 	"meadows": "meadow",
 	"mountains": "mountains",
 }
+## Smoldering smoke drifting off a ruined building (optional — skipped if absent).
+const RUIN_SMOKE_FX := "res://assets/art/fx/smoke/fx_smoke_loop.png"
 const SLOT_SIZE := Vector2(50, 62)
 ## Max slots shown on a tile, and a small per-slot vertical offset so the row
 ## reads less like a rigid grid.
@@ -69,6 +71,7 @@ const SLOT_STAGGER := [16, 0, 9]
 
 var _reveal_tween: Tween
 var _reveal_layers: Dictionary = {}
+var _slot_tweens: Array[Tween] = []
 static var _dissolve_shader: Shader
 
 
@@ -170,7 +173,9 @@ func setup(
 	_title_plate.texture = load(TITLE_PLATE)
 	_player_marker.texture = load(PLAYER_MARKER)
 	_player_marker.visible = is_current
-	_buildings_button.visible = not tile.buildings.is_empty()
+	# On the current tile the medallion always opens the build/manage panel
+	# (so you can construct even on an empty tile); elsewhere only if built.
+	_buildings_button.visible = is_current or not tile.buildings.is_empty()
 	_state_overlay.color = _overlay_color(is_current, block_reason, tile.is_corrupted)
 	_refresh_slots(tile)
 
@@ -312,6 +317,10 @@ func _refresh_slots(tile: TileState) -> void:
 
 
 func _clear_slots() -> void:
+	for tween in _slot_tweens:
+		if tween != null and tween.is_valid():
+			tween.kill()
+	_slot_tweens.clear()
 	for child in _slots_row.get_children():
 		_slots_row.remove_child(child)
 		child.queue_free()
@@ -344,6 +353,9 @@ func _fill_occupied_slot(slot: Panel, built: BuildingState) -> void:
 			thumb.self_modulate = Color(0.72, 0.42, 0.42, 0.9)
 		slot.add_child(thumb)
 
+	if built.is_ruined:
+		_add_ruin_smoke(slot)
+
 	var tag := Label.new()
 	tag.text = "%s\nRUINA" % built.data.display_name if built.is_ruined \
 		else "%s\n%d HP" % [built.data.display_name, built.hp]
@@ -361,6 +373,26 @@ func _fill_occupied_slot(slot: Panel, built: BuildingState) -> void:
 	tag.add_theme_constant_override("shadow_offset_y", 1)
 	_set_rect_anchors(tag, 0.0, 0.55, 1.0, 1.0)
 	slot.add_child(tag)
+
+
+## Gentle smoke loop rising off a ruined building's slot.
+func _add_ruin_smoke(slot: Control) -> void:
+	if not ResourceLoader.exists(RUIN_SMOKE_FX):
+		return
+	var smoke := TextureRect.new()
+	smoke.texture = load(RUIN_SMOKE_FX)
+	smoke.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	smoke.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	smoke.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	smoke.modulate.a = 0.0
+	slot.add_child(smoke)
+	# Drifts up out of the top of the ruin thumb.
+	_set_rect_anchors(smoke, 0.05, -0.2, 0.95, 0.55)
+	# Bound to this tile view (reliably in-tree); slots aren't in-tree yet here.
+	var loop := create_tween().set_loops()
+	loop.tween_property(smoke, "modulate:a", 0.5, 2.0).set_trans(Tween.TRANS_SINE)
+	loop.tween_property(smoke, "modulate:a", 0.18, 2.0).set_trans(Tween.TRANS_SINE)
+	_slot_tweens.append(loop)
 
 
 ## Lay a child out by fractional anchors (offsets zeroed) so its rect follows

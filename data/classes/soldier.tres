@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CharacterClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_class_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/decks/soldier_deck.tres" id="2_deck"]
+
+[resource]
+script = ExtResource("1_script")
+id = "soldier"
+display_name = "Wojskowy"
+unlock_order = 6
+description = "Twardziel — +3 HP, a potwory zadają ci o 1 mniej obrażeń. Masz większy apetyt (+1 głodu/dzień) i budujesz drożej (+1 energii)."
+starter_deck = ExtResource("2_deck")
+build_energy_cost_delta = 1
+monster_damage_reduction = 1
+hunger_rate_delta = 1
+health_bonus = 3

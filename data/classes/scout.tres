@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CharacterClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_class_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/decks/scout_deck.tres" id="2_deck"]
+
+[resource]
+script = ExtResource("1_script")
+id = "scout"
+display_name = "Skaut"
+description = "Zaprawiony w terenie i wytrzymały (+1 HP). Buduje taniej (−1 surowiec), startuje z zapasem materiałów i mniej go suszy (−1 pragnienia/dzień). Jedzenie i obrażenia od potworów — normalne."
+unlock_order = 0
+starter_deck = ExtResource("2_deck")
+build_resource_discount = 1
+thirst_rate_delta = -1
+health_bonus = 1
+start_materials = 2

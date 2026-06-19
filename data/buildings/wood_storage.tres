@@ -12,3 +12,4 @@ wood_cost = 1
 materials_cost = 1
 max_hp = 8
 wood_gain = 1
+wood_cap_bonus = 8

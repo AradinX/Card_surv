@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CharacterClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_class_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/decks/nomad_deck.tres" id="2_deck"]
+
+[resource]
+script = ExtResource("1_script")
+id = "nomad"
+display_name = "Wędrowiec"
+description = "Wędrówka między kaflami jest darmowa. Startujesz z zapasami (+2 jedzenia, +2 wody), ale ciągły marsz wyziębia (+1 utraty ciepła/dzień)."
+unlock_order = 5
+starter_deck = ExtResource("2_deck")
+warmth_rate_delta = 1
+move_energy_delta = -1
+start_food = 2
+start_water = 2

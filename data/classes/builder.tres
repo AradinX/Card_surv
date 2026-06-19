@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CharacterClassData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/character_class_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/decks/builder_deck.tres" id="2_deck"]
+
+[resource]
+script = ExtResource("1_script")
+id = "builder"
+display_name = "Budowlaniec"
+unlock_order = 1
+description = "Budowle są tańsze (−1 surowiec) i wytrzymalsze (+4 HP). Jedzenie syci mniej (−20%)."
+starter_deck = ExtResource("2_deck")
+food_hunger_multiplier = 0.8
+build_resource_discount = 1
+building_hp_bonus = 4
+health_bonus = 1
