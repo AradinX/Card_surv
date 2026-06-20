@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "informatyk_signature"
+display_name = "Refaktoryzacja"
+description = "Porządkujesz plan i zyskujesz rozpęd. Dobierasz 2 karty, +1 energii."
+energy_cost = 0
+energy_delta = 1
+special = "draw_two"

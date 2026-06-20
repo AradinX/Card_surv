@@ -8,18 +8,32 @@ extends RefCounted
 const GRID_COLS := 3
 const GRID_ROWS := 2
 const BOARD_SIZE := GRID_COLS * GRID_ROWS
+## Biomes that MUST appear on every board so their resources are always reachable
+## (Las = drewno, Góry = materiały). Missing ids are simply skipped.
+const GUARANTEED_BIOME_IDS := ["forest", "mountains"]
 
 
 static func generate(pool: Array[BiomeData], rng: RandomNumberGenerator) -> Array[TileState]:
 	assert(not pool.is_empty(), "biome pool must not be empty")
 
-	# Pick biomes: the whole pool first (up to board size), then random fills.
-	var picked: Array[BiomeData] = pool.duplicate()
-	_shuffle(picked, rng)
+	# Force the guaranteed biomes in first, then fill the rest at random.
+	var guaranteed: Array[BiomeData] = []
+	var rest: Array[BiomeData] = []
+	for biome in pool:
+		if biome.id in GUARANTEED_BIOME_IDS:
+			guaranteed.append(biome)
+		else:
+			rest.append(biome)
+	_shuffle(rest, rng)
+	var picked: Array[BiomeData] = guaranteed.duplicate()
+	for biome in rest:
+		if picked.size() >= BOARD_SIZE:
+			break
+		picked.append(biome)
 	picked = picked.slice(0, BOARD_SIZE)
 	while picked.size() < BOARD_SIZE:
 		picked.append(pool[rng.randi_range(0, pool.size() - 1)])
-	# Second shuffle so the guaranteed pool biomes land on random tiles.
+	# Shuffle so the guaranteed biomes don't always land on the same tiles.
 	_shuffle(picked, rng)
 
 	var tiles: Array[TileState] = []

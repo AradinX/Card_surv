@@ -5,8 +5,8 @@ extends Resource
 ## playable character classes. Saved to user:// so it survives app restarts.
 
 const SAVE_PATH := "user://meta_state.tres"
-## Cost of one roulette spin (in gold coins).
-const SPIN_COST := 3
+## Cost of one roulette spin (in gold coins). TODO: przywrócić 3 po testach.
+const SPIN_COST := 0
 ## The class everyone starts with — always unlocked.
 const STARTING_CLASS_ID := "scout"
 

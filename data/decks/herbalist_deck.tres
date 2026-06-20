@@ -9,8 +9,8 @@
 [ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="7_water"]
 [ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="8_rest"]
 [ext_resource type="Resource" path="res://data/cards/actions/scout.tres" id="9_scout"]
-[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="10_explore"]
+[ext_resource type="Resource" path="res://data/cards/actions/signature/herbalist_signature.tres" id="10_sig"]
 
 [resource]
 script = ExtResource("1_script")
-cards = [ExtResource("2_herbs"), ExtResource("3_huddle"), ExtResource("4_aid"), ExtResource("5_forage"), ExtResource("6_meat"), ExtResource("7_water"), ExtResource("8_rest"), ExtResource("9_scout"), ExtResource("10_explore")]
+cards = [ExtResource("2_herbs"), ExtResource("3_huddle"), ExtResource("4_aid"), ExtResource("5_forage"), ExtResource("6_meat"), ExtResource("7_water"), ExtResource("8_rest"), ExtResource("9_scout"), ExtResource("10_sig")]

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "scout_signature"
+display_name = "Rozpoznanie"
+description = "Przeczesujesz teren i wracasz z łupem. Przeszukujesz okolicę i +1 materiał."
+energy_cost = 1
+materials_gain = 1
+special = "explore"

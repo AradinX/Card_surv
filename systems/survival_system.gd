@@ -22,20 +22,26 @@ signal leveled_up(level: int)
 signal bum_struck(disaster: DisasterData)
 ## The card drawn for the night event, shown by UI as a card overlay.
 signal night_card_drawn(card: CardData)
+## Overnight auto-eating/drinking from stock (counts of portions); UI plays a
+## small feedback FX over the stat bars.
+signal needs_consumed(food_eaten: int, water_drunk: int)
 signal log_message(text: String)
 signal run_ended(won: bool, days_survived: int)
 
 ## Full run: Act I (build up) -> BUM mid-run -> Act II (survive the disaster).
-const WIN_DAY := 30
-## BUM strikes at dawn of a day rolled from this range at run start.
-const BUM_DAY_MIN := 13
-const BUM_DAY_MAX := 16
-## Each building rolls this damage percent range when BUM strikes.
-const BUM_DAMAGE_PERCENT_MIN := 60
+## Target length per README — Dzień 50.
+const WIN_DAY := 50
+## BUM strikes at dawn of a day rolled from this range at run start (~mid-run).
+const BUM_DAY_MIN := 22
+const BUM_DAY_MAX := 27
+## Each building rolls this damage percent range when BUM strikes. A building
+## survives (stays usable) only if it takes <=50% (ruin threshold), so this range
+## leaves roughly a third of buildings standing into Act II instead of wiping all.
+const BUM_DAMAGE_PERCENT_MIN := 35
 const BUM_DAMAGE_PERCENT_MAX := 80
 ## Scripted dawn omens start on this day (foreshadowing), so they always show
-## before BUM (which strikes day 13-16) regardless of the rolled BUM day.
-const OMEN_START_DAY := 7
+## before BUM (which strikes day 22-27) regardless of the rolled BUM day.
+const OMEN_START_DAY := 16
 const REPAIR_ENERGY_COST := 1
 const DEMOLISH_ENERGY_COST := 1
 ## Building after the cataclysm is allowed but taxed — raw materials are scarce
@@ -57,6 +63,11 @@ const AUTUMN_WOOD_BONUS := 1
 const WINTER_EXTRA_WARMTH_DECAY := 1
 const FOOD_HUNGER_VALUE := 2
 const WATER_THIRST_VALUE := 2
+## Food spoilage: some surplus food spoils each day (slowed by the Kucharz's
+## spoilage_multiplier and by Spiżarnia's slow_spoilage). Only bites above this
+## stock, so early scarcity isn't punished.
+const DAILY_FOOD_SPOILAGE := 1
+const SPOILAGE_MIN_FOOD := 4
 const STARVATION_DAMAGE := 2
 const DEHYDRATION_DAMAGE := 2
 const FREEZING_DAMAGE := 2
@@ -89,6 +100,10 @@ var _building_catalog: Array[BuildingCardData] = []
 ## Generic events shared by both acts; biome/disaster extras come on top.
 var _base_event_cards: Array[CardData] = []
 var _day_active := false
+## After end_day() draws the night card, effects wait here until resolve_night()
+## (the player acknowledges the popup; headless callers resolve immediately).
+var _night_pending := false
+var _pending_night_card: CardData = null
 var _ended := false
 ## True when this system was created via resume() rather than start().
 var _resumed := false
@@ -395,6 +410,9 @@ func building_catalog() -> Array[BuildingCardData]:
 func can_build(building: BuildingCardData) -> String:
 	if not _day_active:
 		return "Dzień dobiegł końca."
+	var lock_reason := _biome_lock_reason(building)
+	if lock_reason != "":
+		return lock_reason
 	if current_tile().buildings.size() >= current_tile().biome.building_slots:
 		return "Brak wolnych slotów w tym biomie."
 	return _cost_block_reason(
@@ -403,6 +421,28 @@ func can_build(building: BuildingCardData) -> String:
 		_building_wood_cost(building),
 		_building_materials_cost(building),
 	)
+
+
+## Biome ids -> Polish names, used only for the "needs discovery" build message.
+const BIOME_DISPLAY_NAMES := {
+	"forest": "Las", "meadows": "Łąki", "mountains": "Góry",
+	"swamp": "Bagno", "river": "Rzeka", "wasteland": "Pustkowie",
+	"caves": "Jaskinie", "coast": "Wybrzeże",
+}
+
+
+## "" if the building has no biome requirement or at least one required biome is
+## already discovered; otherwise a "needs discovery" reason naming the biomes.
+func _biome_lock_reason(building: BuildingCardData) -> String:
+	if building.required_biome_ids.is_empty():
+		return ""
+	for tile in state.board:
+		if tile.is_discovered and tile.biome.id in building.required_biome_ids:
+			return ""
+	var names: PackedStringArray = []
+	for biome_id in building.required_biome_ids:
+		names.append(BIOME_DISPLAY_NAMES.get(biome_id, biome_id))
+	return "Wymaga odkrycia: " + " / ".join(names)
 
 
 ## Effective build cost on the current tile (class discount + post-BUM surcharge),
@@ -429,8 +469,12 @@ func build(building: BuildingCardData) -> void:
 	stats_changed.emit(state)
 
 
+## Player ends the day: discard the hand and DRAW the night event, announcing it
+## via night_card_drawn — but apply nothing yet. The UI shows the card and calls
+## resolve_night() once the player acknowledges it. Headless callers (bot/tests)
+## call resolve_night() straight after.
 func end_day() -> void:
-	if not _day_active:
+	if not _day_active or _night_pending:
 		return
 
 	# Unplayed action cards go to the discard pile (buildings cycle too —
@@ -440,10 +484,23 @@ func end_day() -> void:
 	hand.clear()
 	hand_changed.emit(hand)
 
+	_night_pending = true
+	_pending_night_card = _night_pool.draw(state.day, _night_phase())
+	if _pending_night_card != null:
+		night_card_drawn.emit(_pending_night_card)
+
+
+## Resolve the drawn night event and the day's needs, then advance (or finish).
+## Called when the player acknowledges the night popup; effects land here so the
+## player sees the card BEFORE the stats move. Idempotent per end_day().
+func resolve_night() -> void:
+	if not _night_pending:
+		return
+	_night_pending = false
+	var night_card := _pending_night_card
+	_pending_night_card = null
+
 	_resolve_building_passives()
-	var night_card := _night_pool.draw(state.day, _night_phase())
-	if night_card != null:
-		night_card_drawn.emit(night_card)
 	if night_card is MonsterCardData:
 		_resolve_monster_attack(night_card as MonsterCardData)
 	elif night_card is EventCardData:
@@ -608,11 +665,11 @@ func _update_season_for_day() -> void:
 
 
 func _season_for_day(day: int) -> int:
-	if day <= 7:
+	if day <= 13:
 		return RunState.Season.SPRING
-	if day <= 14:
+	if day <= 25:
 		return RunState.Season.SUMMER
-	if day <= 22:
+	if day <= 38:
 		return RunState.Season.AUTUMN
 	return RunState.Season.WINTER
 
@@ -801,14 +858,28 @@ func _night_phase() -> int:
 	return NightEventPool.Phase.ACT1
 
 
-## Foreshadowing in the last days before BUM (the player senses SOMETHING).
-func _log_omen() -> void:
-	var omens: Array[String] = [
+## Per-disaster foreshadowing lines (keyed by DisasterData.id). Plague reads as
+## rot/sickness, Eclipse as cold/dark; unknown disasters fall back to plague.
+const BUM_OMENS := {
+	"plague": [
 		"Martwe ptaki leżą pod drzewami. Żadne zwierzę ich nie tyka.",
 		"Ziemia zadrżała. Na horyzoncie stoi zielonkawa łuna.",
 		"Sny są coraz cięższe. Coś nadchodzi.",
 		"Zwierzyna ucichła. Las wstrzymuje oddech.",
-	]
+	],
+	"eclipse": [
+		"Słońce wschodzi blade i zimne. Cień trwa dłużej niż powinien.",
+		"Woda w naczyniach pokryła się rano cienkim lodem.",
+		"Sny są coraz cięższe. Coś nadchodzi.",
+		"Ptaki odleciały na południe za wcześnie. Robi się cicho i mroźno.",
+	],
+}
+
+
+## Foreshadowing in the last days before BUM (the player senses SOMETHING).
+func _log_omen() -> void:
+	var key := state.disaster.id if state.disaster != null else ""
+	var omens: Array = BUM_OMENS.get(key, BUM_OMENS["plague"])
 	log_message.emit("Omen: %s" % omens[state.day % omens.size()])
 
 
@@ -902,6 +973,33 @@ func _resolve_building_passives() -> void:
 			_apply_stat_deltas(
 				data.health_delta, data.hunger_delta, data.thirst_delta, data.warmth_delta
 			)
+			# Workshop crafting: turns a spare log into a material each day.
+			if data.special == "unlock_crafting" and state.wood > 0:
+				state.wood -= 1
+				_add_materials(1)
+				log_message.emit("%s przerabia drewno na materiały." % data.display_name)
+
+
+## Counts standing (non-ruined) buildings with a given special.
+func _count_special(special: String) -> int:
+	var count := 0
+	for tile in state.board:
+		for built in tile.buildings:
+			if not built.is_ruined and built.data.special == special:
+				count += 1
+	return count
+
+
+## Some surplus food spoils each day; the Kucharz and Spiżarnia (slow_spoilage)
+## reduce it.
+func _resolve_spoilage() -> void:
+	if state.food < SPOILAGE_MIN_FOOD:
+		return
+	var base := int(round(DAILY_FOOD_SPOILAGE * state.character_class.spoilage_multiplier))
+	var spoiled := maxi(base - _count_special("slow_spoilage"), 0)
+	if spoiled > 0:
+		state.food = maxi(state.food - spoiled, 0)
+		log_message.emit("Część zapasów się psuje. -%d jedzenia." % spoiled)
 
 
 func _resolve_event(event: EventCardData) -> void:
@@ -937,13 +1035,17 @@ func _has_night_protection() -> bool:
 
 
 func _resolve_needs() -> void:
+	# Spoilage first, so spoiled food can't be eaten tonight.
+	_resolve_spoilage()
 	# Hunger: decay, then eat from stock (class can change food efficiency).
 	var hunger_decay := DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta
 	var food_value := int(round(FOOD_HUNGER_VALUE * state.character_class.food_hunger_multiplier))
 	state.hunger = clampi(state.hunger - hunger_decay, 0, RunState.MAX_HUNGER)
+	var food_eaten := 0
 	while state.food > 0 and state.hunger <= RunState.MAX_HUNGER - food_value:
 		state.food -= 1
 		state.hunger += food_value
+		food_eaten += 1
 		log_message.emit("Zjadasz porcję jedzenia (+%d sytości)." % food_value)
 	if state.hunger <= 0:
 		var hunger_dmg := _deprivation_damage(STARVATION_DAMAGE)
@@ -957,9 +1059,11 @@ func _resolve_needs() -> void:
 		log_message.emit("Letni upal wysusza cie szybciej. -%d nawodnienia." %
 			SUMMER_EXTRA_THIRST_DECAY)
 	state.thirst = clampi(state.thirst - thirst_decay, 0, RunState.MAX_THIRST)
+	var water_drunk := 0
 	while state.water > 0 and state.thirst <= RunState.MAX_THIRST - WATER_THIRST_VALUE:
 		state.water -= 1
 		state.thirst += WATER_THIRST_VALUE
+		water_drunk += 1
 		log_message.emit("Pijesz wodę (+%d nawodnienia)." % WATER_THIRST_VALUE)
 	if state.thirst <= 0:
 		var thirst_dmg := _deprivation_damage(DEHYDRATION_DAMAGE)
@@ -977,6 +1081,9 @@ func _resolve_needs() -> void:
 		var warmth_dmg := _deprivation_damage(FREEZING_DAMAGE)
 		state.health = maxi(state.health - warmth_dmg, 0)
 		log_message.emit("Zamarzasz! -%d zdrowia." % warmth_dmg)
+
+	if food_eaten > 0 or water_drunk > 0:
+		needs_consumed.emit(food_eaten, water_drunk)
 
 
 ## Hunger/thirst/cold bite harder after the cataclysm. In Act I (before BUM)

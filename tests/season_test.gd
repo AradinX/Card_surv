@@ -1,5 +1,5 @@
 extends SceneTree
-## Headless check for the compact 30-day season schedule.
+## Headless check for the 50-day season schedule.
 
 
 func _init() -> void:
@@ -18,12 +18,12 @@ func _init() -> void:
 	survival.begin()
 
 	_assert_season(survival, 1, RunState.Season.SPRING)
-	_advance_to_day(survival, 8)
-	_assert_season(survival, 8, RunState.Season.SUMMER)
-	_advance_to_day(survival, 15)
-	_assert_season(survival, 15, RunState.Season.AUTUMN)
-	_advance_to_day(survival, 23)
-	_assert_season(survival, 23, RunState.Season.WINTER)
+	_advance_to_day(survival, 14)
+	_assert_season(survival, 14, RunState.Season.SUMMER)
+	_advance_to_day(survival, 26)
+	_assert_season(survival, 26, RunState.Season.AUTUMN)
+	_advance_to_day(survival, 39)
+	_assert_season(survival, 39, RunState.Season.WINTER)
 
 	print("Season test OK: spring/summer/autumn/winter schedule active")
 	quit(0)
@@ -38,6 +38,7 @@ func _advance_to_day(survival: SurvivalSystem, target_day: int) -> void:
 		survival.state.food = 20
 		survival.state.water = 20
 		survival.end_day()
+		survival.resolve_night()
 
 
 func _assert_season(survival: SurvivalSystem, day: int, season: int) -> void:

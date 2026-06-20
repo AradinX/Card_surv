@@ -6,10 +6,11 @@
 script = ExtResource("1_script")
 id = "building_workshop"
 display_name = "Warsztat"
-description = "Stół roboczy i narzędzia (+1 materiałów dziennie)."
+description = "Stół roboczy: +1 materiałów dziennie i przerabia 1 drewno na materiał."
 energy_cost = 2
 wood_cost = 2
 materials_cost = 2
 max_hp = 10
 materials_gain = 1
 materials_cap_bonus = 6
+special = "unlock_crafting"

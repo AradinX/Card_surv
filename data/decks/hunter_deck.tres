@@ -4,11 +4,11 @@
 [ext_resource type="Resource" path="res://data/cards/actions/expedition.tres" id="2_exped"]
 [ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="3_explore"]
 [ext_resource type="Resource" path="res://data/cards/actions/scout.tres" id="4_scout"]
-[ext_resource type="Resource" path="res://data/cards/actions/forage.tres" id="5_forage"]
+[ext_resource type="Resource" path="res://data/cards/actions/signature/hunter_signature.tres" id="5_sig"]
 [ext_resource type="Resource" path="res://data/cards/actions/herbs.tres" id="6_herbs"]
 [ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="7_water"]
 [ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="8_rest"]
 
 [resource]
 script = ExtResource("1_script")
-cards = [ExtResource("2_exped"), ExtResource("3_explore"), ExtResource("4_scout"), ExtResource("4_scout"), ExtResource("5_forage"), ExtResource("6_herbs"), ExtResource("6_herbs"), ExtResource("7_water"), ExtResource("8_rest")]
+cards = [ExtResource("2_exped"), ExtResource("3_explore"), ExtResource("4_scout"), ExtResource("4_scout"), ExtResource("5_sig"), ExtResource("6_herbs"), ExtResource("6_herbs"), ExtResource("7_water"), ExtResource("8_rest")]

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DisasterData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/disaster_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/monsters/frost_wraith.tres" id="2_wraith"]
+[ext_resource type="Resource" path="res://data/monsters/shadow_crawler.tres" id="3_crawler"]
+[ext_resource type="Resource" path="res://data/monsters/ice_swarm.tres" id="4_swarm"]
+[ext_resource type="Resource" path="res://data/cards/events/eclipse/eternal_frost.tres" id="5_frost"]
+[ext_resource type="Resource" path="res://data/cards/events/eclipse/black_sun.tres" id="6_sun"]
+[ext_resource type="Resource" path="res://data/cards/events/eclipse/whisper_dark.tres" id="7_whisper"]
+[ext_resource type="Resource" path="res://data/cards/events/eclipse/frost_bite.tres" id="8_bite"]
+
+[resource]
+script = ExtResource("1_script")
+id = "eclipse"
+display_name = "Zaćmienie"
+description = "Słońce gaśnie w południe. Z wiecznego mroku wypełzają zmarznięte istoty."
+monsters = [ExtResource("2_wraith"), ExtResource("3_crawler"), ExtResource("4_swarm")]
+extra_event_cards = [ExtResource("5_frost"), ExtResource("6_sun"), ExtResource("7_whisper"), ExtResource("8_bite")]

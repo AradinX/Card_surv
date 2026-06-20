@@ -29,6 +29,26 @@ const BUM_FX := {
 	"motes": "res://assets/art/fx/corruption/fx_spore_motes_loop.png",
 }
 const BUM_FX_ADDITIVE := ["omen", "flash", "motes"]
+## Corruption FX layers that get recolored per disaster (the blast itself stays
+## natural). Plague keeps them green; Eclipse tints them icy blue.
+const ACT2_TINT_LAYERS := ["rot", "cloud1", "cloud2", "wilt", "petals", "vignette", "motes"]
+## Per-disaster Act II palette. Keyed by DisasterData.id; "" / unknown falls back
+## to plague. fx_tint recolors the corruption overlays, scrim is the screen wash,
+## board cools the (plague-themed) Act II board art, log_text recolors the log.
+const ACT2_LOOK := {
+	"plague": {
+		"fx_tint": Color(1.0, 1.0, 1.0),
+		"scrim": Color(0.04, 0.08, 0.045, 0.58),
+		"board": Color(0.4, 0.42, 0.47),
+		"log_text": Color(0.82, 0.78, 0.64, 1.0),
+	},
+	"eclipse": {
+		"fx_tint": Color(0.55, 0.7, 1.05),
+		"scrim": Color(0.04, 0.05, 0.11, 0.62),
+		"board": Color(0.34, 0.4, 0.52),
+		"log_text": Color(0.74, 0.82, 0.95, 1.0),
+	},
+}
 ## Night event card reveal: backs to flip from, fullscreen accent FX.
 const CARD_BACK := {
 	"event": "res://assets/art/cards/backs/card_back_event.png",
@@ -46,9 +66,18 @@ const NIGHT_CARD_SIZE := Vector2(132, 198)
 ## missing or mid-regeneration asset simply skips the effect).
 const WEATHER_RAIN := "res://assets/art/fx/weather/fx_rain_overlay.png"
 const WEATHER_SNOW := "res://assets/art/fx/weather/fx_snow_overlay.png"
+const WEATHER_FROST := "res://assets/art/fx/weather/fx_frost_edges.png"
 const CLAW_FX := "res://assets/art/fx/monster_attack/fx_claw_slash.png"
 const HEAL_FX := "res://assets/art/fx/cards/fx_heal_spark.png"
 const RESOURCE_FX := "res://assets/art/fx/cards/fx_resource_gain.png"
+const EAT_DRINK_FX := "res://assets/art/fx/cards/fx_eat_drink_feedback.png"
+## Pre-wired (assets not yet generated — guarded by ResourceLoader.exists).
+const LOW_HP_FX := "res://assets/art/fx/ui/fx_low_hp_vignette.png"
+const BUILD_PLACE_FX := "res://assets/art/fx/buildings/fx_build_place.png"
+const REPAIR_FX := "res://assets/art/fx/buildings/fx_repair_sparkle.png"
+const COLLAPSE_FX := "res://assets/art/fx/buildings/fx_ruin_collapse.png"
+## Low-HP danger vignette shows at or below this fraction of max health.
+const LOW_HP_FRACTION := 0.3
 
 @onready var _background: ColorRect = $Background
 @onready var _background_art: TextureRect = $BackgroundArt
@@ -77,6 +106,12 @@ const RESOURCE_FX := "res://assets/art/fx/cards/fx_resource_gain.png"
 @onready var _night_overlay: ColorRect = $NightEventOverlay
 @onready var _night_card_slot: CenterContainer = $NightEventOverlay/Panel/PanelMargin/VBox/CardSlot
 @onready var _night_continue_button: Button = $NightEventOverlay/Panel/PanelMargin/VBox/ContinueButton
+@onready var _pause_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/PauseButton
+@onready var _pause_overlay: ColorRect = $PauseOverlay
+@onready var _pause_resume_button: Button = $PauseOverlay/Panel/PanelMargin/VBox/ResumeButton
+@onready var _pause_settings_button: Button = $PauseOverlay/Panel/PanelMargin/VBox/SettingsButton
+@onready var _pause_menu_button: Button = $PauseOverlay/Panel/PanelMargin/VBox/MenuButton
+@onready var _settings_overlay: SettingsOverlayView = $SettingsOverlay
 
 var _survival: SurvivalSystem
 var _tile_buttons: Array[BiomeTileView] = []
@@ -88,6 +123,12 @@ var _pending_build: BuildingCardData
 var _night_fx: Array[Node] = []
 var _night_tween: Tween
 var _weather_overlay: TextureRect
+var _frost_overlay: TextureRect
+var _low_hp_overlay: TextureRect
+var _low_hp_tween: Tween
+## Active Act II palette (set when BUM strikes; drives _apply_act2_look and the
+## per-disaster tint of the corruption FX layers).
+var _act2_look := ACT2_LOOK["plague"]
 
 
 func _ready() -> void:
@@ -100,6 +141,11 @@ func _ready() -> void:
 	_top_status_bar.setup_max_values()
 	_apply_button_skin()
 	_create_weather_overlay()
+	_create_low_hp_overlay()
+
+	# Current-tile marker = the played character's medallion (fallback inside).
+	if _survival.state != null and _survival.state.character_class != null:
+		BiomeTileView.set_marker_for_class(_survival.state.character_class)
 
 	_create_tile_buttons()
 
@@ -112,6 +158,7 @@ func _ready() -> void:
 	_survival.leveled_up.connect(_on_leveled_up)
 	_survival.bum_struck.connect(_on_bum_struck)
 	_survival.night_card_drawn.connect(_on_night_card_drawn)
+	_survival.needs_consumed.connect(_on_needs_consumed)
 	_survival.log_message.connect(_on_log_message)
 	_end_day_button.pressed.connect(_on_end_day_pressed)
 	_build_toggle_button.pressed.connect(_on_build_toggle_pressed)
@@ -121,9 +168,34 @@ func _ready() -> void:
 	_energy_button.pressed.connect(_on_reward_energy)
 	_health_button.pressed.connect(_on_reward_health)
 	_card_button.pressed.connect(_on_reward_card)
-	_night_continue_button.pressed.connect(_hide_night_event)
+	_night_continue_button.pressed.connect(_on_night_continue)
+	ButtonSkin.apply_minimal_many([
+		_pause_resume_button, _pause_settings_button, _pause_menu_button
+	])
+	_pause_button.pressed.connect(func() -> void: _pause_overlay.visible = true)
+	_pause_resume_button.pressed.connect(_hide_pause)
+	_pause_settings_button.pressed.connect(_settings_overlay.open)
+	_pause_menu_button.pressed.connect(GameManager.return_to_menu)
 
 	_survival.begin()
+
+
+## Esc toggles the pause menu. If the settings panel is open (from pause), Esc
+## drops back to the pause menu first; other modals (night/level-up) keep Esc.
+func _unhandled_input(event: InputEvent) -> void:
+	if not event.is_action_pressed("ui_cancel"):
+		return
+	if _settings_overlay.visible:
+		_settings_overlay.visible = false
+	elif _night_overlay.visible or _level_overlay.visible:
+		return
+	else:
+		_pause_overlay.visible = not _pause_overlay.visible
+	get_viewport().set_input_as_handled()
+
+
+func _hide_pause() -> void:
+	_pause_overlay.visible = false
 
 
 func _create_tile_buttons() -> void:
@@ -176,6 +248,7 @@ func _on_stats_changed(state: RunState) -> void:
 	_top_status_bar.set_state(state, _survival.xp_to_next_level())
 	_refresh_playability()
 	_refresh_tiles(state)
+	_update_low_hp_vignette(state)
 	if _build_mode:
 		_refresh_build_playability()
 
@@ -253,11 +326,14 @@ func _refresh_building_actions() -> void:
 			var demolish_tooltip := demolish_block if demolish_block != "" \
 				else "Koszt: %d energii, odzysk ~polowy surowcow" \
 					% SurvivalSystem.DEMOLISH_ENERGY_COST
+			var demolish_idx := i
 			row.add_child(_make_icon_action_button(
 				RUIN_ICON,
 				demolish_tooltip,
 				demolish_block != "",
-				_survival.demolish.bind(i)
+				func() -> void:
+					_survival.demolish(demolish_idx)
+					_spawn_tile_fx(COLLAPSE_FX, false)
 			))
 		elif built.hp < _survival.building_max_hp(built.data):
 			label.text = "%s\nHP %d/%d" % [
@@ -277,11 +353,14 @@ func _refresh_building_actions() -> void:
 					SurvivalSystem.REPAIR_ENERGY_COST,
 					_survival.repair_wood_cost(built),
 				]
+			var repair_idx := i
 			row.add_child(_make_icon_action_button(
 				REPAIR_ICON,
 				repair_tooltip,
 				repair_block != "",
-				_survival.repair.bind(i)
+				func() -> void:
+					_survival.repair(repair_idx)
+					_spawn_tile_fx(REPAIR_FX, true)
 			))
 		else:
 			label.text = "%s\nHP %d/%d" % [
@@ -372,6 +451,7 @@ func _on_build_confirmed() -> void:
 	if _pending_build == null:
 		return
 	_survival.build(_pending_build)
+	_spawn_tile_fx(BUILD_PLACE_FX, false)
 	_pending_build = null
 	if _build_mode:
 		_refresh_build_cards()
@@ -430,7 +510,9 @@ func _make_icon_action_button(
 const BOARD_BG_ACT2 := "res://assets/art/board/backgrounds/bg_biome_board_act2.png"
 
 
-func _on_bum_struck(_disaster: DisasterData) -> void:
+func _on_bum_struck(disaster: DisasterData) -> void:
+	var key := disaster.id if disaster != null else ""
+	_act2_look = ACT2_LOOK.get(key, ACT2_LOOK["plague"])
 	_play_bum_fx()
 
 
@@ -439,13 +521,14 @@ func _on_bum_struck(_disaster: DisasterData) -> void:
 func _apply_act2_look() -> void:
 	if ResourceLoader.exists(BOARD_BG_ACT2):
 		_background_art.texture = load(BOARD_BG_ACT2)
+	_background_art.self_modulate = _act2_look["board"]
 	_button_act = 2
 	_apply_button_skin()
 	_top_status_bar.set_act2()
 	if ResourceLoader.exists(LOG_PANEL_ACT2):
 		_log_panel_art.texture = load(LOG_PANEL_ACT2)
-	_log.add_theme_color_override("default_color", LOG_TEXT_ACT2)
-	_background.color = Color(0.04, 0.08, 0.045, 0.58)
+	_log.add_theme_color_override("default_color", _act2_look["log_text"])
+	_background.color = _act2_look["scrim"]
 
 
 ## Cataclysm: a layered fullscreen sequence — dread glow, blast (flash +
@@ -542,6 +625,9 @@ func _make_fx_layer(id: String, parent: Control) -> TextureRect:
 	layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.modulate.a = 0.0
+	if id in ACT2_TINT_LAYERS:
+		# self_modulate tints RGB while the alpha fade rides on modulate.a.
+		layer.self_modulate = _act2_look["fx_tint"]
 	parent.add_child(layer)
 	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	if id in BUM_FX_ADDITIVE:
@@ -566,18 +652,26 @@ func _loop_spore_motes(motes: TextureRect) -> void:
 ## A subtle weather layer behind the gameplay UI (above the scrim, below the
 ## board), swapped by season. Never covers popups since it sits under the UI.
 func _create_weather_overlay() -> void:
-	_weather_overlay = TextureRect.new()
-	_weather_overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_weather_overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	_weather_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_weather_overlay.modulate.a = 0.5
-	_weather_overlay.visible = false
-	add_child(_weather_overlay)
-	_weather_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	move_child(_weather_overlay, _background.get_index() + 1)
+	_weather_overlay = _make_ambient_overlay(0.5)
+	_frost_overlay = _make_ambient_overlay(0.45)
 
 
-## Rain in spring/autumn, snow in winter, clear in summer.
+## A full-screen ambient layer above the scrim but below the gameplay UI, so it
+## never covers popups.
+func _make_ambient_overlay(alpha: float) -> TextureRect:
+	var overlay := TextureRect.new()
+	overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	overlay.modulate.a = alpha
+	overlay.visible = false
+	add_child(overlay)
+	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	move_child(overlay, _background.get_index() + 1)
+	return overlay
+
+
+## Rain in spring/autumn, snow + frost vignette in winter, clear in summer.
 func _update_weather() -> void:
 	if _weather_overlay == null:
 		return
@@ -589,11 +683,18 @@ func _update_weather() -> void:
 			path = WEATHER_RAIN
 		_:
 			path = ""
-	if path == "" or not ResourceLoader.exists(path):
+	if path != "" and ResourceLoader.exists(path):
+		_weather_overlay.texture = load(path)
+		_weather_overlay.visible = true
+	else:
 		_weather_overlay.visible = false
-		return
-	_weather_overlay.texture = load(path)
-	_weather_overlay.visible = true
+
+	var is_winter := _survival.state.season == RunState.Season.WINTER
+	if is_winter and ResourceLoader.exists(WEATHER_FROST):
+		_frost_overlay.texture = load(WEATHER_FROST)
+		_frost_overlay.visible = true
+	else:
+		_frost_overlay.visible = false
 
 
 ## A quick claw-slash flash over the night card when a monster attacks.
@@ -640,8 +741,20 @@ func _card_feedback_fx(card: CardData, view: Control) -> void:
 	_spawn_world_fx(path, view.global_position + view.size * 0.5, Vector2(150, 150))
 
 
-## A one-shot additive sparkle at a screen point, auto-freed when it finishes.
-func _spawn_world_fx(path: String, center: Vector2, fx_size: Vector2) -> void:
+## Overnight the survivor auto-ate/drank from stock — a small feedback glow over
+## the top stat bars (where hunger/thirst live). Additive (asset sits on black).
+func _on_needs_consumed(_food_eaten: int, _water_drunk: int) -> void:
+	if not ResourceLoader.exists(EAT_DRINK_FX):
+		return
+	var rect := _top_status_bar.get_global_rect()
+	# Left third of the HUD holds the stat bars; nudge the glow over them.
+	var center := Vector2(rect.position.x + rect.size.x * 0.28, rect.get_center().y)
+	_spawn_world_fx(EAT_DRINK_FX, center, Vector2(220, 120))
+
+
+## A one-shot FX at a screen point, auto-freed when it finishes. Additive glows
+## (sparks) on black; cut-out FX (dust, rubble) keep normal blending.
+func _spawn_world_fx(path: String, center: Vector2, fx_size: Vector2, additive := true) -> void:
 	var fx := TextureRect.new()
 	fx.texture = load(path)
 	fx.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -652,15 +765,64 @@ func _spawn_world_fx(path: String, center: Vector2, fx_size: Vector2) -> void:
 	fx.pivot_offset = fx_size * 0.5
 	fx.modulate.a = 0.0
 	fx.scale = Vector2(0.7, 0.7)
-	var mat := CanvasItemMaterial.new()
-	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	fx.material = mat
+	if additive:
+		var mat := CanvasItemMaterial.new()
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		fx.material = mat
 	add_child(fx)
 	var t := create_tween()
 	t.tween_property(fx, "modulate:a", 1.0, 0.1)
 	t.parallel().tween_property(fx, "scale", Vector2(1.2, 1.2), 0.32)
 	t.tween_property(fx, "modulate:a", 0.0, 0.3)
 	t.tween_callback(fx.queue_free)
+
+
+## A one-shot FX centered on the player's current tile (build/repair/collapse).
+func _spawn_tile_fx(path: String, additive: bool) -> void:
+	if not ResourceLoader.exists(path):
+		return
+	var idx: int = _survival.state.current_tile
+	if idx < 0 or idx >= _tile_buttons.size():
+		return
+	var rect := _tile_buttons[idx].get_global_rect()
+	_spawn_world_fx(path, rect.get_center(), rect.size * 1.05, additive)
+
+
+# --- Critical-HP danger vignette ---
+
+
+func _create_low_hp_overlay() -> void:
+	_low_hp_overlay = TextureRect.new()
+	_low_hp_overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_low_hp_overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_low_hp_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_low_hp_overlay.modulate.a = 0.0
+	_low_hp_overlay.visible = false
+	if ResourceLoader.exists(LOW_HP_FX):
+		_low_hp_overlay.texture = load(LOW_HP_FX)
+	add_child(_low_hp_overlay)
+	_low_hp_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+
+## Pulsing red vignette when health is critically low (skipped if asset absent).
+func _update_low_hp_vignette(state: RunState) -> void:
+	if _low_hp_overlay == null or _low_hp_overlay.texture == null:
+		return
+	var critical := state.health > 0 \
+		and state.health <= int(ceil(state.max_health * LOW_HP_FRACTION))
+	if critical and not _low_hp_overlay.visible:
+		_low_hp_overlay.visible = true
+		_low_hp_tween = create_tween().set_loops()
+		_low_hp_tween.tween_property(_low_hp_overlay, "modulate:a", 0.7, 0.6) \
+			.set_trans(Tween.TRANS_SINE)
+		_low_hp_tween.tween_property(_low_hp_overlay, "modulate:a", 0.28, 0.6) \
+			.set_trans(Tween.TRANS_SINE)
+	elif not critical and _low_hp_overlay.visible:
+		if _low_hp_tween != null:
+			_low_hp_tween.kill()
+			_low_hp_tween = null
+		_low_hp_overlay.visible = false
+		_low_hp_overlay.modulate.a = 0.0
 
 
 func _apply_button_skin() -> void:
@@ -689,6 +851,9 @@ func _apply_close_button_skin() -> void:
 func _on_night_card_drawn(card: CardData) -> void:
 	_clear_night_card()
 	_night_overlay.visible = true
+	# Locked until the reveal animation finishes, so the card is always read
+	# before its effects resolve (re-enabled on the reveal tween's `finished`).
+	_night_continue_button.disabled = true
 
 	# Front and back are both direct children of the slot's CenterContainer, so
 	# they land on the exact same centred rect. The card flips from back to front.
@@ -786,6 +951,11 @@ func _play_night_reveal(view: Control, back: Control, tint: Color) -> void:
 	_night_tween.tween_property(burst, "scale", Vector2(1.35, 1.35), 0.55) \
 		.set_delay(HOLD + 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_night_tween.tween_property(burst, "modulate:a", 0.0, 0.4).set_delay(HOLD + 0.55)
+	# Card has been revealed and read — let the player acknowledge it.
+	_night_tween.finished.connect(func() -> void:
+		if is_instance_valid(_night_continue_button):
+			_night_continue_button.disabled = false
+	)
 
 
 func _spawn_night_fx(id: String, fx_size: Vector2, additive: bool, tint: Color, behind: int) -> TextureRect:
@@ -808,6 +978,14 @@ func _spawn_night_fx(id: String, fx_size: Vector2, additive: bool, tint: Color, 
 		_night_overlay.move_child(layer, behind)
 	_night_fx.append(layer)
 	return layer
+
+
+## OK pressed: hide the popup, THEN resolve the night so the player sees the
+## card before the stats move. The button is disabled until the reveal finishes
+## (see _on_night_card_drawn / _play_night_reveal), so the card is always read.
+func _on_night_continue() -> void:
+	_hide_night_event()
+	_survival.resolve_night()
 
 
 func _hide_night_event() -> void:

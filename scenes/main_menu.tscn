@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/main_menu.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/art/backgrounds/run_screen/bg_run_table.png" id="2_menu_bg"]
 [ext_resource type="Theme" path="res://ui/button_theme_act1.tres" id="3_button_theme"]
+[ext_resource type="PackedScene" path="res://ui/settings_overlay.tscn" id="4_settings"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -54,18 +55,18 @@ grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="Center"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 48
-text = "KARCIANKA: PRZETRWANIE"
+text = "DZIEŃ 50"
 horizontal_alignment = 1
 
 [node name="Subtitle" type="Label" parent="Center/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "Zbuduj osadę. Przetrwaj katastrofę. Dotrwaj do dnia 30."
+text = "Zbuduj osadę. Przetrwaj katastrofę. Dotrwaj do dnia 50."
 horizontal_alignment = 1
 
 [node name="CoinsLabel" type="Label" parent="Center/VBox"]
@@ -92,28 +93,42 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 
 [node name="ContinueButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 100)
+custom_minimum_size = Vector2(360, 64)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Kontynuuj"
 
 [node name="StartButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 100)
+custom_minimum_size = Vector2(360, 64)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Nowa gra"
 
 [node name="RouletteButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 100)
+custom_minimum_size = Vector2(360, 64)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 18
 text = "Ruletka postaci (3 monety)"
 
+[node name="CharactersButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(360, 64)
+layout_mode = 2
+theme = ExtResource("3_button_theme")
+theme_override_font_sizes/font_size = 20
+text = "Postacie"
+
+[node name="SettingsButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(360, 64)
+layout_mode = 2
+theme = ExtResource("3_button_theme")
+theme_override_font_sizes/font_size = 20
+text = "Ustawienia"
+
 [node name="QuitButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 100)
+custom_minimum_size = Vector2(360, 64)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
@@ -156,6 +171,13 @@ theme_override_font_sizes/font_size = 24
 text = "Ruletka postaci"
 horizontal_alignment = 1
 
+[node name="RoulettePortrait" type="TextureRect" parent="RouletteOverlay/Panel/PanelMargin/VBox"]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+size_flags_horizontal = 4
+expand_mode = 1
+stretch_mode = 6
+
 [node name="RouletteLabel" type="Label" parent="RouletteOverlay/Panel/PanelMargin/VBox"]
 custom_minimum_size = Vector2(420, 72)
 layout_mode = 2
@@ -179,3 +201,61 @@ disabled = true
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 18
 text = "OK"
+
+[node name="SettingsOverlay" parent="." instance=ExtResource("4_settings")]
+visible = false
+
+[node name="CharactersOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.02, 0.86)
+
+[node name="Panel" type="PanelContainer" parent="CharactersOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelMargin" type="MarginContainer" parent="CharactersOverlay/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 32
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 32
+theme_override_constants/margin_bottom = 24
+
+[node name="VBox" type="VBoxContainer" parent="CharactersOverlay/Panel/PanelMargin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="CharactersOverlay/Panel/PanelMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "Postacie"
+horizontal_alignment = 1
+
+[node name="Scroll" type="ScrollContainer" parent="CharactersOverlay/Panel/PanelMargin/VBox"]
+custom_minimum_size = Vector2(720, 460)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="List" type="VBoxContainer" parent="CharactersOverlay/Panel/PanelMargin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="CloseButton" type="Button" parent="CharactersOverlay/Panel/PanelMargin/VBox"]
+custom_minimum_size = Vector2(260, 64)
+layout_mode = 2
+size_flags_horizontal = 4
+theme = ExtResource("3_button_theme")
+theme_override_font_sizes/font_size = 18
+text = "Zamknij"

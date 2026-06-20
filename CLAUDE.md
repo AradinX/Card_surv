@@ -750,6 +750,34 @@ Trzy powiązane zmiany na prośbę gracza (gra była za łatwa: hoarding 100 jed
 - Testy: cała ósemka zielona (`load` 7 klas, `save_load`, `ui_layout` 77 kart,
   `smoke`, `board`, `night_pool`, `fog`, `season`).
 
+### Pre-wiring FX + 2. katastrofa (Zaćmienie) + specjale budynków (2026-06-19)
+
+- **#1 Pre-wiring brakujących FX** (assety jeszcze nie istnieją — wszystko pod
+  `ResourceLoader.exists`, więc zadziała plug-and-play po wrzuceniu PNG):
+  - **Winieta krytycznego HP** (`run.gd _update_low_hp_vignette`): pulsująca
+    czerwona ramka, gdy zdrowie ≤ 30% maks. (`fx/ui/fx_low_hp_vignette`).
+  - **FX budynków** na bieżącym kaflu (`_spawn_tile_fx`): kurz przy postawieniu
+    (`fx_build_place`, w `_on_build_confirmed`), iskry przy naprawie
+    (`fx_repair_sparkle`), zawalenie przy rozbiórce (`fx_ruin_collapse`) — przyciski
+    naprawy/rozbiórki owinięte lambdą. `_spawn_world_fx` dostał param `additive`.
+  - **Ekran wyniku** (`result.gd _spawn_result_fx`): promienie przy wygranej
+    (`fx_victory_rays`, additive) / mroczna mgła przy przegranej (`fx_defeat_haze`).
+- **#2 Druga katastrofa: Zaćmienie** (`data/disasters/eclipse.tres`) — zimno/mrok
+  jako kontra do Plagi. 3 potwory (`frost_wraith` 4/1, `shadow_crawler` 2/3,
+  `ice_swarm` 1/1) + 4 zdarzenia Aktu II (`events/eclipse/`: eternal_frost,
+  black_sun, whisper_dark, frost_bite — biją w ciepło/energię). BUM losuje teraz
+  z 2 katastrof (`GameManager` skanuje katalog). ZNANE: animacja BUM i skażone
+  twarze kafli są wspólne (plague-themed) — Zaćmienie różni się mechaniką
+  (potwory/zdarzenia), nie wizualem flipa. Brak artu potworów (frame-only).
+- **#3 Specjale budynków wpięte:** dodano lekkie **psucie jedzenia**
+  (`DAILY_FOOD_SPOILAGE` 1/dzień powyżej 4 jedzenia; redukują je
+  `spoilage_multiplier` Kucharza i **Spiżarnia** `slow_spoilage`). **Warsztat**
+  (`unlock_crafting`) przerabia 1 drewno → 1 materiał co świt. `special` ustawione
+  na `pantry`/`workshop`; `_count_special` + `_resolve_spoilage`.
+- Balans: smoke 40/50 (~80%), Akt I 0 zgonów, Akt II ~10 — psucie jest delikatne
+  (early bez zmian). 9 klas, 2 katastrofy, 7 potworów, 80 kart. Cała ósemka
+  testów zielona.
+
 ### Wpięcie FX: pogoda / pazur / iskry / dym ruin (2026-06-19)
 
 - Wpięte 4 efekty (każdy pod `ResourceLoader.exists`, więc działa na obecnych
@@ -764,8 +792,11 @@ Trzy powiązane zmiany na prośbę gracza (gra była za łatwa: hoarding 100 jed
     pojawia się nad zagrywaną kartą (pozycja łapana przed odświeżeniem ręki).
   - **Dym ruin** (`biome_tile_view _add_ruin_smoke`): pętla `fx_smoke_loop` nad
     slotem zruinowanego budynku (Akt II); tweeny czyszczone w `_clear_slots`.
-- Niewpięte zostaje: ogień na ruinach (`fx_small_fire_loop`) i mróz zimą
-  (`fx_frost_edges`) — łatwe do dołożenia obok istniejących haków.
+- Dołożone (2. tura): **mróz zimą** (`fx_frost_edges` — osobna winieta obok
+  śniegu, `_make_ambient_overlay`/`_frost_overlay`) oraz na ruinach **ogień**
+  (`fx_small_fire_loop`, additywny flicker) + **ślady wypalenia** (`fx_burn_marks`)
+  obok dymu. Cały wygenerowany zestaw FX jest teraz wpięty; do generacji zostają
+  tylko `fx/buildings/*`, `fx/ui/fx_low_hp_vignette`, `fx/result/*`.
 
 ### 2 nowe klasy (Skaut, Informatyk) + HP klas + losowa ruletka (2026-06-19)
 
@@ -812,6 +843,235 @@ Trzy powiązane zmiany na prośbę gracza (gra była za łatwa: hoarding 100 jed
   ładują je automatycznie po `<id>.png`, zero zmian w kodzie. Brak jeszcze:
   5 zdarzeń Plagi (plague_fever/infected_well/larvae/spores, rotting_supplies)
   + 2 skażone akcje (murky_water, tainted_hunt) — renderują się z samą ramką.
+
+### Wygląd Aktu II zależny od katastrofy (2026-06-19)
+
+- `_on_bum_struck` w `run.gd` używał już sygnatury `(disaster)`, ale ignorował
+  typ — Akt II zawsze wyglądał jak Plaga. Dodano słownik `ACT2_LOOK` keyowany
+  po `DisasterData.id` (fallback `plague`): per katastrofa scrim ekranu, kolor
+  logu, tint tła planszy (`BackgroundArt.self_modulate`) i tint warstw korupcji
+  animacji BUM (`ACT2_TINT_LAYERS` przez `self_modulate`, alfa nadal jedzie po
+  `modulate.a`). **Plaga** = zgniła zieleń (jak dotąd, board `0.4,0.42,0.47`),
+  **Zaćmienie** = lodowy granat (scrim niebieski, board chłodny `0.34,0.4,0.52`,
+  warstwy FX tintowane `0.55,0.7,1.05`). `_on_bum_struck` ustawia `_act2_look`
+  przed `_play_bum_fx`, więc i animacja, i końcowy stan ekranu są spójne.
+- ZNANE: skażone twarze kafli (`biome_*_plague_bg`, `biome_corruption_overlay`)
+  pozostają zielone dla obu katastrof — tint zapieczonego zielonego artu na
+  niebiesko daje muliste teal; czeka na osobny art kafli Zaćmienia.
+- **Omeny też zależne od katastrofy** (`survival_system.gd BUM_OMENS`): foreshadowing
+  w logu od dnia 7 do BUM dobierany po `state.disaster.id`. Plaga = gnicie/martwe
+  ptaki/zielona łuna (jak dotąd), Zaćmienie = blade słońce/lód na wodzie/chłód.
+  Fallback do plague. Dzięki temu Zaćmienie czyta się chłodno i przed (omeny),
+  i po (ekran) BUM.
+- Weryfikacja: `--import` + `load_test` OK (zmiany w `run.gd` UI i `survival_system`
+  omeny).
+
+### Nocny popup: rozliczenie dopiero po „OK" (2026-06-20)
+
+- Realizacja decyzji projektowej z README: zdarzenie nocne nie rozlicza się już
+  „w tle" w trakcie pokazu karty. `SurvivalSystem.end_day()` rozbity na dwie fazy:
+  - `end_day()` — odrzuca rękę, DOBIERA nocną kartę z puli i ogłasza ją
+    (`night_card_drawn`), ale NIC nie aplikuje; ustawia `_night_pending` +
+    `_pending_night_card`.
+  - `resolve_night()` — pasywy budynków → efekt karty (potwór/zdarzenie) →
+    potrzeby (`_resolve_needs`) → `stats_changed` → śmierć/wygrana/awans dnia.
+    Wołane po akceptacji popupu, więc gracz widzi kartę ZANIM ruszą się statystyki.
+    Idempotentne per `end_day()`.
+- `run.gd`: przycisk „OK" (`_on_night_continue`) chowa popup i woła `resolve_night()`.
+  Przycisk jest WYŁĄCZONY do końca animacji odsłonięcia (`_night_tween.finished`),
+  więc kara/nagroda nigdy nie spadnie zanim karta zostanie przeczytana.
+- Headless (bot/`season_test`) woła `resolve_night()` zaraz po `end_day()` —
+  przepływ pozostaje synchroniczny. Smoke bez regresji (43/50, ~86%, Akt I 0 zgonów,
+  Akt II 7). `--import` + `season`/`save_load`/`night_pool`/`ui_layout`/`fog`/`board` OK.
+- ZNANE/ZAPAS: popup pokazuje samą kartę; dedykowane „podsumowanie nocy" (lista
+  konkretnych delt na overlayu po OK) wciąż do dorobienia — efekty trafiają do logu.
+
+### Sygnaturowe karty klas (2026-06-20)
+
+- Każda z 9 klas dostała 1 UNIKALNĄ kartę akcji oddającą jej tożsamość
+  (`data/cards/actions/signature/*.tres`). Podkatalog `signature/` NIE jest
+  skanowany przez pulę nagród (`CardLibrary.load_resources_from_dir` używa
+  `get_files()` bez rekursji — jak `corrupted/`), więc sygnatury są dostępne
+  WYŁĄCZNIE w talii startowej swojej klasy, nie wpadają do nagród awansu innych.
+- Złożone z istniejących pól/`special` (zero nowej logiki w systemie):
+  - Kucharz „Sycący gulasz" (2 jedz.→ +6 sytości/+2 ciepła/+1 zdr.),
+    Budowlaniec „Prefabrykaty" (2 drewna→ +3 mat.), Zielarka „Maść z ziół"
+    (+4 zdr./+1 sytości), Łowca „Tropy zwierzyny" (`double_explore`),
+    Strateg „Plan dnia" (`draw_two`, 0 energii), Wędrowiec „Skrytka wędrowca"
+    (+2 jedz./+2 wody), Wojskowy „Wojskowy dryl" (+2 energii/+1 ciepła, netto +1E),
+    Skaut „Rozpoznanie" (`explore` + 1 mat.), Informatyk „Refaktoryzacja"
+    (`draw_two` + 1 energii — „dusza"/comeback challenge-klasy).
+- Wpięte przez PODMIANĘ 1 fillera w każdej talii (deck zostaje 9 kart): cook
+  swap forage, builder/herbalist/soldier swap explore, hunter swap forage,
+  informatyk swap dried_meat, nomad/planner swap survey, scout swap woodcraft.
+- Balans (smoke): główny przebieg 43→**46/50** (~92%), per-klasa wszystkie w
+  górę (sygnatura = czysta korzyść, zgodnie z założeniem „definiująca siła"):
+  Zielarka 30, Strateg 29, Budowlaniec/Kucharz/Łowca 27, Skaut 26, Informatyk 23,
+  Wojskowy 21, Wędrowiec 20 (swap survey→cache zabrał botowi losowe nagrody
+  explore; dla człowieka pewny zysk). Spread 20–30/30 zachowany, drabinka nie
+  złamana. `load`/`ui_layout` (80 kart) OK. Pula nagród nietknięta (27 akcji).
+- ZNANE: sygnatury bez ilustracji — renderują się ramką+tekstem (`card_view`
+  fallback `action_<id>.png`); art opcjonalny (kosmetyka).
+
+### Dwa nowe biomy: Bagno i Rzeka (2026-06-20)
+
+- Pula biomów 3→**5** (plansza wciąż 6 kafli: każdy biom ≥1× + losowe powtórki).
+  `GameManager` ładuje cały `data/biomes/`, więc nowe `.tres` same wchodzą do puli.
+- **Bagno** (`swamp`, 2 sloty): zbieranie woda+jedzenie (`find_water`+`forage`),
+  hazardy „Bagienna febra" (-2 zdr.) i „Bagienne wyziewy" (-1 zdr./-1 energii jutro);
+  rewers „Trujące Mokradła" (scavenge + skażone murky_water/tainted_hunt + sickness).
+- **Rzeka** (`river`, 3 sloty): zbieranie woda+ryby (`find_water`+`fishing`),
+  hazardy „Wezbrana rzeka" (-2 ciepła/-1 zdr., schronienie chroni) i „Rzeczna mgła"
+  (-1 energii jutro); rewers „Czarna Rzeka" (scavenge + murky_water + sickness).
+- 4 nowe karty zdarzeń biomowych w `data/cards/events/biome/` (ważone/cooldown/
+  severity/tagi jak reszta puli; aktywne dopiero po odkryciu biomu — fog of war).
+  Reszta kart reużyta z istniejących (zero nowych akcji zbierania).
+- `ui/biome_tile_view.gd BIOME_ART_IDS` rozszerzony o `swamp`/`river`. BRAK teł —
+  `_background_path` ma fallback do lasu, więc biomy są GRYWALNE od razu, tylko
+  wyglądają jak las do czasu wygenerowania 4 PNG (swamp/river × normal/plague,
+  1536×1024, pixel-art jak istniejące tła).
+- Balans: smoke **47/50** (~94%, Akt I 0 zgonów, Akt II 3) — biomy nie psują
+  trudności. `load` (5 biomów)/`board` (200 plansz)/`night_pool`/`ui_layout`
+  (5 biomów)/`season`/`fog`/`save_load` bez regresji.
+
+### Jeszcze 3 biomy: Pustkowie, Jaskinie, Wybrzeże (2026-06-20)
+
+- Pula biomów 5→**8** (plansza 6 kafli losuje z rotacją — nie każdy biom co run,
+  większa regrywalność). Każdy z odrębnym profilem zasobów:
+  - **Pustkowie** (`wasteland`, 3 sloty): materiały+jedzenie (`scavenge`+`forage`),
+    hazardy „Burza piaskowa" (-1 zdr./-1 energii jutro) i „Jałowa ziemia" (-2 syt.);
+    rewers „Spopielone Pustkowie".
+  - **Jaskinie** (`caves`, 2 sloty): materiały+woda (`scavenge`+`find_water`),
+    hazardy „Obsuw skalny" (-2 zdr.) i „Nieprzenikniona ciemność" (-1 energii jutro);
+    rewers „Zatrute Jaskinie".
+  - **Wybrzeże** (`coast`, 3 sloty): ryby+złom (`fishing`+`scavenge`), hazardy
+    „Sztorm" (-2 ciepła/-1 zdr., schronienie chroni) i „Przypływ" (-1 energii jutro);
+    rewers „Martwe Wybrzeże".
+- 6 nowych zdarzeń biomowych (`events/biome/`), reszta kart reużyta. `BIOME_ART_IDS`
+  rozszerzony o `wasteland`/`caves`/`coast` — BRAK teł (6 PNG), fallback do lasu.
+- Balans: smoke **41/50** (~82%, Akt I 0 zgonów, Akt II 9) — nowe hazardy +
+  uboższe zasoby Pustkowia/Jaskiń lekko dokręciły trudność (świadomy efekt
+  różnorodności). Cała ósemka testów (`load` 8 biomów/`board`/`ui_layout`/
+  `night_pool`/`fog`/`season`/`save_load`/`smoke`) zielona.
+
+### Marker kafla per postać (2026-06-20)
+
+- Znacznik bieżącego kafla (dotąd jeden uniwersalny medalion `biome_current_player`)
+  zmienia się teraz wg granej klasy. `BiomeTileView` ma `static var _marker_path`
+  + `set_marker_for_class(class_id)` (szuka `assets/art/characters/marker_<id>.png`,
+  fallback do uniwersalnego, gdy brak). `run.gd._ready` woła to raz na starcie
+  z `state.character_class.id`, przed budową kafli. Oba miejsca renderujące marker
+  używają `_marker_path`.
+- ✅ **9 markerów wygenerowanych** (`assets/art/characters/marker_<id>.png`,
+  2026-06-20): medaliony w stylu `biome_current_player` z twarzą postaci + cechą
+  (5 kobiet: scout/herbalist/hunter/planner/nomad, 4 mężczyzn: cook/builder/
+  soldier/informatyk). Dostarczone na solid blue → `chroma_key_blue.gd` (przezroczyste,
+  ~580k px/medalion, krawędzie czyste) → `--import`. Każda klasa ma teraz swój
+  medalion na bieżącym kaflu.
+
+### Ekran ustawień (2026-06-20)
+
+- Dotąd gra nie miała ŻADNYCH ustawień. Dodany lekki system `scripts/settings.gd`
+  (`class_name Settings`, static-only): zapis/odczyt `user://settings.cfg`
+  (`ConfigFile`) + aplikacja do `DisplayServer`/`AudioServer`.
+- Ustawienia: **Pełny ekran** (`window_set_mode`), **VSync** (`window_set_vsync_mode`),
+  **Głośność główna** (suwak 0–100% → `AudioServer` bus „Master", mute przy 0).
+  `GameManager._ready()` woła `Settings.load_and_apply()` raz na starcie, więc
+  wybory działają od następnego uruchomienia.
+- UI: przycisk **„Ustawienia"** w menu (nad „Wyjdź") otwiera overlay
+  (`SettingsOverlay`, wzorowany na ruletce) z CheckButtonami + suwakiem; każda
+  zmiana od razu aplikuje się i zapisuje (`Settings.set_*`). Kontrolki synchronizują
+  się z zapisanym stanem przy otwarciu (`set_*_no_signal`).
+- ZAPAS: gra nie ma jeszcze dźwięku, więc suwak głośności steruje busem „Master"
+  na zapas (gotowe pod przyszłe audio). Brak innych ustawień (rozdzielczość/język)
+  — do dołożenia gdy zajdzie potrzeba.
+
+### Menu pauzy (Esc) + reużywalny panel ustawień (2026-06-20)
+
+- Panel ustawień wydzielony do reużywalnego komponentu `ui/settings_overlay.tscn`
+  + `ui/settings_overlay.gd` (`class_name SettingsOverlayView`): self-contained,
+  `open()` synchronizuje kontrolki ze stanem `Settings` i pokazuje, sygnał `closed`
+  na OK. Menu główne korzysta teraz z instancji tego komponentu (inline overlay
+  usunięty — DRY).
+- **Menu pauzy w grze:** `run.gd._unhandled_input` łapie `ui_cancel` (Esc) i
+  przełącza `PauseOverlay` (Wznów / Ustawienia / Wróć do menu). Esc przy otwartych
+  ustawieniach wraca do pauzy; przy otwartym modalu nocy/awansu Esc jest ignorowane
+  (te modale mają priorytet). „Wróć do menu" = `GameManager.return_to_menu` (run jest
+  już zapisany autozapisem o świcie → „Kontynuuj" działa). Ustawienia dostępne też
+  w trakcie runu (ta sama instancja komponentu w `run.tscn`).
+- Weryfikacja: `--import` 0 błędów, `settings_overlay`/`main_menu`/`run` `.tscn`
+  `can_instantiate=true`, `load`/`ui_layout`/`smoke` (44/50) bez regresji.
+- Weryfikacja: `--import` (rejestracja `Settings`, 0 błędów), `main_menu.tscn`
+  `can_instantiate=true`, `load`/`ui_layout` bez regresji. (Menu z autoloadem
+  niezmienialne przez `-s` — zgodnie z normą projektu.)
+
+### Minimalistyczny skin przycisków dla menu/wyniku/pauzy (2026-06-20)
+
+- Ozdobna skórka przycisków (`button_theme_act1` — złota rama z winoroślą) pasuje
+  do gęstej planszy runu, ale gryzła się z czystym menu i ekranem wyniku. Dodano
+  `ButtonSkin.apply_minimal()`/`apply_minimal_many()` — płaski `StyleBoxFlat`:
+  ciemne półprzezroczyste tło + cienka (2px) złota ramka + złoty tekst, jaśnieje
+  przy hover; bez focus-ringa (`StyleBoxEmpty`). Zero nowego artu.
+- Reguła stylu: **menu-like = minimal** (main menu, result, menu pauzy, OK ustawień),
+  **gameplay na planszy = ozdobne** (Koniec dnia, Budowanie, naprawa/rozbiórka,
+  nocne „Dalej", nagrody awansu — bez zmian). `apply_minimal` (instance override)
+  wygrywa nad `button_theme_act1` z `.tscn`, więc nie trzeba ruszać scen.
+- Weryfikacja: `--import` 0 błędów, 4 sceny `can_instantiate=true`, `ui_layout` OK.
+
+### Sekcja Postacie + hover umiejętności + fix menu (2026-06-20)
+
+- **Fix menu:** po dodaniu „Ustawienia" VBox menu przekraczał 720 px i wystawał poza
+  ekran. Przyciski 100→64 px, separacja 16→12; mieści 6 pozycji z zapasem.
+- **`CharacterClassData.ability_summary()`** — generuje czytelną listę buffów PL
+  („• ...") z pól modyfikatorów (jeden wspólny opis dla menu i runu). Puste, gdy
+  klasa nie ma modyfikatorów.
+- **Sekcja „Postacie"** (przycisk w menu → overlay `CharactersOverlay`): galeria
+  ODBLOKOWANYCH klas budowana w kodzie — medalion (`marker_<id>.png`) + nazwa +
+  opis + buffy z `ability_summary()`. To realizuje pomysł „kart postaci"
+  (medalion + opis buffów) bez osobnego `CardView`.
+- **Hover w runie:** marker bieżącego kafla ma `tooltip_text` = nazwa klasy +
+  umiejętności; `mouse_filter = PASS`, więc kafel nadal łapie kliknięcia.
+  `BiomeTileView.set_marker_for_class()` przyjmuje teraz całą `CharacterClassData`
+  (ścieżka medalionu + tooltip), `run.gd` przekazuje `state.character_class`.
+- Weryfikacja: `--import` 0 błędów, sceny `can_instantiate=true`, `load`/`ui_layout`
+  OK, podgląd `ability_summary` dla 4 klas poprawny.
+
+### Balans Aktu II + ruletka z portretami + widoczne wyjście (2026-06-20)
+
+Na podstawie feedbacku z gry:
+- **Drewno w Akcie II:** skażony Las (`forest.tres` corrupted) nie dawał drewna →
+  po BUM nie było jak naprawiać/budować. Dodano `gather_wood` do skażonych akcji
+  Lasu (martwy las = martwe drewno). Drewno znów dostępne (w Martwym Lesie).
+- **Ocalenie budynków po BUM:** było 60–80% obrażeń przy progu ruiny 50% →
+  GWARANTOWANA ruina wszystkiego (0% szans). Zmienione na **35–80%** → budynek
+  przeżywa, jeśli oberwie ≤50% (~**35% szans/budynek**), więc zwykle część
+  zostaje. To nie był pech — wcześniej było 0%.
+- **Więcej potworów:** wchodziły do puli z wagą = `copies_in_deck` (~2) vs zdarzenia
+  ~10 → rzadkie. `NightEventPool.PHASE_CATEGORY_MULT[ACT2]` dostał `"monster": 3.0`
+  → noce z potworami ~potrojone (≈5%→~14% nocy). Łatwo dostroić jedną liczbą.
+- Balans (smoke): 48/50 (bot korzysta z ułatwionej ekonomii; świadomy gracz dostaje
+  więcej zagrożeń od potworów). `night_pool`/`board`/`ui_layout`/`load` OK.
+- **Ruletka z portretami:** overlay ruletki ma `RoulettePortrait` — `_animate_spin`
+  miga medalionami (`marker_<id>.png`) razem z nazwami i ląduje na wylosowanej.
+- **Widoczne wyjście do menu:** pauza była tylko pod Esc (mało odkrywalna). Dodano
+  przycisk **„Menu (Esc)"** w kolumnie przycisków runu (nad „Budowanie") otwierający
+  ten sam `PauseOverlay` (Wznów / Ustawienia / Wróć do menu).
+
+### Nazwa docelowa + fix kodowania + ruletka tylko z zablokowanych (2026-06-20)
+
+- **Nazwa gry → „Dzień 50"** (tytuł docelowy): `project.godot config/name` i tytuł
+  w menu (`DZIEŃ 50`). Wcześniej „Karcianka: Przetrwanie" (robocza).
+- **Fix „brak polskich znaków":** trzy placeholdery w scenach miały mojibake
+  (UTF-8 zinterpretowane jako Latin-1) — naprawione: `run.tscn` tytuł awansu
+  („nagrodÄ™"→„nagrodę", „â€”"→„—"), `top_status_bar_view.tscn` („SytoĹ›Ä‡"→
+  „Sytość", „MateriaĹ‚y"/„NarzÄ™dzia"→„Materiały"/„Narzędzia"). To były domyślne
+  teksty nadpisywane w kodzie, ale w plikach były błędne. Audyt: 0 mojibake w repo.
+- **Ruletka losuje tylko z ZABLOKOWANYCH:** `_animate_spin` migał wszystkimi
+  klasami; teraz `_on_roulette_pressed` łapie pulę zablokowanych PRZED losowaniem
+  (`_locked_classes()`) i bęben miga tylko kandydatami (medalion + nazwa), lądując
+  na wygranej. (`spin_roulette` i tak losował tylko z zablokowanych — to fix
+  wizualny bębna.)
+- Weryfikacja: `--import` 0 błędów, `main_menu` `can_instantiate=true`.
 
 ## Jak uruchomić
 
@@ -939,8 +1199,9 @@ do zysku jedzenia/drewna, XP: +1 karta/akcja biomu, +3 budynek, próg
 8 + 4×(poziom−1), wygrana w dniu 30. **Budynki: budowane z katalogu w trybie
 „Budowanie" (karty + potwierdzenie, nie z talii); po BUM dostępne, ale z dopłatą
 +3 energii / +5 drewna / +5 materiałów.** BUM:
-dzień 13–16, uszkodzenia budynków **60–80%** (ruina poniżej 50% maks. HP — przy
-tym progu BUM rujnuje praktycznie wszystko; odbudowa w Akcie II jest droga),
+dzień 13–16, uszkodzenia budynków **35–80%** (ruina poniżej 50% maks. HP — więc
+budynek ocaleje, jeśli oberwie ≤50%: ~35% szans na budynek, część przetrwa do
+Aktu II; odbudowa nadal droga),
 naprawa 1 energia + 1 drewno/2 HP, rozbiórka ruiny 1 energia
 + zwrot połowy surowców, Palisada defense 2 (kafel). Potwory Plagi (po buffie):
 Zgnilec 3/3, Zarażony wilk 4/0, Krucza chmara 2/2, Rój szczurów 0/3. Punkt

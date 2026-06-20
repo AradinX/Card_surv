@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/resources/deck_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="2_scav"]
-[ext_resource type="Resource" path="res://data/cards/actions/woodcraft.tres" id="3_woodcraft"]
+[ext_resource type="Resource" path="res://data/cards/actions/signature/scout_signature.tres" id="3_sig"]
 [ext_resource type="Resource" path="res://data/cards/actions/forage.tres" id="4_forage"]
 [ext_resource type="Resource" path="res://data/cards/actions/dried_meat.tres" id="5_meat"]
 [ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="6_water"]
@@ -13,4 +13,4 @@
 
 [resource]
 script = ExtResource("1_script")
-cards = [ExtResource("2_scav"), ExtResource("3_woodcraft"), ExtResource("4_forage"), ExtResource("5_meat"), ExtResource("6_water"), ExtResource("7_rest"), ExtResource("8_aid"), ExtResource("9_herbs"), ExtResource("10_scout")]
+cards = [ExtResource("2_scav"), ExtResource("3_sig"), ExtResource("4_forage"), ExtResource("5_meat"), ExtResource("6_water"), ExtResource("7_rest"), ExtResource("8_aid"), ExtResource("9_herbs"), ExtResource("10_scout")]

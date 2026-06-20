@@ -33,6 +33,7 @@ var last_run_coin_awarded := false
 
 
 func _ready() -> void:
+	Settings.load_and_apply()
 	meta_state = MetaState.load_or_new()
 	_load_class_catalog()
 

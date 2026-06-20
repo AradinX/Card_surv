@@ -1,10 +1,11 @@
-[gd_scene load_steps=8 format=3 uid="uid://bfy4qx1pqw7b7"]
+[gd_scene load_steps=9 format=3 uid="uid://bfy4qx1pqw7b7"]
 
 [ext_resource type="Script" uid="uid://d3xjy4e2jqie5" path="res://scenes/run.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bddvngethakv0" path="res://assets/art/board/backgrounds/bg_biome_board_act1.png" id="2_run_bg"]
 [ext_resource type="PackedScene" uid="uid://cio2exxm3lor0" path="res://ui/top_status_bar_view.tscn" id="3_top_bar"]
 [ext_resource type="Theme" uid="uid://c51mgd2a42ybb" path="res://ui/button_theme_act1.tres" id="4_button_theme"]
 [ext_resource type="Texture2D" uid="uid://butp5oqb6kx5i" path="res://assets/art/ui/panels/log_panel_act1.png" id="5_log_panel_act1"]
+[ext_resource type="PackedScene" path="res://ui/settings_overlay.tscn" id="6_settings"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_log"]
 
@@ -167,6 +168,14 @@ size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/separation = 8
 
+[node name="PauseButton" type="Button" parent="Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn"]
+custom_minimum_size = Vector2(220, 44)
+layout_mode = 2
+theme = ExtResource("4_button_theme")
+theme_override_font_sizes/font_size = 16
+text = "Menu (Esc)"
+clip_text = true
+
 [node name="BuildToggleButton" type="Button" parent="Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn"]
 custom_minimum_size = Vector2(220, 88)
 layout_mode = 2
@@ -266,7 +275,7 @@ theme_override_constants/separation = 16
 [node name="TitleLabel" type="Label" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Awans! Poziom 2 â€” wybierz nagrodÄ™"
+text = "Awans! Poziom 2 — wybierz nagrodę"
 horizontal_alignment = 1
 
 [node name="RewardButtons" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
@@ -350,3 +359,65 @@ size_flags_horizontal = 4
 theme = ExtResource("4_button_theme")
 theme_override_font_sizes/font_size = 18
 text = "Dalej"
+
+[node name="PauseOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.03, 0.02, 0.82)
+
+[node name="Panel" type="PanelContainer" parent="PauseOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelMargin" type="MarginContainer" parent="PauseOverlay/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 32
+
+[node name="VBox" type="VBoxContainer" parent="PauseOverlay/Panel/PanelMargin"]
+custom_minimum_size = Vector2(380, 0)
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="Title" type="Label" parent="PauseOverlay/Panel/PanelMargin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "Pauza"
+horizontal_alignment = 1
+
+[node name="ResumeButton" type="Button" parent="PauseOverlay/Panel/PanelMargin/VBox"]
+custom_minimum_size = Vector2(320, 88)
+layout_mode = 2
+theme = ExtResource("4_button_theme")
+theme_override_font_sizes/font_size = 20
+text = "Wznów"
+
+[node name="SettingsButton" type="Button" parent="PauseOverlay/Panel/PanelMargin/VBox"]
+custom_minimum_size = Vector2(320, 88)
+layout_mode = 2
+theme = ExtResource("4_button_theme")
+theme_override_font_sizes/font_size = 20
+text = "Ustawienia"
+
+[node name="MenuButton" type="Button" parent="PauseOverlay/Panel/PanelMargin/VBox"]
+custom_minimum_size = Vector2(320, 88)
+layout_mode = 2
+theme = ExtResource("4_button_theme")
+theme_override_font_sizes/font_size = 20
+text = "Wróć do menu"
+
+[node name="SettingsOverlay" parent="." instance=ExtResource("6_settings")]
+visible = false

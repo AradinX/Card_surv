@@ -12,7 +12,29 @@ const UNKNOWN_BG := "res://assets/art/biomes/discovery/biome_unknown.png"
 const TILE_FRAME := "res://assets/art/biomes/frames/biome_tile_frame.png"
 const CORRUPTION_FRAME := "res://assets/art/biomes/overlays/biome_corruption_overlay.png"
 const TITLE_PLATE := "res://assets/art/biomes/frames/biome_title_plate.png"
+## Marker on the current tile. Defaults to the universal medallion; per-class
+## medallions (marker_<class_id>.png) override it when present — see
+## set_marker_for_class(), called once by run.gd at run start.
 const PLAYER_MARKER := "res://assets/art/biomes/overlays/biome_current_player.png"
+const CLASS_MARKER_DIR := "res://assets/art/characters"
+static var _marker_path: String = PLAYER_MARKER
+## Hover tooltip on the current-tile marker (class name + ability summary).
+static var _marker_tooltip: String = ""
+
+
+## Pick the current-tile marker + hover tooltip for the played class (falls back
+## to the universal medallion if that class has no portrait marker yet).
+static func set_marker_for_class(character_class: CharacterClassData) -> void:
+	if character_class == null:
+		_marker_path = PLAYER_MARKER
+		_marker_tooltip = ""
+		return
+	var path := "%s/marker_%s.png" % [CLASS_MARKER_DIR, character_class.id]
+	_marker_path = path if ResourceLoader.exists(path) else PLAYER_MARKER
+	_marker_tooltip = character_class.display_name
+	var summary := character_class.ability_summary()
+	if summary != "":
+		_marker_tooltip += "\n" + summary
 const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_candidates"
 ## Discovery fog layers, stacked bottom -> top (reveal_01 at the back,
 ## reveal_02 on top). Peeled away in REVEAL_FADE_ORDER, with reveal_03 left for
@@ -50,9 +72,16 @@ const BIOME_ART_IDS := {
 	"forest": "forest",
 	"meadows": "meadow",
 	"mountains": "mountains",
+	"swamp": "swamp",
+	"river": "river",
+	"wasteland": "wasteland",
+	"caves": "caves",
+	"coast": "coast",
 }
-## Smoldering smoke drifting off a ruined building (optional — skipped if absent).
+## Smoldering FX on a ruined building (all optional — skipped if absent).
 const RUIN_SMOKE_FX := "res://assets/art/fx/smoke/fx_smoke_loop.png"
+const RUIN_FIRE_FX := "res://assets/art/fx/fire/fx_small_fire_loop.png"
+const RUIN_BURN_FX := "res://assets/art/fx/fire/fx_burn_marks.png"
 const SLOT_SIZE := Vector2(50, 62)
 ## Max slots shown on a tile, and a small per-slot vertical offset so the row
 ## reads less like a rigid grid.
@@ -171,8 +200,13 @@ func setup(
 	_background.self_modulate = Color.WHITE
 	_frame.texture = load(CORRUPTION_FRAME if tile.is_corrupted else TILE_FRAME)
 	_title_plate.texture = load(TITLE_PLATE)
-	_player_marker.texture = load(PLAYER_MARKER)
+	_player_marker.texture = load(_marker_path)
 	_player_marker.visible = is_current
+	# Hover the marker to read the played class's abilities (PASS so the tile
+	# still receives clicks underneath).
+	_player_marker.tooltip_text = _marker_tooltip if is_current else ""
+	_player_marker.mouse_filter = Control.MOUSE_FILTER_PASS if is_current \
+		else Control.MOUSE_FILTER_IGNORE
 	# On the current tile the medallion always opens the build/manage panel
 	# (so you can construct even on an empty tile); elsewhere only if built.
 	_buildings_button.visible = is_current or not tile.buildings.is_empty()
@@ -199,8 +233,13 @@ func _setup_unknown_tile(
 		if not tile.is_corrupted else Color(0.22, 0.28, 0.22, 1.0)
 	_frame.texture = load(TILE_FRAME)
 	_title_plate.texture = load(TITLE_PLATE)
-	_player_marker.texture = load(PLAYER_MARKER)
+	_player_marker.texture = load(_marker_path)
 	_player_marker.visible = is_current
+	# Hover the marker to read the played class's abilities (PASS so the tile
+	# still receives clicks underneath).
+	_player_marker.tooltip_text = _marker_tooltip if is_current else ""
+	_player_marker.mouse_filter = Control.MOUSE_FILTER_PASS if is_current \
+		else Control.MOUSE_FILTER_IGNORE
 	_buildings_button.visible = false
 	_state_overlay.color = _unknown_overlay_color(block_reason, tile.is_corrupted)
 	_clear_slots()
@@ -375,24 +414,53 @@ func _fill_occupied_slot(slot: Panel, built: BuildingState) -> void:
 	slot.add_child(tag)
 
 
-## Gentle smoke loop rising off a ruined building's slot.
+## Smoldering FX on a ruined building's slot: scorch marks, a flickering fire at
+## the base and smoke drifting up. Each part is optional.
 func _add_ruin_smoke(slot: Control) -> void:
-	if not ResourceLoader.exists(RUIN_SMOKE_FX):
-		return
-	var smoke := TextureRect.new()
-	smoke.texture = load(RUIN_SMOKE_FX)
-	smoke.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	smoke.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	smoke.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	smoke.modulate.a = 0.0
-	slot.add_child(smoke)
-	# Drifts up out of the top of the ruin thumb.
-	_set_rect_anchors(smoke, 0.05, -0.2, 0.95, 0.55)
-	# Bound to this tile view (reliably in-tree); slots aren't in-tree yet here.
-	var loop := create_tween().set_loops()
-	loop.tween_property(smoke, "modulate:a", 0.5, 2.0).set_trans(Tween.TRANS_SINE)
-	loop.tween_property(smoke, "modulate:a", 0.18, 2.0).set_trans(Tween.TRANS_SINE)
-	_slot_tweens.append(loop)
+	# Scorch marks over the ruin thumb (cut-out, static).
+	if ResourceLoader.exists(RUIN_BURN_FX):
+		var burn := TextureRect.new()
+		burn.texture = load(RUIN_BURN_FX)
+		burn.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		burn.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		burn.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		burn.modulate.a = 0.7
+		slot.add_child(burn)
+		_set_rect_anchors(burn, 0.07, 0.1, 0.93, 0.54)
+
+	# Small flickering fire at the base of the ruin (additive).
+	if ResourceLoader.exists(RUIN_FIRE_FX):
+		var fire := TextureRect.new()
+		fire.texture = load(RUIN_FIRE_FX)
+		fire.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		fire.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		fire.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		fire.modulate.a = 0.0
+		var fire_mat := CanvasItemMaterial.new()
+		fire_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		fire.material = fire_mat
+		slot.add_child(fire)
+		_set_rect_anchors(fire, 0.22, 0.26, 0.78, 0.6)
+		var flicker := create_tween().set_loops()
+		flicker.tween_property(fire, "modulate:a", 0.85, 0.35).set_trans(Tween.TRANS_SINE)
+		flicker.tween_property(fire, "modulate:a", 0.5, 0.45).set_trans(Tween.TRANS_SINE)
+		_slot_tweens.append(flicker)
+
+	# Smoke drifting up out of the top of the ruin thumb (cut-out).
+	if ResourceLoader.exists(RUIN_SMOKE_FX):
+		var smoke := TextureRect.new()
+		smoke.texture = load(RUIN_SMOKE_FX)
+		smoke.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		smoke.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		smoke.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		smoke.modulate.a = 0.0
+		slot.add_child(smoke)
+		_set_rect_anchors(smoke, 0.05, -0.2, 0.95, 0.55)
+		# Bound to this tile view (reliably in-tree); slots aren't in-tree yet here.
+		var loop := create_tween().set_loops()
+		loop.tween_property(smoke, "modulate:a", 0.5, 2.0).set_trans(Tween.TRANS_SINE)
+		loop.tween_property(smoke, "modulate:a", 0.18, 2.0).set_trans(Tween.TRANS_SINE)
+		_slot_tweens.append(loop)
 
 
 ## Lay a child out by fractional anchors (offsets zeroed) so its rect follows

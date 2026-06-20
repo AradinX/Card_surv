@@ -22,7 +22,7 @@ const DEFAULT_WEIGHT := 10
 const PHASE_CATEGORY_MULT := {
 	Phase.ACT1: {"omen": 0.0},
 	Phase.OMEN: {"omen": 5.0},
-	Phase.ACT2: {"omen": 0.0},
+	Phase.ACT2: {"omen": 0.0, "monster": 3.0},
 }
 
 var _rng: RandomNumberGenerator

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "soldier_signature"
+display_name = "Wojskowy dryl"
+description = "Dyscyplina daje drugi oddech. +2 energii, +1 ciepła."
+energy_cost = 1
+warmth_delta = 1
+energy_delta = 2

@@ -206,7 +206,7 @@ theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 12
-text = "SytoĹ›Ä‡ 8/10"
+text = "Sytość 8/10"
 clip_text = true
 
 [node name="HungerBar" type="TextureProgressBar" parent="Inset/Rows/TopRow/HungerBox"]
@@ -334,7 +334,7 @@ theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 13
-text = "Jedzenie 2   |   Woda 1   |   Drewno 0   |   MateriaĹ‚y 0   |   NarzÄ™dzia: nie"
+text = "Jedzenie 2   |   Woda 1   |   Drewno 0   |   Materiały 0   |   Narzędzia: nie"
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true

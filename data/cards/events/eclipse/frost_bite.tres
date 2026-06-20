@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "frost_bite"
+display_name = "Mróz chwyta"
+description = "Lodowaty podmuch tnie obóz. -2 ciepła, -1 zdrowia (schronienie chroni)."
+health_delta = -1
+warmth_delta = -2
+shelter_protects = true
+cooldown_days = 3
+max_per_run = 3
+category = "disaster"
+severity = "major"

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="BiomeData" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="2_water"]
+[ext_resource type="Resource" path="res://data/cards/actions/fishing.tres" id="3_fishing"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_flood.tres" id="4_flood"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_mist.tres" id="5_mist"]
+[ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="6_scav"]
+[ext_resource type="Resource" path="res://data/cards/actions/corrupted/murky_water.tres" id="7_murky"]
+[ext_resource type="Resource" path="res://data/cards/events/sickness.tres" id="8_sick"]
+
+[resource]
+script = ExtResource("1_script")
+id = "river"
+display_name = "Rzeka"
+description = "Bystry nurt pełen ryb i świeżej wody. Czasem wzbiera i zalewa brzegi."
+building_slots = 3
+gather_cards = [ExtResource("2_water"), ExtResource("3_fishing")]
+extra_event_cards = [ExtResource("4_flood"), ExtResource("5_mist")]
+corrupted_display_name = "Czarna Rzeka"
+corrupted_description = "Woda płynie gęsta i ciemna, niosąc trupi odór z górnego biegu."
+corrupted_gather_cards = [ExtResource("6_scav"), ExtResource("7_murky")]
+corrupted_extra_event_cards = [ExtResource("8_sick")]

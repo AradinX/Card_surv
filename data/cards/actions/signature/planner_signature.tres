@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "planner_signature"
+display_name = "Plan dnia"
+description = "Rozpisujesz dzień co do minuty. Dobierasz 2 karty."
+energy_cost = 0
+special = "draw_two"

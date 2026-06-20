@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "black_sun"
+display_name = "Czarne słońce"
+description = "Ciemność odbiera wolę działania. -1 ciepła, -1 energii następnego dnia."
+warmth_delta = -1
+next_day_energy_delta = -1
+cooldown_days = 3
+category = "disaster"
+severity = "medium"

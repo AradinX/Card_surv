@@ -203,7 +203,9 @@ func _play_day(
 				continue
 
 		survival.end_day()
+		survival.resolve_night()
 		return
 
 	# Step guard tripped — end the day to keep the run moving.
 	survival.end_day()
+	survival.resolve_night()

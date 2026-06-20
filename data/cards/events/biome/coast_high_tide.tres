@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "coast_high_tide"
+display_name = "Przypływ"
+description = "Woda podchodzi nocą i zalewa legowisko. -1 energii następnego dnia."
+next_day_energy_delta = -1
+weight = 9
+cooldown_days = 2
+category = "biome"
+severity = "minor"
+tags = PackedStringArray("coast")

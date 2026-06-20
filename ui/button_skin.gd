@@ -40,6 +40,47 @@ static func apply_many(buttons: Array, act: int = 1) -> void:
 		apply_primary(button as Button, act)
 
 
+## Minimalist flat skin: dark translucent fill + thin gold border + gold text,
+## brightening on hover. For clean menu-like screens (main menu, result, pause,
+## settings) where the ornate textured skin is too busy. Gameplay buttons on the
+## run board keep apply_primary.
+static func apply_minimal(button: Button) -> void:
+	button.add_theme_stylebox_override("normal",
+		_flat(Color(0.06, 0.08, 0.06, 0.55), Color(0.66, 0.52, 0.26)))
+	button.add_theme_stylebox_override("hover",
+		_flat(Color(0.10, 0.13, 0.09, 0.66), Color(1.0, 0.84, 0.40)))
+	button.add_theme_stylebox_override("pressed",
+		_flat(Color(0.03, 0.05, 0.03, 0.74), Color(0.85, 0.68, 0.32)))
+	button.add_theme_stylebox_override("hover_pressed",
+		_flat(Color(0.03, 0.05, 0.03, 0.74), Color(0.85, 0.68, 0.32)))
+	button.add_theme_stylebox_override("disabled",
+		_flat(Color(0.05, 0.06, 0.05, 0.4), Color(0.34, 0.34, 0.30)))
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	button.add_theme_color_override("font_color", Color(0.93, 0.87, 0.66))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 0.96, 0.80))
+	button.add_theme_color_override("font_pressed_color", Color(0.86, 0.74, 0.48))
+	button.add_theme_color_override("font_disabled_color", Color(0.52, 0.52, 0.46))
+	button.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.0))
+
+
+static func apply_minimal_many(buttons: Array) -> void:
+	for button in buttons:
+		apply_minimal(button as Button)
+
+
+static func _flat(fill: Color, border: Color) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = fill
+	sb.set_border_width_all(2)
+	sb.border_color = border
+	sb.set_corner_radius_all(5)
+	sb.content_margin_left = 26.0
+	sb.content_margin_right = 26.0
+	sb.content_margin_top = 10.0
+	sb.content_margin_bottom = 10.0
+	return sb
+
+
 static func _path(act: int, file_name: String) -> String:
 	return (ACT2_DIR if act == 2 else ACT1_DIR) + file_name
 

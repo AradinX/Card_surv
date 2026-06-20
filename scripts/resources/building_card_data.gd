@@ -41,3 +41,8 @@ extends CardData
 ## - unlock_crafting: better cards appear in reward pools (Warsztat)
 @export_enum("none", "slow_spoilage", "night_protection", "unlock_crafting")
 var special: String = "none"
+
+## Biome ids that unlock this building — buildable only once AT LEAST ONE of them
+## is discovered on the board (e.g. Port rybacki needs river/coast). Empty = always
+## available (basic buildings).
+@export var required_biome_ids: PackedStringArray = PackedStringArray()

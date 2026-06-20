@@ -8,8 +8,8 @@
 [ext_resource type="Resource" path="res://data/cards/actions/forage.tres" id="6_forage"]
 [ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="7_water"]
 [ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="8_rest"]
-[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="9_explore"]
+[ext_resource type="Resource" path="res://data/cards/actions/signature/builder_signature.tres" id="9_sig"]
 
 [resource]
 script = ExtResource("1_script")
-cards = [ExtResource("2_sticks"), ExtResource("2_sticks"), ExtResource("3_woodcraft"), ExtResource("4_tools"), ExtResource("5_aid"), ExtResource("6_forage"), ExtResource("7_water"), ExtResource("8_rest"), ExtResource("9_explore")]
+cards = [ExtResource("2_sticks"), ExtResource("2_sticks"), ExtResource("3_woodcraft"), ExtResource("4_tools"), ExtResource("5_aid"), ExtResource("6_forage"), ExtResource("7_water"), ExtResource("8_rest"), ExtResource("9_sig")]

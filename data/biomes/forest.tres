@@ -23,5 +23,5 @@ gather_cards = [ExtResource("2_wood"), ExtResource("4_hunt")]
 extra_event_cards = [ExtResource("5_wolves"), ExtResource("11_boar"), ExtResource("12_lost")]
 corrupted_display_name = "Martwy Las"
 corrupted_description = "Drzewa stoją czarne i nagie. Coś porusza się między pniami."
-corrupted_gather_cards = [ExtResource("6_scav"), ExtResource("9_tainted"), ExtResource("10_murky")]
+corrupted_gather_cards = [ExtResource("2_wood"), ExtResource("6_scav"), ExtResource("9_tainted"), ExtResource("10_murky")]
 corrupted_extra_event_cards = [ExtResource("7_sick")]
