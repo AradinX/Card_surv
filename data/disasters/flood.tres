@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DisasterData" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/disaster_data.gd" id="1_script"]
+[ext_resource type="Resource" path="res://data/monsters/drowned_one.tres" id="2_drowned"]
+[ext_resource type="Resource" path="res://data/monsters/leech_plague.tres" id="3_leech"]
+[ext_resource type="Resource" path="res://data/monsters/water_serpent.tres" id="4_serpent"]
+[ext_resource type="Resource" path="res://data/cards/events/flood/flood_downpour.tres" id="5_rain"]
+[ext_resource type="Resource" path="res://data/cards/events/flood/flood_spoiled.tres" id="6_spoiled"]
+[ext_resource type="Resource" path="res://data/cards/events/flood/flood_sickness.tres" id="7_sick"]
+
+[resource]
+script = ExtResource("1_script")
+id = "flood"
+display_name = "Powódź"
+description = "Woda zalewa wszystko. Zapasy gniją, a z mętnych nizin nadciąga zaraza."
+monsters = [ExtResource("2_drowned"), ExtResource("3_leech"), ExtResource("4_serpent")]
+extra_event_cards = [ExtResource("5_rain"), ExtResource("6_spoiled"), ExtResource("7_sick")]
+act2_warmth_decay_delta = 2
+act2_food_spoilage_delta = 1
+act2_rule_text = "Powódź: lodowata woda wszędzie — ciepło ucieka, a zapasy gniją (więcej psucia)."

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "flood_downpour"
+display_name = "Oberwanie chmury"
+description = "Ściana lodowatego deszczu zalewa obóz. -2 ciepła (schronienie chroni)."
+warmth_delta = -2
+shelter_protects = true
+category = "disaster"
+severity = "medium"
+weight = 10
+cooldown_days = 2

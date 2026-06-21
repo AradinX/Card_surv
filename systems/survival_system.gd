@@ -112,6 +112,9 @@ var _day_active := false
 ## (the player acknowledges the popup; headless callers resolve immediately).
 var _night_pending := false
 var _pending_night_card: CardData = null
+## True once a decision event's choice (and passives) were applied via
+## apply_night_choice — resolve_night then only settles needs + advances.
+var _night_choice_done := false
 var _ended := false
 ## True when this system was created via resume() rather than start().
 var _resumed := false
@@ -539,6 +542,23 @@ func end_day() -> void:
 ## Resolve the drawn night event and the day's needs, then advance (or finish).
 ## Called when the player acknowledges the night popup; effects land here so the
 ## player sees the card BEFORE the stats move. Idempotent per end_day().
+## Apply ONLY a chosen option of a decision event (passives + the choice), then
+## pause so the UI can show the outcome before the player confirms. Returns a
+## short summary of what happened (incl. risk backfire). Call resolve_night()
+## afterwards to settle needs and advance the day.
+func apply_night_choice(choice_index: int) -> String:
+	if not _night_pending or _night_choice_done:
+		return ""
+	if not (_pending_night_card is EventCardData):
+		return ""
+	var event := _pending_night_card as EventCardData
+	if event.choices.is_empty():
+		return ""
+	_night_choice_done = true
+	_resolve_building_passives()
+	return _resolve_event_choice(event, choice_index)
+
+
 func resolve_night(choice_index: int = 0) -> void:
 	if not _night_pending:
 		return
@@ -546,15 +566,19 @@ func resolve_night(choice_index: int = 0) -> void:
 	var night_card := _pending_night_card
 	_pending_night_card = null
 
-	_resolve_building_passives()
-	if night_card is MonsterCardData:
-		_resolve_monster_attack(night_card as MonsterCardData)
-	elif night_card is EventCardData:
-		var event := night_card as EventCardData
-		if not event.choices.is_empty():
-			_resolve_event_choice(event, choice_index)
-		else:
-			_resolve_event(event)
+	# Skip card resolution if a choice (and passives) were already applied via
+	# apply_night_choice — just settle needs and advance.
+	if not _night_choice_done:
+		_resolve_building_passives()
+		if night_card is MonsterCardData:
+			_resolve_monster_attack(night_card as MonsterCardData)
+		elif night_card is EventCardData:
+			var event := night_card as EventCardData
+			if not event.choices.is_empty():
+				_resolve_event_choice(event, choice_index)
+			else:
+				_resolve_event(event)
+	_night_choice_done = false
 	_resolve_needs()
 	stats_changed.emit(state)
 
@@ -966,6 +990,18 @@ const BUM_OMENS := {
 		"Sny są coraz cięższe. Coś nadchodzi.",
 		"Ptaki odleciały na południe za wcześnie. Robi się cicho i mroźno.",
 	],
+	"rift": [
+		"Ziemia drży coraz częściej. W skałach pojawiają się rysy.",
+		"Ze szczelin w gruncie unosi się gorący, siarkowy pył.",
+		"Sny są coraz cięższe. Coś nadchodzi.",
+		"Nocą słychać głuchy huk gdzieś w głębi ziemi.",
+	],
+	"flood": [
+		"Rzeki wezbrały, a deszcz nie ustaje od dni.",
+		"Woda podchodzi pod obóz. Grunt zamienia się w błoto.",
+		"Sny są coraz cięższe. Coś nadchodzi.",
+		"Powietrze jest ciężkie od wilgoci. Wszystko pleśnieje.",
+	],
 }
 
 
@@ -1128,8 +1164,9 @@ func _resolve_event(event: EventCardData) -> void:
 
 
 ## Apply the player's chosen option on a decision event. A risky choice may
-## backfire (gains skipped, you take risk_health damage instead).
-func _resolve_event_choice(event: EventCardData, choice_index: int) -> void:
+## backfire (gains skipped, you take risk_health damage instead). Returns a
+## short PL summary of the outcome for the UI confirmation popup.
+func _resolve_event_choice(event: EventCardData, choice_index: int) -> String:
 	log_message.emit("Zdarzenie: %s — %s" % [event.display_name, event.description])
 	var idx := clampi(choice_index, 0, event.choices.size() - 1)
 	var choice := event.choices[idx]
@@ -1139,7 +1176,7 @@ func _resolve_event_choice(event: EventCardData, choice_index: int) -> void:
 		if choice.risk_health > 0:
 			_record_damage(choice.risk_health, "Zdarzenie: %s" % event.display_name)
 		log_message.emit("Nie udało się! -%d zdrowia." % choice.risk_health)
-		return
+		return "Nie udało się! −%d zdrowia." % choice.risk_health
 	_apply_stat_deltas(
 		choice.health_delta, choice.hunger_delta, choice.thirst_delta, choice.warmth_delta
 	)
@@ -1148,12 +1185,27 @@ func _resolve_event_choice(event: EventCardData, choice_index: int) -> void:
 	_add_wood(choice.wood_gain)
 	_add_materials(choice.materials_gain)
 	state.next_day_energy_delta += choice.next_day_energy_delta
+	var parts: PackedStringArray = []
+	if choice.health_delta != 0: parts.append("%+d zdrowia" % choice.health_delta)
+	if choice.hunger_delta != 0: parts.append("%+d sytości" % choice.hunger_delta)
+	if choice.thirst_delta != 0: parts.append("%+d nawodnienia" % choice.thirst_delta)
+	if choice.warmth_delta != 0: parts.append("%+d ciepła" % choice.warmth_delta)
+	if choice.food_gain != 0: parts.append("%+d jedzenia" % choice.food_gain)
+	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
+	if choice.wood_gain != 0: parts.append("%+d drewna" % choice.wood_gain)
+	if choice.materials_gain != 0: parts.append("%+d materiałów" % choice.materials_gain)
+	if choice.next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.next_day_energy_delta)
 	if choice.grant_random_card and not _card_pool.is_empty():
 		var card: CardData = _card_pool[_rng.randi_range(0, _card_pool.size() - 1)]
 		state.deck.append(card)
 		log_message.emit("Zyskujesz kartę do talii: %s." % card.display_name)
+		parts.append("nowa karta: %s" % card.display_name)
 	if choice.result_text != "":
 		log_message.emit(choice.result_text)
+	var summary := choice.result_text
+	if not parts.is_empty():
+		summary += "\n(" + ", ".join(parts) + ")" if summary != "" else "(" + ", ".join(parts) + ")"
+	return summary if summary != "" else "Gotowe."
 
 
 func _has_night_protection() -> bool:

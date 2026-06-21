@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="listen"]
+script = ExtResource("2_choice")
+label = "Wysłuchaj rad"
+result_text = "Pustelnik dzieli się sztuczką przetrwania."
+next_day_energy_delta = -1
+grant_random_card = true
+
+[sub_resource type="Resource" id="share"]
+script = ExtResource("2_choice")
+label = "Podziel się jedzeniem"
+result_text = "W zamian opatruje twoje rany."
+food_gain = -2
+health_delta = 3
+
+[sub_resource type="Resource" id="ignore"]
+script = ExtResource("2_choice")
+label = "Zignoruj"
+result_text = "Mijasz starca bez słowa."
+
+[resource]
+script = ExtResource("1_script")
+id = "old_hermit"
+display_name = "Stary pustelnik"
+description = "Pod drzewem siedzi milczący starzec. Zdaje się wiedzieć więcej, niż mówi."
+category = "neutral"
+severity = "minor"
+weight = 7
+cooldown_days = 5
+max_per_run = 2
+choices = [SubResource("listen"), SubResource("share"), SubResource("ignore")]

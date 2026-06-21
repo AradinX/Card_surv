@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="share"]
+script = ExtResource("2_choice")
+label = "Podziel się"
+result_text = "Rozchodzicie się w pokoju — zostawia ci część łupu."
+materials_gain = 2
+
+[sub_resource type="Resource" id="shoo"]
+script = ExtResource("2_choice")
+label = "Przegoń"
+result_text = "Ucieka w mrok z pustymi rękami."
+
+[sub_resource type="Resource" id="fight"]
+script = ExtResource("2_choice")
+label = "Walcz o wszystko (ryzyko)"
+result_text = "Bierzesz całość siłą."
+materials_gain = 4
+food_gain = 2
+risk_chance = 50
+risk_health = 4
+
+[resource]
+script = ExtResource("1_script")
+id = "cornered_scavenger"
+display_name = "Zapędzony szabrownik"
+description = "Obcy grzebie w twoich zapasach. Łapiesz go na gorącym uczynku."
+category = "neutral"
+severity = "minor"
+weight = 7
+cooldown_days = 4
+max_per_run = 2
+choices = [SubResource("share"), SubResource("shoo"), SubResource("fight")]

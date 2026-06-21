@@ -48,6 +48,18 @@ const ACT2_LOOK := {
 		"board": Color(0.34, 0.4, 0.52),
 		"log_text": Color(0.74, 0.82, 0.95, 1.0),
 	},
+	"rift": {
+		"fx_tint": Color(1.05, 0.66, 0.4),
+		"scrim": Color(0.10, 0.05, 0.03, 0.58),
+		"board": Color(0.5, 0.4, 0.34),
+		"log_text": Color(0.95, 0.78, 0.6, 1.0),
+	},
+	"flood": {
+		"fx_tint": Color(0.5, 0.85, 0.85),
+		"scrim": Color(0.03, 0.08, 0.09, 0.6),
+		"board": Color(0.36, 0.46, 0.48),
+		"log_text": Color(0.72, 0.92, 0.92, 1.0),
+	},
 }
 ## Night event card reveal: backs to flip from, fullscreen accent FX.
 const CARD_BACK := {
@@ -107,7 +119,8 @@ const LOW_HP_FRACTION := 0.3
 @onready var _night_card_slot: CenterContainer = $NightEventOverlay/Panel/PanelMargin/VBox/CardSlot
 @onready var _night_continue_button: Button = $NightEventOverlay/Panel/PanelMargin/VBox/ContinueButton
 @onready var _night_choices: VBoxContainer = $NightEventOverlay/Panel/PanelMargin/VBox/ChoiceButtons
-@onready var _forecast_label: Label = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/ForecastLabel
+@onready var _night_result: Label = $NightEventOverlay/Panel/PanelMargin/VBox/ResultLabel
+@onready var _forecast_label: Label = $Scroll/Margin/Layout/MidRow/LogPanel/ForecastLabel
 @onready var _pause_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/PauseButton
 @onready var _pause_overlay: ColorRect = $PauseOverlay
 @onready var _pause_resume_button: Button = $PauseOverlay/Panel/PanelMargin/VBox/ResumeButton
@@ -263,8 +276,8 @@ func _update_forecast() -> void:
 	var f := _survival.end_of_day_forecast()
 	var warmth_net: int = f["warmth_net"]
 	var warmth_txt := ("%+d" % warmth_net) if warmth_net != 0 else "0"
-	_forecast_label.text = "Noc: Sytość −%d (jedz. %d) · Nawodn. −%d (woda %d) · Ciepło %s" % [
-		f["hunger_decay"], f["food"], f["thirst_decay"], f["water"], warmth_txt
+	_forecast_label.text = "Noc: syt −%d, naw −%d, cie %s · zapasy: %d jedz, %d wody" % [
+		f["hunger_decay"], f["thirst_decay"], warmth_txt, f["food"], f["water"]
 	]
 
 
@@ -908,15 +921,17 @@ func _build_night_choices(card: CardData) -> void:
 		_night_continue_button.visible = true
 		return
 	_night_choices.visible = true
+	_night_result.visible = false
 	_night_continue_button.visible = false
 	for i in choices.size():
 		var choice = choices[i]
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(360, 56)
+		button.custom_minimum_size = Vector2(380, 52)
 		button.disabled = true
-		button.text = "%s  (%s)" % [choice.label, _choice_summary(choice)]
-		button.clip_text = true
-		ButtonSkin.apply_many([button], _button_act)
+		button.text = "%s  —  %s" % [choice.label, _choice_summary(choice)]
+		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		button.add_theme_font_size_override("font_size", 14)
+		ButtonSkin.apply_minimal(button)
 		button.pressed.connect(_on_night_choice.bind(i))
 		_night_choices.add_child(button)
 
@@ -935,9 +950,17 @@ func _choice_summary(choice) -> String:
 	return ", ".join(parts) if not parts.is_empty() else "—"
 
 
+## Picking a choice applies it immediately but PAUSES on a result summary — the
+## player reads what happened and clicks „Dalej" to settle the night.
 func _on_night_choice(index: int) -> void:
-	_hide_night_event()
-	_survival.resolve_night(index)
+	var summary := _survival.apply_night_choice(index)
+	for button in _night_choices.get_children():
+		(button as Button).queue_free()
+	_night_choices.visible = false
+	_night_result.text = summary
+	_night_result.visible = true
+	_night_continue_button.visible = true
+	_night_continue_button.disabled = false
 
 
 ## Reveal FX tint by event category (monsters red, weather blue, biome green,
@@ -1067,6 +1090,8 @@ func _clear_night_card() -> void:
 		child.queue_free()
 	for child in _night_choices.get_children():
 		child.queue_free()
+	_night_result.visible = false
+	_night_result.text = ""
 
 
 func _on_hand_changed(hand: Array[CardData]) -> void:

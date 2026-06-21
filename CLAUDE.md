@@ -1144,6 +1144,42 @@ Na podstawie feedbacku z gry:
   zignoruj). Smoke 36/50 (bot zawsze bierze opcję 0 = ryzykowną; świadomy gracz
   wybiera bezpiecznie). `ui_layout` 86 kart, reszta testów OK.
 
+### 2 nowe katastrofy + Akt II + więcej wyborów + fix prognozy (2026-06-21)
+
+- **Fix layoutu:** prognoza nocy rozpychała kolumnę przycisków → ekran runu się
+  skrolował. Przeniesiona do PANELU DZIENNIKA (pasek pod logiem, stała wysokość) —
+  koniec skrolowania. Format skrócony.
+- **2 nowe katastrofy → 4 łącznie** (`rift` Pęknięcie, `flood` Powódź), każda
+  z 3 potworami + 3 zdarzeniami Aktu II + WŁASNĄ regułą Aktu II + kolorem
+  (`ACT2_LOOK`: rift = piaskowy brąz, flood = mętny błękit) + omenami. Pęknięcie:
+  −2 energii / większe pragnienie; Powódź: −2 ciepła / +psucie. BUM losuje z 4.
+  Rozróżnienie katastrofy = kolor ekranu + omeny (od dnia 16) + komunikat reguły
+  przy BUM (`act2_rule_text`).
+- **Akt II grubszy:** +2 budynki `act2_only` (Wzmocniony schron — ochrona nocna +
+  ciepło; Cysterna — woda) → 4 łącznie; +2 potwory Zaćmienia (Mroźny ogar,
+  Zamieć) → Zaćmienie ma teraz 5 potworów. Potwory `rift`/`flood`/nowe Zaćmienia
+  są frame-only (art do wygenerowania).
+- **Zdarzenia z wyborami 5→9:** Stary pustelnik, Zakopana skrytka, Zapędzony
+  szabrownik, Zmarznięty podróżny (cel docelowy ~18 — do kontynuacji).
+- **Tła ekranu końcowego (POV łóżko)** wpięte pod `ResourceLoader.exists`
+  (`result_{win,lose}_bed.png`).
+- Balans: smoke **28/50** — UWAGA: zaniżone, bo bot ZAWSZE bierze wybór nr 0
+  (często ryzykowny); świadomy gracz wybierający bezpiecznie wygrywa wyraźnie
+  więcej. 4 katastrofy = duży skok regrywalności (Akt II inny co run). Cała
+  ósemka testów zielona, `ui_layout` 100 kart.
+
+### Dopieszczenie zdarzeń z wyborami: UI + podsumowanie (2026-06-21)
+
+- **Przyciski wyboru** zmienione z ozdobnej ramki kwiatowej na **minimalny styl**
+  (`ButtonSkin.apply_minimal`) + `autowrap` + mniejszy font (14) — tekst się mieści.
+- **Podsumowanie po wyborze:** klik opcji NIE rozlicza od razu nocy. `SurvivalSystem.
+  apply_night_choice(i)` aplikuje pasywy + wybór (z rzutem ryzyka) i zwraca tekst
+  wyniku (np. „Nie udało się! −3 zdrowia." albo „(+3 materiałów, +2 jedzenia)").
+  Popup pokazuje wynik + przycisk „Dalej", który dopiero domyka noc
+  (`resolve_night()` pomija już rozliczony wybór dzięki `_night_choice_done`).
+  Headless/bot bez zmian (woła `resolve_night()` wprost). `run.tscn` `can_instantiate`
+  OK, smoke 36/50, `ui_layout` 100 kart.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

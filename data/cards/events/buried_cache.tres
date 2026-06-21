@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="dig"]
+script = ExtResource("2_choice")
+label = "Rozkop pobieżnie"
+result_text = "Wyciągasz, co łatwo dostępne."
+materials_gain = 2
+wood_gain = 1
+
+[sub_resource type="Resource" id="dig_deep"]
+script = ExtResource("2_choice")
+label = "Rozkop dokładnie (ryzyko)"
+result_text = "Kopiesz po ciemku, byle głębiej."
+materials_gain = 4
+wood_gain = 2
+risk_chance = 40
+risk_health = 2
+
+[resource]
+script = ExtResource("1_script")
+id = "buried_cache"
+display_name = "Zakopana skrytka"
+description = "Spod ziemi wystaje róg skrzyni. Ktoś coś tu ukrył."
+category = "neutral"
+severity = "minor"
+weight = 8
+cooldown_days = 4
+max_per_run = 3
+choices = [SubResource("dig"), SubResource("dig_deep")]

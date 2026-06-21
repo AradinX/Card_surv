@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="MonsterCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/monster_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "water_serpent"
+display_name = "Wodny wąż"
+description = "Wielki gad sunie przez zalane uliczki obozu."
+disaster_id = "flood"
+damage_to_player = 4
+damage_to_buildings = 0
+copies_in_deck = 2

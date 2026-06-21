@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="warm"]
+script = ExtResource("2_choice")
+label = "Ogrzej go przy ogniu"
+result_text = "Z wdzięczności zostawia ci mapę okolicy."
+warmth_delta = -2
+grant_random_card = true
+
+[sub_resource type="Resource" id="rob"]
+script = ExtResource("2_choice")
+label = "Zabierz mu zapasy (ryzyko)"
+result_text = "Przeszukujesz jego tobołek."
+food_gain = 2
+materials_gain = 1
+risk_chance = 30
+risk_health = 2
+
+[sub_resource type="Resource" id="pass"]
+script = ExtResource("2_choice")
+label = "Minij obojętnie"
+result_text = "Zostawiasz go własnemu losowi."
+
+[resource]
+script = ExtResource("1_script")
+id = "frozen_traveler"
+display_name = "Zmarznięty podróżny"
+description = "Skulony przy szlaku ktoś dygocze z zimna. Ledwo żywy."
+category = "neutral"
+severity = "minor"
+weight = 7
+cooldown_days = 5
+max_per_run = 2
+choices = [SubResource("warm"), SubResource("rob"), SubResource("pass")]

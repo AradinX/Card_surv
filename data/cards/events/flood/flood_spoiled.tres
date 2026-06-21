@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "flood_spoiled"
+display_name = "Zalane zapasy"
+description = "Woda wdarła się do spiżarni i zniszczyła część jedzenia. -2 jedzenia."
+food_delta = -2
+category = "disaster"
+severity = "medium"
+weight = 9
+cooldown_days = 2
