@@ -12,3 +12,4 @@ wood_cost = 1
 materials_cost = 2
 max_hp = 9
 wood_gain = 1
+required_biome_ids = PackedStringArray("forest")

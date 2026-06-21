@@ -33,3 +33,8 @@ extends CardData
 ## How HARSH it is. Drives pacing (no two "major" nights in a row) + UI.
 ## One of: "minor" | "medium" | "major".
 @export var severity: String = "minor"
+
+## Optional player decisions. If non-empty, the night popup shows these as
+## buttons and the chosen one's effects are applied INSTEAD of the deltas above
+## (the base deltas act as a fallback for headless/no-choice resolution).
+@export var choices: Array[EventChoiceData] = []

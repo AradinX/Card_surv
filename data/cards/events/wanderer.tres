@@ -1,13 +1,36 @@
-[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EventCardData" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="feed"]
+script = ExtResource("2_choice")
+label = "Nakarm go"
+result_text = "Wędrowiec dzieli się wiedzą o okolicy."
+food_gain = -2
+grant_random_card = true
+
+[sub_resource type="Resource" id="shoo"]
+script = ExtResource("2_choice")
+label = "Przegoń"
+result_text = "Odprawiasz obcego z niczym. Spokojna noc."
+
+[sub_resource type="Resource" id="rob"]
+script = ExtResource("2_choice")
+label = "Okradnij (ryzyko)"
+result_text = "Zabierasz mu zapasy."
+food_gain = 2
+materials_gain = 3
+risk_chance = 45
+risk_health = 3
 
 [resource]
 script = ExtResource("1_script")
 id = "wanderer"
-display_name = "Wędrowiec"
-description = "Nieznajomy dzieli się zapasami przy ognisku. +1 jedzenia, +1 materiałów."
+display_name = "Obcy wędrowiec"
+description = "Przy ognisku staje wychudzony nieznajomy. Co robisz?"
 food_delta = 1
 materials_delta = 1
 category = "neutral"
 severity = "minor"
+choices = [SubResource("feed"), SubResource("shoo"), SubResource("rob")]

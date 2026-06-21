@@ -19,3 +19,6 @@ display_name = "Plaga"
 description = "Niebo pęka zielonym błyskiem. Ziemia gnije, a umarli nie chcą leżeć."
 monsters = [ExtResource("2_zombie"), ExtResource("3_wolf"), ExtResource("4_crows"), ExtResource("5_rats")]
 extra_event_cards = [ExtResource("6_rot"), ExtResource("7_dreams"), ExtResource("8_spores"), ExtResource("9_well"), ExtResource("10_larvae"), ExtResource("11_fever")]
+act2_hunger_decay_delta = 2
+act2_food_spoilage_delta = 2
+act2_rule_text = "Plaga: zapasy gniją szybciej, a choroba wyniszcza ciało (mocno większy głód)."

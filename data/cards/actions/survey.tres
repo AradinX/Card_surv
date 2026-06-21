@@ -6,6 +6,6 @@
 script = ExtResource("1_script")
 id = "survey"
 display_name = "Rozejrzyj się"
-description = "Przepatrz okolicę uważnie. Losowe znalezisko."
-energy_cost = 2
-special = "explore"
+description = "Wespnij się i przepatrz okolicę: odsłania sąsiedni nieodkryty teren (biom i jego nocne zagrożenia)."
+energy_cost = 1
+special = "scout_reveal"

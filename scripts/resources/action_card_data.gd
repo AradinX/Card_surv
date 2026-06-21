@@ -27,5 +27,5 @@ extends CardData
 ## - explore: random reward rolled by RunSystem
 ## - double_explore: two random reward rolls
 ## - draw_two: draw 2 extra cards into hand
-@export_enum("none", "build_shelter", "craft_tools", "explore", "double_explore", "draw_two")
+@export_enum("none", "build_shelter", "craft_tools", "explore", "double_explore", "draw_two", "scout_reveal")
 var special: String = "none"

@@ -106,6 +106,8 @@ const LOW_HP_FRACTION := 0.3
 @onready var _night_overlay: ColorRect = $NightEventOverlay
 @onready var _night_card_slot: CenterContainer = $NightEventOverlay/Panel/PanelMargin/VBox/CardSlot
 @onready var _night_continue_button: Button = $NightEventOverlay/Panel/PanelMargin/VBox/ContinueButton
+@onready var _night_choices: VBoxContainer = $NightEventOverlay/Panel/PanelMargin/VBox/ChoiceButtons
+@onready var _forecast_label: Label = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/ForecastLabel
 @onready var _pause_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/PauseButton
 @onready var _pause_overlay: ColorRect = $PauseOverlay
 @onready var _pause_resume_button: Button = $PauseOverlay/Panel/PanelMargin/VBox/ResumeButton
@@ -241,6 +243,7 @@ func _on_end_day_pressed() -> void:
 func _on_day_started(day: int) -> void:
 	_top_status_bar.set_day(day, SurvivalSystem.WIN_DAY, _survival.state.season)
 	_update_weather()
+	_update_forecast()
 
 
 func _on_stats_changed(state: RunState) -> void:
@@ -249,8 +252,20 @@ func _on_stats_changed(state: RunState) -> void:
 	_refresh_playability()
 	_refresh_tiles(state)
 	_update_low_hp_vignette(state)
+	_update_forecast()
 	if _build_mode:
 		_refresh_build_playability()
+
+
+## End-of-day forecast: tonight's stat drops + supplies, so the player doesn't
+## have to do the math (warmth shown as net of building heat vs decay).
+func _update_forecast() -> void:
+	var f := _survival.end_of_day_forecast()
+	var warmth_net: int = f["warmth_net"]
+	var warmth_txt := ("%+d" % warmth_net) if warmth_net != 0 else "0"
+	_forecast_label.text = "Noc: Sytość −%d (jedz. %d) · Nawodn. −%d (woda %d) · Ciepło %s" % [
+		f["hunger_decay"], f["food"], f["thirst_decay"], f["water"], warmth_txt
+	]
 
 
 func _on_board_changed(state: RunState) -> void:
@@ -876,9 +891,53 @@ func _on_night_card_drawn(card: CardData) -> void:
 	back.pivot_offset = NIGHT_CARD_SIZE * 0.5
 	_night_card_slot.add_child(back)
 
+	_build_night_choices(card)
 	_play_night_reveal(view, back, _night_tint(card))
 	if is_monster:
 		_spawn_claw_flash()
+
+
+## Decision events show one button per choice (with its effect summary) instead
+## of a single "Dalej". Buttons start disabled and unlock when the reveal ends.
+func _build_night_choices(card: CardData) -> void:
+	for child in _night_choices.get_children():
+		child.queue_free()
+	var choices: Array = card.get("choices") if card is EventCardData else []
+	if choices == null or choices.is_empty():
+		_night_choices.visible = false
+		_night_continue_button.visible = true
+		return
+	_night_choices.visible = true
+	_night_continue_button.visible = false
+	for i in choices.size():
+		var choice = choices[i]
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(360, 56)
+		button.disabled = true
+		button.text = "%s  (%s)" % [choice.label, _choice_summary(choice)]
+		button.clip_text = true
+		ButtonSkin.apply_many([button], _button_act)
+		button.pressed.connect(_on_night_choice.bind(i))
+		_night_choices.add_child(button)
+
+
+## Short "+3 jedz · ryzyko" style summary of a choice's effects.
+func _choice_summary(choice) -> String:
+	var parts: PackedStringArray = []
+	if choice.health_delta != 0: parts.append("%+d zdr" % choice.health_delta)
+	if choice.food_gain != 0: parts.append("%+d jedz" % choice.food_gain)
+	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
+	if choice.wood_gain != 0: parts.append("%+d drew" % choice.wood_gain)
+	if choice.materials_gain != 0: parts.append("%+d mat" % choice.materials_gain)
+	if choice.warmth_delta != 0: parts.append("%+d ciepła" % choice.warmth_delta)
+	if choice.grant_random_card: parts.append("+karta")
+	if choice.risk_chance > 0: parts.append("ryzyko %d%%" % choice.risk_chance)
+	return ", ".join(parts) if not parts.is_empty() else "—"
+
+
+func _on_night_choice(index: int) -> void:
+	_hide_night_event()
+	_survival.resolve_night(index)
 
 
 ## Reveal FX tint by event category (monsters red, weather blue, biome green,
@@ -951,10 +1010,12 @@ func _play_night_reveal(view: Control, back: Control, tint: Color) -> void:
 	_night_tween.tween_property(burst, "scale", Vector2(1.35, 1.35), 0.55) \
 		.set_delay(HOLD + 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	_night_tween.tween_property(burst, "modulate:a", 0.0, 0.4).set_delay(HOLD + 0.55)
-	# Card has been revealed and read — let the player acknowledge it.
+	# Card has been revealed and read — let the player acknowledge / choose.
 	_night_tween.finished.connect(func() -> void:
 		if is_instance_valid(_night_continue_button):
 			_night_continue_button.disabled = false
+		for button in _night_choices.get_children():
+			(button as Button).disabled = false
 	)
 
 
@@ -1003,6 +1064,8 @@ func _clear_night_card() -> void:
 	_night_fx.clear()
 	for child in _night_card_slot.get_children():
 		_night_card_slot.remove_child(child)
+		child.queue_free()
+	for child in _night_choices.get_children():
 		child.queue_free()
 
 

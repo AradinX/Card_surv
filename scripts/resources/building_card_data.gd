@@ -46,3 +46,6 @@ var special: String = "none"
 ## is discovered on the board (e.g. Port rybacki needs river/coast). Empty = always
 ## available (basic buildings).
 @export var required_biome_ids: PackedStringArray = PackedStringArray()
+## Available ONLY after BUM (a dedicated Act II rebuild option). These skip the
+## post-BUM build surcharge — they ARE the intended way to rebuild.
+@export var act2_only: bool = false

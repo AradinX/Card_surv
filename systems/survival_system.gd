@@ -61,6 +61,8 @@ const SPRING_FOOD_BONUS := 1
 const SUMMER_EXTRA_THIRST_DECAY := 1
 const AUTUMN_WOOD_BONUS := 1
 const WINTER_EXTRA_WARMTH_DECAY := 1
+## Winter cuts each gathered resource (food/wood/materials) by this much.
+const WINTER_GATHER_PENALTY := 1
 const FOOD_HUNGER_VALUE := 2
 const WATER_THIRST_VALUE := 2
 ## Food spoilage: some surplus food spoils each day (slowed by the Kucharz's
@@ -88,6 +90,12 @@ var state: RunState
 var hand: Array[CardData] = []
 
 var _rng := RandomNumberGenerator.new()
+## Run summary tracking (for the end screen): seed, total HP lost, last damage
+## cause, and a per-dawn health snapshot for the sparkline.
+var _run_seed := 0
+var _damage_taken := 0
+var _last_cause := ""
+var _health_history: Array[int] = []
 var _day_deck: Deck
 ## Weighted active pool for night events (weights, cooldowns, per-run caps).
 var _night_pool: NightEventPool
@@ -120,6 +128,10 @@ func start(
 	catalog: Array[BuildingCardData] = [],
 ) -> void:
 	_rng.randomize()
+	_run_seed = int(_rng.seed)
+	_damage_taken = 0
+	_last_cause = ""
+	_health_history = []
 	state = RunState.new()
 	state.character_class = character_class
 	# Class max-stat tweaks (tanky/frail, more/less energy).
@@ -407,9 +419,43 @@ func building_catalog() -> Array[BuildingCardData]:
 	return _building_catalog
 
 
+## Tonight's predicted needs so the UI can show it instead of the player doing
+## the math: decay per stat (class + season + disaster), passive warmth from
+## buildings, current supplies and how much each portion restores.
+func end_of_day_forecast() -> Dictionary:
+	var hunger_decay := DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta \
+		+ _act2_rule("act2_hunger_decay_delta")
+	var thirst_decay := DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta \
+		+ _act2_rule("act2_thirst_decay_delta")
+	if state.season == RunState.Season.SUMMER:
+		thirst_decay += SUMMER_EXTRA_THIRST_DECAY
+	var warmth_decay := DAILY_WARMTH_DECAY + state.character_class.warmth_rate_delta \
+		+ _act2_rule("act2_warmth_decay_delta")
+	if state.season == RunState.Season.WINTER:
+		warmth_decay += WINTER_EXTRA_WARMTH_DECAY
+	var passive_warmth := 0
+	for tile in state.board:
+		for built in tile.buildings:
+			if not built.is_ruined:
+				passive_warmth += built.data.warmth_delta
+	return {
+		"hunger_decay": hunger_decay,
+		"thirst_decay": thirst_decay,
+		"warmth_decay": warmth_decay,
+		"passive_warmth": passive_warmth,
+		"warmth_net": passive_warmth - warmth_decay,
+		"food": state.food,
+		"water": state.water,
+		"food_value": int(round(FOOD_HUNGER_VALUE * state.character_class.food_hunger_multiplier)),
+		"water_value": WATER_THIRST_VALUE,
+	}
+
+
 func can_build(building: BuildingCardData) -> String:
 	if not _day_active:
 		return "Dzień dobiegł końca."
+	if building.act2_only and not state.bum_happened:
+		return "Dostępne dopiero po katastrofie."
 	var lock_reason := _biome_lock_reason(building)
 	if lock_reason != "":
 		return lock_reason
@@ -493,7 +539,7 @@ func end_day() -> void:
 ## Resolve the drawn night event and the day's needs, then advance (or finish).
 ## Called when the player acknowledges the night popup; effects land here so the
 ## player sees the card BEFORE the stats move. Idempotent per end_day().
-func resolve_night() -> void:
+func resolve_night(choice_index: int = 0) -> void:
 	if not _night_pending:
 		return
 	_night_pending = false
@@ -504,7 +550,11 @@ func resolve_night() -> void:
 	if night_card is MonsterCardData:
 		_resolve_monster_attack(night_card as MonsterCardData)
 	elif night_card is EventCardData:
-		_resolve_event(night_card as EventCardData)
+		var event := night_card as EventCardData
+		if not event.choices.is_empty():
+			_resolve_event_choice(event, choice_index)
+		else:
+			_resolve_event(event)
 	_resolve_needs()
 	stats_changed.emit(state)
 
@@ -589,6 +639,7 @@ func _grant_xp(amount: int) -> void:
 func _start_day() -> void:
 	_day_active = true
 	_used_gathers.clear()
+	_health_history.append(state.health)
 	_update_season_for_day()
 
 	if not state.bum_happened and state.disaster != null:
@@ -596,9 +647,11 @@ func _start_day() -> void:
 			_trigger_bum()
 		elif state.day >= OMEN_START_DAY:
 			_log_omen()
-	# Energy may exceed the cap by one (e.g. the Sunny Morning event).
+	# Energy may exceed the cap by one (e.g. the Sunny Morning event); the active
+	# disaster can sap a flat amount in Act II (Zaćmienie: dark, restless nights).
 	state.energy = clampi(
-		state.max_energy + state.next_day_energy_delta, 1, state.max_energy + 1
+		state.max_energy + state.next_day_energy_delta - _act2_rule("act2_energy_penalty"),
+		1, state.max_energy + 1
 	)
 	state.next_day_energy_delta = 0
 
@@ -711,10 +764,22 @@ func _resolve_action(card: ActionCardData) -> void:
 	if state.season == RunState.Season.AUTUMN and card.wood_gain > 0:
 		wood_gain += AUTUMN_WOOD_BONUS
 		log_message.emit("Jesien daje suche galezie. +%d drewna." % AUTUMN_WOOD_BONUS)
+	# Winter: nature gives less — every gathered resource yields one fewer.
+	var materials_gain := card.materials_gain
+	if state.season == RunState.Season.WINTER:
+		var before := food_gain + wood_gain + materials_gain
+		if food_gain > 0:
+			food_gain = maxi(food_gain - WINTER_GATHER_PENALTY, 0)
+		if wood_gain > 0:
+			wood_gain = maxi(wood_gain - WINTER_GATHER_PENALTY, 0)
+		if materials_gain > 0:
+			materials_gain = maxi(materials_gain - WINTER_GATHER_PENALTY, 0)
+		if before > food_gain + wood_gain + materials_gain:
+			log_message.emit("Zima skąpi plonów — mniejszy zbiór.")
 	_add_food(food_gain)
 	_add_water(card.water_gain)
 	_add_wood(wood_gain)
-	_add_materials(card.materials_gain)
+	_add_materials(materials_gain)
 	_apply_stat_deltas(
 		card.health_delta, card.hunger_delta, card.thirst_delta, card.warmth_delta
 	)
@@ -732,6 +797,26 @@ func _resolve_action(card: ActionCardData) -> void:
 		"draw_two":
 			_draw_cards(2)
 			log_message.emit("Dobierasz 2 karty.")
+		"scout_reveal":
+			_scout_reveal()
+
+
+## Scout an adjacent UNDISCOVERED tile without moving there: reveals its biome
+## (and arms its hazards in the night pool — info vs risk). Picks one at random.
+func _scout_reveal() -> void:
+	var hidden: Array[int] = []
+	for i in state.board.size():
+		if BoardGenerator.are_adjacent(state.current_tile, i) and not state.board[i].is_discovered:
+			hidden.append(i)
+	if hidden.is_empty():
+		log_message.emit("Zwiad: brak nieodkrytych sąsiednich kafli.")
+		return
+	var idx := hidden[_rng.randi_range(0, hidden.size() - 1)]
+	state.board[idx].is_discovered = true
+	_rebuild_event_deck()
+	log_message.emit("Zwiad odsłania sąsiedni teren: %s." % _tile_name(state.board[idx]))
+	board_changed.emit(state)
+	tile_discovered.emit(idx)
 
 
 func _build(building: BuildingCardData) -> void:
@@ -754,19 +839,25 @@ func _build(building: BuildingCardData) -> void:
 	board_changed.emit(state)
 
 
+## Post-BUM rebuild surcharge applies to NORMAL buildings only; dedicated Act II
+## buildings (act2_only) are the intended rebuild path, so they skip it.
+func _has_post_bum_surcharge(building: BuildingCardData) -> bool:
+	return state.bum_happened and not building.act2_only
+
+
 func _building_energy_cost(building: BuildingCardData) -> int:
-	var surcharge := POST_BUM_BUILD_ENERGY_SURCHARGE if state.bum_happened else 0
+	var surcharge := POST_BUM_BUILD_ENERGY_SURCHARGE if _has_post_bum_surcharge(building) else 0
 	return maxi(building.energy_cost + state.character_class.build_energy_cost_delta + surcharge, 0)
 
 
 ## The class resource discount takes points off wood first, then materials.
 func _building_wood_cost(building: BuildingCardData) -> int:
-	var surcharge := POST_BUM_BUILD_WOOD_SURCHARGE if state.bum_happened else 0
+	var surcharge := POST_BUM_BUILD_WOOD_SURCHARGE if _has_post_bum_surcharge(building) else 0
 	return maxi(building.wood_cost + surcharge - state.character_class.build_resource_discount, 0)
 
 
 func _building_materials_cost(building: BuildingCardData) -> int:
-	var surcharge := POST_BUM_BUILD_MATERIALS_SURCHARGE if state.bum_happened else 0
+	var surcharge := POST_BUM_BUILD_MATERIALS_SURCHARGE if _has_post_bum_surcharge(building) else 0
 	var discount_left := maxi(
 		state.character_class.build_resource_discount - building.wood_cost, 0
 	)
@@ -818,6 +909,8 @@ func _trigger_bum() -> void:
 	_rebuild_event_deck()
 
 	log_message.emit("Świat już nie jest ten sam. Przetrwaj do dnia %d." % WIN_DAY)
+	if state.disaster != null and state.disaster.act2_rule_text != "":
+		log_message.emit(state.disaster.act2_rule_text)
 	bum_struck.emit(state.disaster)
 	board_changed.emit(state)
 
@@ -898,6 +991,7 @@ func _resolve_monster_attack(monster: MonsterCardData) -> void:
 		log_message.emit("Szałas osłania cię przed atakiem.")
 	if player_damage > 0:
 		state.health = maxi(state.health - player_damage, 0)
+		_record_damage(player_damage, "Atak: %s" % monster.display_name)
 		log_message.emit("%s rani cię. -%d zdrowia." % [monster.display_name, player_damage])
 
 	if monster.damage_to_buildings > 0:
@@ -992,10 +1086,18 @@ func _count_special(special: String) -> int:
 
 ## Some surplus food spoils each day; the Kucharz and Spiżarnia (slow_spoilage)
 ## reduce it.
+## Active disaster's Act II rule value (0 before BUM or when unset).
+func _act2_rule(field: String) -> int:
+	if not state.bum_happened or state.disaster == null:
+		return 0
+	return int(state.disaster.get(field))
+
+
 func _resolve_spoilage() -> void:
 	if state.food < SPOILAGE_MIN_FOOD:
 		return
 	var base := int(round(DAILY_FOOD_SPOILAGE * state.character_class.spoilage_multiplier))
+	base += _act2_rule("act2_food_spoilage_delta")
 	var spoiled := maxi(base - _count_special("slow_spoilage"), 0)
 	if spoiled > 0:
 		state.food = maxi(state.food - spoiled, 0)
@@ -1025,6 +1127,35 @@ func _resolve_event(event: EventCardData) -> void:
 	state.next_day_energy_delta += event.next_day_energy_delta
 
 
+## Apply the player's chosen option on a decision event. A risky choice may
+## backfire (gains skipped, you take risk_health damage instead).
+func _resolve_event_choice(event: EventCardData, choice_index: int) -> void:
+	log_message.emit("Zdarzenie: %s — %s" % [event.display_name, event.description])
+	var idx := clampi(choice_index, 0, event.choices.size() - 1)
+	var choice := event.choices[idx]
+	var backfired := choice.risk_chance > 0 and _rng.randi_range(0, 99) < choice.risk_chance
+	if backfired:
+		_apply_stat_deltas(-choice.risk_health, 0, 0, 0)
+		if choice.risk_health > 0:
+			_record_damage(choice.risk_health, "Zdarzenie: %s" % event.display_name)
+		log_message.emit("Nie udało się! -%d zdrowia." % choice.risk_health)
+		return
+	_apply_stat_deltas(
+		choice.health_delta, choice.hunger_delta, choice.thirst_delta, choice.warmth_delta
+	)
+	_add_food(choice.food_gain)
+	_add_water(choice.water_gain)
+	_add_wood(choice.wood_gain)
+	_add_materials(choice.materials_gain)
+	state.next_day_energy_delta += choice.next_day_energy_delta
+	if choice.grant_random_card and not _card_pool.is_empty():
+		var card: CardData = _card_pool[_rng.randi_range(0, _card_pool.size() - 1)]
+		state.deck.append(card)
+		log_message.emit("Zyskujesz kartę do talii: %s." % card.display_name)
+	if choice.result_text != "":
+		log_message.emit(choice.result_text)
+
+
 func _has_night_protection() -> bool:
 	# Building passives are global, so any standing (non-ruined) Szalas counts.
 	for tile in state.board:
@@ -1038,7 +1169,8 @@ func _resolve_needs() -> void:
 	# Spoilage first, so spoiled food can't be eaten tonight.
 	_resolve_spoilage()
 	# Hunger: decay, then eat from stock (class can change food efficiency).
-	var hunger_decay := DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta
+	var hunger_decay := DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta \
+		+ _act2_rule("act2_hunger_decay_delta")
 	var food_value := int(round(FOOD_HUNGER_VALUE * state.character_class.food_hunger_multiplier))
 	state.hunger = clampi(state.hunger - hunger_decay, 0, RunState.MAX_HUNGER)
 	var food_eaten := 0
@@ -1050,10 +1182,12 @@ func _resolve_needs() -> void:
 	if state.hunger <= 0:
 		var hunger_dmg := _deprivation_damage(STARVATION_DAMAGE)
 		state.health = maxi(state.health - hunger_dmg, 0)
+		_record_damage(hunger_dmg, "Głód")
 		log_message.emit("Głodujesz! -%d zdrowia." % hunger_dmg)
 
 	# Thirst: decay, then drink from stock. Summer makes water pressure harsher.
-	var thirst_decay := DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta
+	var thirst_decay := DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta \
+		+ _act2_rule("act2_thirst_decay_delta")
 	if state.season == RunState.Season.SUMMER:
 		thirst_decay += SUMMER_EXTRA_THIRST_DECAY
 		log_message.emit("Letni upal wysusza cie szybciej. -%d nawodnienia." %
@@ -1068,10 +1202,12 @@ func _resolve_needs() -> void:
 	if state.thirst <= 0:
 		var thirst_dmg := _deprivation_damage(DEHYDRATION_DAMAGE)
 		state.health = maxi(state.health - thirst_dmg, 0)
+		_record_damage(thirst_dmg, "Odwodnienie")
 		log_message.emit("Odwodnienie! -%d zdrowia." % thirst_dmg)
 
 	# Warmth: nights are cold; campfires (passives, applied above) offset it.
-	var warmth_decay := DAILY_WARMTH_DECAY + state.character_class.warmth_rate_delta
+	var warmth_decay := DAILY_WARMTH_DECAY + state.character_class.warmth_rate_delta \
+		+ _act2_rule("act2_warmth_decay_delta")
 	if state.season == RunState.Season.WINTER:
 		warmth_decay += WINTER_EXTRA_WARMTH_DECAY
 		log_message.emit("Zimowa noc odbiera dodatkowe cieplo. -%d ciepla." %
@@ -1080,16 +1216,48 @@ func _resolve_needs() -> void:
 	if state.warmth <= 0:
 		var warmth_dmg := _deprivation_damage(FREEZING_DAMAGE)
 		state.health = maxi(state.health - warmth_dmg, 0)
+		_record_damage(warmth_dmg, "Mróz")
 		log_message.emit("Zamarzasz! -%d zdrowia." % warmth_dmg)
 
 	if food_eaten > 0 or water_drunk > 0:
 		needs_consumed.emit(food_eaten, water_drunk)
 
 
-## Hunger/thirst/cold bite harder after the cataclysm. In Act I (before BUM)
-## deprivation deals one less point of damage, easing the early game.
+## Hunger/thirst/cold bite far harder after the cataclysm: Act I deals one LESS
+## point (gentle early game), Act II one MORE (running a stat dry is punishing).
 func _deprivation_damage(full_damage: int) -> int:
-	return full_damage if state.bum_happened else maxi(full_damage - 1, 0)
+	return full_damage + 1 if state.bum_happened else maxi(full_damage - 1, 0)
+
+
+## Accumulate HP loss + remember the most recent cause (for the end screen).
+func _record_damage(amount: int, cause: String) -> void:
+	if amount <= 0:
+		return
+	_damage_taken += amount
+	_last_cause = cause
+
+
+## Snapshot for the end-screen summary (cause of death, totals, seed, HP graph).
+func run_summary() -> Dictionary:
+	var standing := 0
+	var ruined := 0
+	for tile in state.board:
+		for built in tile.buildings:
+			if built.is_ruined:
+				ruined += 1
+			else:
+				standing += 1
+	return {
+		"cause": _last_cause,
+		"damage_taken": _damage_taken,
+		"seed": _run_seed,
+		"health_history": _health_history.duplicate(),
+		"buildings_standing": standing,
+		"buildings_ruined": ruined,
+		"level": state.level,
+		"bum_day": state.bum_day if state.bum_happened else 0,
+		"disaster": state.disaster.display_name if state.disaster != null else "",
+	}
 
 
 # --- Helpers ---

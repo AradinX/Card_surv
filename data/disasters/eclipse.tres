@@ -16,3 +16,6 @@ display_name = "Zaćmienie"
 description = "Słońce gaśnie w południe. Z wiecznego mroku wypełzają zmarznięte istoty."
 monsters = [ExtResource("2_wraith"), ExtResource("3_crawler"), ExtResource("4_swarm")]
 extra_event_cards = [ExtResource("5_frost"), ExtResource("6_sun"), ExtResource("7_whisper"), ExtResource("8_bite")]
+act2_warmth_decay_delta = 3
+act2_energy_penalty = 2
+act2_rule_text = "Zaćmienie: wieczny mróz wysysa ciepło, a mrok kradnie sen (-2 energii dziennie)."

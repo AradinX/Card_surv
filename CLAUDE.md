@@ -1073,6 +1073,77 @@ Na podstawie feedbacku z gry:
   wizualny bębna.)
 - Weryfikacja: `--import` 0 błędów, `main_menu` `can_instantiate=true`.
 
+### Run do 50 dni + gating budynków + różnice katastrof + crank (2026-06-21)
+
+- **Run do dnia 50** (`WIN_DAY 30→50`): BUM dzień 22–27 (było 13–16), omeny od dnia 16,
+  sezony przeskalowane (wiosna ≤13, lato ≤25, jesień ≤38, zima reszta). `season_test`
+  i podtytuł menu zaktualizowane.
+- **Gwarantowany Las + Góry** na każdej planszy (`BoardGenerator.GUARANTEED_BIOME_IDS`)
+  → drewno i materiały zawsze osiągalne, reszta 4 kafli losowo z puli 8.
+- **Budynki gated po odkryciu biomu** (`BuildingCardData.required_biome_ids`, pusty =
+  zawsze): Port rybacki→rzeka/wybrzeże, Drwalnia→las, Kamieniołom→góry/jaskinie,
+  Farma→łąki, Filtr→rzeka/bagno/wybrzeże, Zielarnia→łąki/las/bagno. `can_build`
+  blokuje z komunikatem „Wymaga odkrycia: ..." dopóki żaden wymagany biom nie jest
+  odkryty. Bazowe budynki (ognisko/szałas/studnia/palisada/magazyny/warsztat) zawsze.
+- **Mechaniczne różnice katastrof** (`DisasterData.act2_*` + `_act2_rule`): nie tylko
+  kolor/obrażenia. **Plaga** = wojna o jedzenie (Akt II: +2 głodu/dzień, +2 psucia),
+  **Zaćmienie** = wojna o ciepło/energię (Akt II: +3 utraty ciepła, −2 energii/dzień).
+  Reguła logowana przy BUM (`act2_rule_text`).
+- **Dokręcenie trudności:** potwory w Akcie II ×6 (waga kategorii), deprywacja po BUM
+  bije za +1 (Akt I −1, Akt II +1 = realna kara za wyzerowanie statu). Smoke
+  96%→**74%** (37/50), zgony Akt II 2→13 — Akt II to teraz ściana (Informatyk 23%
+  najtrudniejszy, Zielarka/Wojskowy easy by design). Cała ósemka testów zielona.
+
+### Prognoza nocy + ekran-budzik + bogate podsumowanie (2026-06-21)
+
+- **Prognoza końca dnia** (`SurvivalSystem.end_of_day_forecast()` + `run.gd
+  _update_forecast`): etykieta w kolumnie przycisków pokazuje nocne spadki
+  (Sytość/Nawodnienie z uwzgl. klasy/sezonu/katastrofy) + zapasy + NETTO ciepła
+  (pasywne ciepło budynków minus spadek). Koniec liczenia w głowie.
+- **Zakończenie jako sen (budzik):** `result.gd` — wygrana = „Sobota, 10:00,
+  budzisz się wyspany", przegrana = „Poniedziałek, 5:00, budzik wyrywa z koszmaru"
+  + hook alarmu (`assets/audio/sfx/alarm_clock.ogg`, `ResourceLoader.exists`).
+- **Bogaty ekran końcowy** (`SurvivalSystem.run_summary()` → `GameManager.
+  last_run_summary`): przyczyna śmierci (śledzona w `_record_damage`: Głód/
+  Odwodnienie/Mróz/Atak: <potwór>), katastrofa+dzień BUM, poziom, łączne obrażenia,
+  budynki stojące/ruiny, **sparkline zdrowia** (▁▂▃ per świt) i **seed runu**.
+- Weryfikacja: `--import` 0 błędów, 3 sceny `can_instantiate=true`, `ui_layout`/
+  `save_load`/`smoke` (39/50) bez regresji.
+
+### Wybory nocne + tutorial + narzędzia Aktu II + zwiad + sezony (2026-06-21)
+
+- **Zdarzenia z wyborami** (`EventChoiceData` + `EventCardData.choices`): nocny popup
+  pokazuje przyciski decyzji zamiast samego „Dalej"; wybrana opcja aplikuje swoje
+  efekty (deltas/gains/`grant_random_card`), opcje ryzykowne mogą się „odwrócić"
+  (`risk_chance`/`risk_health` → zamiast łupu obrażenia). `resolve_night(choice)`,
+  headless bierze indeks 0. Karty bazowe puste = działają jak dotąd. Pierwsze:
+  **Obcy wędrowiec** (nakarm/przegoń/okradnij) i **Opuszczony obóz** (bezpiecznie/
+  ryzyko). Przyciski odblokowują się po animacji odsłonięcia (jak „Dalej").
+- **Tutorial** (`ui/help_overlay.tscn` `HelpOverlayView`, 5 stron): przycisk „Jak grać"
+  w menu + AUTO-pokaz przy pierwszym uruchomieniu (`MetaState.seen_tutorial`).
+- **Pozytywne narzędzia Aktu II** (`BuildingCardData.act2_only`): budynki dostępne
+  TYLKO po BUM i BEZ dopłaty post-BUM (`_has_post_bum_surcharge`) — realna ścieżka
+  „odbuduj inaczej". Dodane: **Bastion** (obrona 3, 16 HP) i **Lazaret polowy**
+  (+2 zdrowia/dzień).
+- **Karty zwiadu odkrywają teren** (`special = "scout_reveal"`): „Rozejrzyj się"
+  odsłania losowy sąsiedni NIEodkryty kafel bez wchodzenia — info, ale aktywuje
+  jego nocne zagrożenia (ryzyko vs wiedza). `scout` zostaje dobieraniem kart.
+- **Sezony zmieniają zbieranie:** zima tnie każdy zbiór surowca o 1
+  (`WINTER_GATHER_PENALTY`) — obok istniejącej zwiększonej utraty ciepła zimą.
+- Weryfikacja: `--import` 0 błędów, sceny `can_instantiate=true`, cała ósemka +
+  smoke (39/50) bez regresji; `ui_layout` 83 karty.
+
+### Tła ekranu końcowego (POV łóżko) + więcej zdarzeń z wyborami (2026-06-21)
+
+- **Tła wyniku POV** (`result.gd` WIN_BG/LOSE_BG, pod `ResourceLoader.exists`):
+  ekran końcowy pokazuje widok z łóżka na budzik — wygrana = słoneczny poranek
+  10:00, przegrana = ciemny pokój 05:00. Pliki:
+  `assets/art/backgrounds/result/result_{win,lose}_bed.png` (gdy brak — flat tło).
+- **Więcej zdarzeń z wyborami** (2→**5**): + Dzikie zwierzę (poluj/przepłosz),
+  Dziwne jagody (zjedz/zachowaj/wyrzuć), Hałas w ciemności (zbadaj/zabarykaduj/
+  zignoruj). Smoke 36/50 (bot zawsze bierze opcję 0 = ryzykowną; świadomy gracz
+  wybiera bezpiecznie). `ui_layout` 86 kart, reszta testów OK.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

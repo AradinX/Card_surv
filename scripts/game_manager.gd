@@ -30,6 +30,8 @@ var last_run_days := 0
 ## Set true when the just-finished run awarded a gold coin (won) — the result
 ## screen reads this to show the reward.
 var last_run_coin_awarded := false
+## Detailed end-of-run stats for the result screen (see SurvivalSystem.run_summary).
+var last_run_summary: Dictionary = {}
 
 
 func _ready() -> void:
@@ -159,6 +161,7 @@ func return_to_menu() -> void:
 func _on_run_ended(won: bool, days_survived: int) -> void:
 	last_run_won = won
 	last_run_days = days_survived
+	last_run_summary = survival.run_summary() if survival != null else {}
 	# The run is over — no resume point.
 	delete_saved_run()
 	# One gold coin per won run — currency for the character roulette.

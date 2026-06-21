@@ -12,6 +12,8 @@ const STARTING_CLASS_ID := "scout"
 
 @export var gold_coins: int = 0
 @export var unlocked_class_ids: PackedStringArray = PackedStringArray([STARTING_CLASS_ID])
+## Set once the player has seen the how-to-play tutorial (auto-shown on first launch).
+@export var seen_tutorial: bool = false
 
 
 ## Loads the saved meta-state, or returns a fresh one (cook unlocked).

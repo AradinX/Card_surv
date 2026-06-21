@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_fishing_dock"
-display_name = "Port rybacki"
-description = "Sieci pełne ryb (+2 jedzenia dziennie)."
-energy_cost = 3
+id = "building_bastion"
+display_name = "Bastion"
+description = "Z gruzów wznosisz twierdzę. Silna obrona kafla (obrona 3) i wytrzymałe mury."
+energy_cost = 4
 wood_cost = 3
-materials_cost = 1
-max_hp = 8
-food_gain = 1
-required_biome_ids = PackedStringArray("river", "coast")
+materials_cost = 4
+max_hp = 16
+defense = 3
+act2_only = true

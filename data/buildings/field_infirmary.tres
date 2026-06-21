@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_quarry"
-display_name = "Kamieniołom"
-description = "Wydobycie kamienia i rudy (+2 materiałów dziennie)."
+id = "building_field_infirmary"
+display_name = "Lazaret polowy"
+description = "Punkt opatrunkowy z ocalałych zapasów: +2 zdrowia dziennie. Pomaga przetrwać Akt II."
 energy_cost = 3
 wood_cost = 2
-materials_cost = 1
-max_hp = 10
-materials_gain = 1
-required_biome_ids = PackedStringArray("mountains", "caves")
+materials_cost = 3
+max_hp = 8
+health_delta = 2
+act2_only = true

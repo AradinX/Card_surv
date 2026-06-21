@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://scenes/main_menu.gd" id="1_script"]
 [ext_resource type="Texture2D" path="res://assets/art/backgrounds/run_screen/bg_run_table.png" id="2_menu_bg"]
 [ext_resource type="Theme" path="res://ui/button_theme_act1.tres" id="3_button_theme"]
 [ext_resource type="PackedScene" path="res://ui/settings_overlay.tscn" id="4_settings"]
+[ext_resource type="PackedScene" path="res://ui/help_overlay.tscn" id="5_help"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -93,42 +94,49 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 
 [node name="ContinueButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 64)
+custom_minimum_size = Vector2(360, 56)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Kontynuuj"
 
 [node name="StartButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 64)
+custom_minimum_size = Vector2(360, 56)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Nowa gra"
 
 [node name="RouletteButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 64)
+custom_minimum_size = Vector2(360, 56)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 18
 text = "Ruletka postaci (3 monety)"
 
 [node name="CharactersButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 64)
+custom_minimum_size = Vector2(360, 56)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Postacie"
 
 [node name="SettingsButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 64)
+custom_minimum_size = Vector2(360, 56)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Ustawienia"
 
+[node name="HelpButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(360, 56)
+layout_mode = 2
+theme = ExtResource("3_button_theme")
+theme_override_font_sizes/font_size = 20
+text = "Jak grać"
+
 [node name="QuitButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 64)
+custom_minimum_size = Vector2(360, 56)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
@@ -203,6 +211,9 @@ theme_override_font_sizes/font_size = 18
 text = "OK"
 
 [node name="SettingsOverlay" parent="." instance=ExtResource("4_settings")]
+visible = false
+
+[node name="HelpOverlay" parent="." instance=ExtResource("5_help")]
 visible = false
 
 [node name="CharactersOverlay" type="ColorRect" parent="."]

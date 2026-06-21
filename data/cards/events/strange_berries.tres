@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="eat"]
+script = ExtResource("2_choice")
+label = "Zjedz teraz (ryzyko)"
+result_text = "Smakują wybornie... chyba."
+hunger_delta = 5
+risk_chance = 35
+risk_health = 3
+
+[sub_resource type="Resource" id="store"]
+script = ExtResource("2_choice")
+label = "Dodaj do zapasów"
+result_text = "Chowasz je ostrożnie na później."
+food_gain = 2
+
+[sub_resource type="Resource" id="toss"]
+script = ExtResource("2_choice")
+label = "Wyrzuć"
+result_text = "Lepiej nie ryzykować."
+
+[resource]
+script = ExtResource("1_script")
+id = "strange_berries"
+display_name = "Dziwne jagody"
+description = "Znajdujesz krzak nieznanych owoców. Kuszące, ale czy bezpieczne?"
+food_delta = 1
+category = "neutral"
+severity = "minor"
+weight = 7
+cooldown_days = 4
+max_per_run = 3
+choices = [SubResource("eat"), SubResource("store"), SubResource("toss")]

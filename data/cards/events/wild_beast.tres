@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="hunt"]
+script = ExtResource("2_choice")
+label = "Zapoluj (ryzyko)"
+result_text = "Udane łowy — pełna spiżarnia."
+food_gain = 4
+risk_chance = 40
+risk_health = 3
+
+[sub_resource type="Resource" id="scare"]
+script = ExtResource("2_choice")
+label = "Przepłosz ogniem"
+result_text = "Bestia ucieka w mrok. Spokój."
+
+[resource]
+script = ExtResource("1_script")
+id = "wild_beast"
+display_name = "Dzikie zwierzę"
+description = "Wokół obozu krąży głodne zwierzę. Zapolujesz czy je odstraszysz?"
+food_delta = 1
+category = "neutral"
+severity = "minor"
+weight = 8
+cooldown_days = 4
+max_per_run = 3
+choices = [SubResource("hunt"), SubResource("scare")]
