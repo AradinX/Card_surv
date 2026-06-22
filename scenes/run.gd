@@ -162,6 +162,15 @@ func _ready() -> void:
 	if _survival.state != null and _survival.state.character_class != null:
 		BiomeTileView.set_marker_for_class(_survival.state.character_class)
 
+	# Background music + nature ambience for the current act (resumed runs may
+	# already be post-BUM).
+	if _survival.state != null and _survival.state.bum_happened and _survival.state.disaster != null:
+		AudioManager.play_act2_music(_survival.state.disaster.id)
+		AudioManager.play_act2_ambience(_survival.state.disaster.id)
+	else:
+		AudioManager.play_music("act1")
+		AudioManager.play_ambience("forest")
+
 	_create_tile_buttons()
 
 	_survival.day_started.connect(_on_day_started)
@@ -288,6 +297,7 @@ func _on_board_changed(state: RunState) -> void:
 
 
 func _on_tile_discovered(tile_index: int) -> void:
+	AudioManager.play_sfx("discover")
 	if tile_index >= 0 and tile_index < _tile_buttons.size():
 		_tile_buttons[tile_index].play_discovery_fx()
 
@@ -479,6 +489,7 @@ func _on_build_confirmed() -> void:
 	if _pending_build == null:
 		return
 	_survival.build(_pending_build)
+	AudioManager.play_sfx("build")
 	_spawn_tile_fx(BUILD_PLACE_FX, false)
 	_pending_build = null
 	if _build_mode:
@@ -541,6 +552,9 @@ const BOARD_BG_ACT2 := "res://assets/art/board/backgrounds/bg_biome_board_act2.p
 func _on_bum_struck(disaster: DisasterData) -> void:
 	var key := disaster.id if disaster != null else ""
 	_act2_look = ACT2_LOOK.get(key, ACT2_LOOK["plague"])
+	AudioManager.play_sfx("bum")
+	AudioManager.play_act2_music(key)
+	AudioManager.play_act2_ambience(key)
 	_play_bum_fx()
 
 
@@ -771,7 +785,11 @@ func _card_feedback_fx(card: CardData, view: Control) -> void:
 
 ## Overnight the survivor auto-ate/drank from stock — a small feedback glow over
 ## the top stat bars (where hunger/thirst live). Additive (asset sits on black).
-func _on_needs_consumed(_food_eaten: int, _water_drunk: int) -> void:
+func _on_needs_consumed(food_eaten: int, water_drunk: int) -> void:
+	if food_eaten > 0:
+		AudioManager.play_sfx("eat")
+	if water_drunk > 0:
+		AudioManager.play_sfx("drink")
 	if not ResourceLoader.exists(EAT_DRINK_FX):
 		return
 	var rect := _top_status_bar.get_global_rect()
@@ -907,6 +925,7 @@ func _on_night_card_drawn(card: CardData) -> void:
 	_build_night_choices(card)
 	_play_night_reveal(view, back, _night_tint(card))
 	if is_monster:
+		AudioManager.play_sfx("monster")
 		_spawn_claw_flash()
 
 
@@ -1150,6 +1169,7 @@ func _on_log_message(text: String) -> void:
 
 
 func _on_leveled_up(_level: int) -> void:
+	AudioManager.play_sfx("level_up")
 	_show_reward_panel()
 
 

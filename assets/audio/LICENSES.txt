@@ -1,0 +1,41 @@
+DŹWIĘK — Dzień 50
+=================
+
+Wrzuć pliki dokładnie pod tymi nazwami; AudioManager (scripts/audio_manager.gd)
+ładuje je po kluczu i jest odporny na brak pliku (gra gra wtedy w ciszy).
+Preferowany format: .ogg (muzyka) / .ogg lub .wav (SFX).
+
+MUZYKA  -> assets/audio/music/
+  music_menu.ogg          (menu główne)
+  music_act1.ogg          (Akt I — budowa osady)
+  music_act2.ogg          (Akt II — generyczny fallback)
+  music_act2_plague.ogg   (Akt II — Plaga)        [opcjonalne]
+  music_act2_eclipse.ogg  (Akt II — Zaćmienie)    [opcjonalne]
+  music_act2_rift.ogg     (Akt II — Pęknięcie)    [opcjonalne]
+  music_act2_flood.ogg    (Akt II — Powódź)       [opcjonalne]
+  music_win.ogg           (przebudzenie / wygrana)
+
+AMBIENT (pętla pod muzyką)  -> assets/audio/ambience/
+  ambience_forest.ogg     (Akt I — las, ptaki, wiatr, natura)
+  ambience_act2.ogg       (Akt II — głuchy wiatr / posępna atmosfera)
+
+SFX  -> assets/audio/sfx/
+  card_play.ogg     build_place.ogg   repair.ogg
+  bum_explosion.ogg monster_attack.ogg level_up.ogg
+  coin.ogg          eat_drink.ogg     discover.ogg
+  button_click.ogg  alarm_clock.ogg   (budzik = przegrana)
+
+WAŻNE (loop muzyki): w Godocie zaznacz importowanym plikom muzyki
+„Loop" (zakładka Import) albo zostaw .ogg z domyślnym loopem.
+
+
+LICENCJE — uzupełniaj dla KAŻDEGO pliku przed wydaniem
+------------------------------------------------------
+Format: <plik> | <źródło/autor> | <licencja> | <link> | <data>
+
+np.:
+  alarm_clock.ogg | Freesound (autor X) | CC0 | https://... | 2026-06-22
+  music_act1.ogg  | Suno (plan Pro)     | komercyjna (output) | konto Pro | 2026-06-22
+
+Unikaj CC-BY-NC (zakaz komercji) i uważaj na CC-BY-SA. Przy CC-BY podaj autora
+tutaj oraz w creditsach gry.

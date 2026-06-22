@@ -1180,6 +1180,46 @@ Na podstawie feedbacku z gry:
   Headless/bot bez zmian (woła `resolve_night()` wprost). `run.tscn` `can_instantiate`
   OK, smoke 36/50, `ui_layout` 100 kart.
 
+### Wpięcie 26 ilustracji + system audio (2026-06-22)
+
+- **Obrazy:** 8 potworów (rift/flood/nowe Zaćmienia) + 4 budynki Aktu II + 14 zdarzeń
+  wygenerowane przez gracza, wrzucone i zaimportowane — wpięte automatycznie
+  (ścieżki = `id`). Gap-check: 0 braków. Tła ekranu wyniku (POV łóżko) też są.
+- **AudioManager** (autoload, `scripts/audio_manager.gd`): jeden gracz muzyki (bus
+  Music) + pula 6 głosów SFX (bus SFX). `play_music(key)` / `play_act2_music(id)` /
+  `stop_music()` / `play_sfx(key)` — wszystko keyowane i pod `ResourceLoader.exists`,
+  więc gra działa w ciszy bez plików i zaczyna grać po ich wrzuceniu (zero kodu).
+  Muzyka loopuje (`stream.loop`).
+- **Busy audio** (`default_bus_layout.tres`): Master → Music + SFX. `Settings` ma
+  teraz `music_volume`/`sfx_volume` (zapis do `settings.cfg`, aplikacja do busów);
+  panel ustawień zyskał suwaki **Muzyka** i **Efekty (SFX)** obok Głośności głównej.
+- **Haki w grze:** muzyka menu / Akt I / Akt II per katastrofa / wygrana; SFX: BUM,
+  budowa, atak potwora, awans, odkrycie kafla, jedzenie/picie, moneta, budzik
+  (przegrana, przez bus SFX). Plik `assets/audio/LICENSES.txt` = spis oczekiwanych
+  nazw plików + szablon licencji (CC0/komercyjne) pod bezpieczne wydanie.
+- Weryfikacja: `--import` 0 błędów, 4 sceny `can_instantiate=true`, `ui_layout`
+  (100 kart) + `smoke` (34/50) bez regresji.
+
+### Warstwa ambientu natury pod muzyką (2026-06-22)
+
+- `AudioManager` ma teraz osobną, zapętloną warstwę AMBIENTU (drugi gracz na busie
+  Music): `play_ambience(key)`/`stop_ambience()` + słownik `AMBIENCE`
+  (`ambience_forest.ogg` Akt I, `ambience_act2.ogg` Akt II). Gra POD muzyką — bo
+  prawdziwy las/ptaki to nagrania natury (CC0), nie Suno. `run.gd` gra `forest`
+  w Akcie I i przełącza na `act2` przy BUM; menu/wynik robią `stop_ambience()`.
+  `assets/audio/ambience/` + wpis w `LICENSES.txt`. Pod `ResourceLoader.exists`.
+
+### Audio wpięte — pliki gracza posprzątane (2026-06-22)
+
+- Gracz wrzucił muzykę/ambient/SFX (Suno, `.wav`). Porządki: nowszy „Przebudzenie
+  (wygrana)" → `music_win.wav` (usunięty duplikat); `AudioManager.SFX` przepięty na
+  PODFOLDERY gracza (`sfx/cards|bum|monsters|day_cycle|ui/`); `eat`/`drink` rozdzielone
+  na 2 klucze, `run.gd _on_needs_consumed` gra wg tego, co spożyto. Ambient ma 4
+  warianty Aktu II (eclipse/flood/rift + generic; Plaga → fallback generic).
+- Stan: muzyka (act1/menu/win + 4×act2) ✅, ambient (forest + 4×act2) ✅, 11 SFX ✅.
+  BRAK (opcjonalne): `sfx/ui/coin.wav` (cisza przy nagrodzie monety) i
+  `ambience_act2_plague` (gra generyczny `ambience_act2`). `--import` 0 błędów.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

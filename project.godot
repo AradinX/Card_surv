@@ -17,6 +17,7 @@ run/max_fps=60
 
 [autoload]
 
+AudioManager="*res://scripts/audio_manager.gd"
 GameManager="*res://scripts/game_manager.gd"
 
 [display]

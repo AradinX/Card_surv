@@ -45,6 +45,8 @@ func _ready() -> void:
 	_characters_button.pressed.connect(_open_characters)
 	_characters_close.pressed.connect(func() -> void: _characters_overlay.visible = false)
 	_help_button.pressed.connect(_help_overlay.open)
+	AudioManager.play_music("menu")
+	AudioManager.stop_ambience()
 	_refresh_meta_ui()
 	# First launch: show the how-to-play once automatically.
 	if not GameManager.meta_state.seen_tutorial:

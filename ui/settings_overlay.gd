@@ -10,6 +10,10 @@ signal closed
 @onready var _vsync_check: CheckButton = $Panel/PanelMargin/VBox/VsyncRow/VsyncCheck
 @onready var _volume_slider: HSlider = $Panel/PanelMargin/VBox/VolumeRow/VolumeSlider
 @onready var _volume_value: Label = $Panel/PanelMargin/VBox/VolumeRow/VolumeValue
+@onready var _music_slider: HSlider = $Panel/PanelMargin/VBox/MusicRow/MusicSlider
+@onready var _music_value: Label = $Panel/PanelMargin/VBox/MusicRow/MusicValue
+@onready var _sfx_slider: HSlider = $Panel/PanelMargin/VBox/SfxRow/SfxSlider
+@onready var _sfx_value: Label = $Panel/PanelMargin/VBox/SfxRow/SfxValue
 @onready var _close_button: Button = $Panel/PanelMargin/VBox/CloseButton
 
 
@@ -20,6 +24,8 @@ func _ready() -> void:
 	_fullscreen_check.toggled.connect(Settings.set_fullscreen)
 	_vsync_check.toggled.connect(Settings.set_vsync)
 	_volume_slider.value_changed.connect(_on_volume_changed)
+	_music_slider.value_changed.connect(_on_music_changed)
+	_sfx_slider.value_changed.connect(_on_sfx_changed)
 
 
 ## Show the overlay with controls synced to the current saved values.
@@ -28,12 +34,26 @@ func open() -> void:
 	_vsync_check.set_pressed_no_signal(Settings.vsync)
 	_volume_slider.set_value_no_signal(Settings.master_volume)
 	_volume_value.text = "%d%%" % roundi(Settings.master_volume * 100.0)
+	_music_slider.set_value_no_signal(Settings.music_volume)
+	_music_value.text = "%d%%" % roundi(Settings.music_volume * 100.0)
+	_sfx_slider.set_value_no_signal(Settings.sfx_volume)
+	_sfx_value.text = "%d%%" % roundi(Settings.sfx_volume * 100.0)
 	visible = true
 
 
 func _on_volume_changed(value: float) -> void:
 	Settings.set_master_volume(value)
 	_volume_value.text = "%d%%" % roundi(value * 100.0)
+
+
+func _on_music_changed(value: float) -> void:
+	Settings.set_music_volume(value)
+	_music_value.text = "%d%%" % roundi(value * 100.0)
+
+
+func _on_sfx_changed(value: float) -> void:
+	Settings.set_sfx_volume(value)
+	_sfx_value.text = "%d%%" % roundi(value * 100.0)
 
 
 func _on_close() -> void:

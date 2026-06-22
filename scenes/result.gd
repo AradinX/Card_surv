@@ -8,8 +8,6 @@ const DEFEAT_FX := "res://assets/art/fx/result/fx_defeat_haze.png"
 ## loss = dark room, alarm clock 05:00.
 const WIN_BG := "res://assets/art/backgrounds/result/result_win_bed.png"
 const LOSE_BG := "res://assets/art/backgrounds/result/result_lose_bed.png"
-## Alarm-clock sting on a loss (the dream ends — pre-wired, plays if present).
-const ALARM_SFX := "res://assets/audio/sfx/alarm_clock.ogg"
 const SPARK := ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
 
 @onready var _background_art: TextureRect = $BackgroundArt
@@ -26,6 +24,7 @@ const SPARK := ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
 ## alarm jolts you awake into Monday 5:00.
 func _ready() -> void:
 	ButtonSkin.apply_minimal_many([_retry_button, _menu_button])
+	AudioManager.stop_ambience()
 	var won: bool = GameManager.last_run_won
 	var bg_path := WIN_BG if won else LOSE_BG
 	if ResourceLoader.exists(bg_path):
@@ -38,16 +37,19 @@ func _ready() -> void:
 		_result_label.text = "Budzisz się wyspany. To był tylko sen?"
 		_result_label.modulate = Color(0.6, 1.0, 0.6)
 		_days_label.text = "Przetrwałeś wszystkie %d dni." % GameManager.last_run_days
+		AudioManager.play_music("win")
 	else:
 		_clock_label.text = "Poniedziałek, 5:00"
 		_clock_label.modulate = Color(1.0, 0.4, 0.4)
 		_result_label.text = "Budzik wyrywa cię z koszmaru."
 		_result_label.modulate = Color(1.0, 0.55, 0.55)
 		_days_label.text = "Sen urwał się w dniu %d." % GameManager.last_run_days
-		_play_alarm()
+		AudioManager.stop_music()
+		AudioManager.play_sfx("alarm")
 	_summary_label.text = _build_summary(won)
 	if GameManager.last_run_coin_awarded:
 		_coin_label.text = "+1 złota moneta!  (masz: %d)" % GameManager.meta_state.gold_coins
+		AudioManager.play_sfx("coin")
 	else:
 		_coin_label.text = ""
 	_retry_button.pressed.connect(GameManager.start_new_run)
@@ -89,15 +91,6 @@ func _sparkline(history: Array) -> String:
 		var idx := clampi(int(round(float(v) / hi * (SPARK.size() - 1))), 0, SPARK.size() - 1)
 		out += SPARK[idx]
 	return out
-
-
-func _play_alarm() -> void:
-	if not ResourceLoader.exists(ALARM_SFX):
-		return
-	var player := AudioStreamPlayer.new()
-	player.stream = load(ALARM_SFX)
-	add_child(player)
-	player.play()
 
 
 ## A full-screen mood overlay behind the text: golden rays on a win, cold haze
