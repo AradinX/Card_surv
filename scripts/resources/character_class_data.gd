@@ -7,9 +7,8 @@ extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export_multiline var description: String = ""
-## Roulette progression / difficulty order: lower unlocks first. 0 = the
-## starting class (Kucharz). The roulette always unlocks the lowest-order class
-## still locked, so players climb from easiest to hardest.
+## Display/difficulty order used when presenting unlocked classes.
+## 0 = the starting class (Skaut). Roulette selection itself is random.
 @export var unlock_order: int = 0
 
 ## Class starter deck (~10 cards incl. 1-2 unique ones).

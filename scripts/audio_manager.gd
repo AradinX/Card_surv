@@ -42,6 +42,9 @@ const AMBIENCE := {
 }
 const EXTENSIONS := [".ogg", ".wav", ".mp3"]
 const SFX_VOICES := 6
+## Short generated effects are noticeably quieter than the music masters.
+const SFX_GAIN_DB := 3.0
+const BUTTON_AUDIO_META := &"_audio_click_connected"
 
 var _music: AudioStreamPlayer
 var _ambience: AudioStreamPlayer
@@ -60,8 +63,37 @@ func _ready() -> void:
 	for i in SFX_VOICES:
 		var voice := AudioStreamPlayer.new()
 		voice.bus = "SFX"
+		voice.volume_db = SFX_GAIN_DB
 		add_child(voice)
 		_sfx_pool.append(voice)
+	# Give every regular UI button an audible click, including buttons created
+	# dynamically later (dialogs, night choices, repair/demolish actions).
+	get_tree().node_added.connect(_on_node_added)
+	call_deferred("_wire_existing_buttons")
+
+
+func _wire_existing_buttons() -> void:
+	_wire_buttons_recursive(get_tree().root)
+
+
+func _wire_buttons_recursive(node: Node) -> void:
+	_wire_button(node)
+	for child in node.get_children():
+		_wire_buttons_recursive(child)
+
+
+func _on_node_added(node: Node) -> void:
+	call_deferred("_wire_button", node)
+
+
+func _wire_button(node: Node) -> void:
+	if not is_instance_valid(node) or not (node is BaseButton):
+		return
+	if node.has_meta(BUTTON_AUDIO_META):
+		return
+	node.set_meta(BUTTON_AUDIO_META, true)
+	var sound_key := "card_play" if node is CardView else "button"
+	(node as BaseButton).pressed.connect(play_sfx.bind(sound_key))
 
 
 ## First existing file for a key's path, trying .ogg/.wav/.mp3 ("" if none).
@@ -81,7 +113,13 @@ func _set_loop(stream: Resource) -> void:
 		return
 	# WAV uses loop_mode; OGG/MP3 use a bool `loop`.
 	if stream is AudioStreamWAV:
-		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+		var wav := stream as AudioStreamWAV
+		# Runtime-generated loop points default to 0..0. WASAPI treats that as a
+		# zero-length loop and stops the player immediately, while the headless
+		# Dummy driver misleadingly keeps `playing = true`.
+		wav.loop_begin = 0
+		wav.loop_end = maxi(1, roundi(wav.get_length() * wav.mix_rate))
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
 	elif "loop" in stream:
 		stream.set("loop", true)
 

@@ -1,177 +1,259 @@
-# Inwentarz „Dzień 50" — co jest, czego brakuje
+# Inwentarz „Dzień 50” — co jest, czego brakuje
 
-Żywy spis treści gry: **dane w grze** vs **art bez danych** vs **braki**.
-Aktualizuj przy każdym dodaniu kart/assetów/systemów. Stan: **2026-06-16**.
+Żywy spis zawartości gry. Stan: **2026-06-22**.
 
-**Legenda:** ✅ działa w grze (dane + logika) · 🟡 częściowe (np. art bez `.tres`,
-albo asset gotowy ale niewpięty) · 🔴 brak.
+**Legenda:** ✅ działa w grze · 🟡 działa częściowo lub wymaga polishu · 🔴 brak.
 
----
+## Podsumowanie
+
+| Obszar | Stan |
+|---|---|
+| Pełny run do dnia 50 | ✅ |
+| BUM i cztery katastrofy | ✅ |
+| Plansza 6 kafli z fog of war | ✅ |
+| 9 klas i osobne talie | ✅ |
+| Save/load oraz kontynuacja | ✅ |
+| Meta-progresja klas | ✅ |
+| Grafiki kart, biomów i potworów | ✅ |
+| Muzyka, ambient i podstawowe SFX | ✅ |
+| Automatyczne testy Godot | ✅ 10 testów |
+| Balans klas i aktów | 🟡 |
+| Eksport/CI | 🔴 |
+| Kompletna dokumentacja licencji | 🔴 |
 
 ## Klasy postaci
-- ✅ **9 klas**, każda z WŁASNĄ talią (`data/decks/*_deck.tres`) i modyfikatorami.
-  **Skaut** to klasa domyślna (start); reszta z ruletki (**losowo**, za 3 monety).
-  - **Skaut** (start) — wytrzymały (+1 HP), tańsza budowa, +2 mat. start, −1 pragnienia.
-  - **Kucharz** — generalista/jedzenie.
-  - **Budowlaniec** — drewno→materiały→narzędzia, +1 HP (+tańsze/wytrzymalsze budowle).
-  - **Zielarka** — regen +1 HP/świt, talia leków (apetyt +1).
-  - **Łowca** — zwiad/eksploracja + leczenie (głód −1/dzień, jedzenie +20%).
-  - **Strateg** — +1 karta/świt, XP +25% (budowa +1 energii).
-  - **Wędrowiec** — darmowy ruch, start +2 jedz./+2 wody (+1 utraty ciepła).
-  - **Wojskowy** — twardziel (+3 HP), −1 obrażeń potworów (większy apetyt).
-  - **Informatyk** — challenge: same debuffy (−2 energii, +1 głodu, +1 obrażeń,
-    budowa +1 energii, −1 HP, −1 jedz./wody na start); jedyny atut XP +25%.
-- ✅ **Karty sygnaturowe**: każda klasa ma 1 UNIKALNĄ kartę w talii startowej
-  (`data/cards/actions/signature/*.tres`) — poza pulą nagród (podkatalog nieskanowany).
-  Gulasz/Prefabrykaty/Maść z ziół/Tropy/Plan dnia/Skrytka/Dryl/Rozpoznanie/Refaktoryzacja.
-- Pola HP/energii klasy: `health_bonus`, `max_energy_bonus` (w `CharacterClassData`).
-- Balans (smoke 30 runów/klasa, ±szum): Zielarka ~100% → Skaut ~93% → Wędrowiec/
-  Strateg ~83% → Kucharz/Łowca ~77% → Budowlaniec ~70% → Wojskowy ~50–65% →
-  Informatyk ~37% (najtrudniejszy).
 
-## Biomy (plansza)
-- ✅ **Las**, **Łąki**, **Góry** (`data/biomes/`) — awers + skorumpowany rewers, akcje
-  zbierania, zagrożenia, sloty. Każdy ma tło Akt I/Akt II.
-- 🟡 **5 nowych biomów** (pełne dane `.tres` + 10 nowych zdarzeń biomowych, wpięte;
-  pula biomów 3→**8**, plansza 6 kafli losuje z rotacją → regrywalność):
-  - **Bagno** (woda+jedzenie; Bagienna febra/Bagienne wyziewy → Trujące Mokradła)
-  - **Rzeka** (woda+ryby; Wezbrana rzeka/Rzeczna mgła → Czarna Rzeka)
-  - **Pustkowie** (materiały+nędzne jedzenie; Burza piaskowa/Jałowa ziemia →
-    Spopielone Pustkowie)
-  - **Jaskinie** (materiały+woda; Obsuw skalny/Nieprzenikniona ciemność →
-    Zatrute Jaskinie)
-  - **Wybrzeże** (ryby+złom; Sztorm/Przypływ → Martwe Wybrzeże)
-  - BRAK teł (10 PNG: 5 biomów × normal/plague) — renderują się z fallbackiem
-    tła lasu do czasu wygenerowania (`BIOME_ART_IDS` już je mapuje).
+✅ **9 klas**, każda z osobną talią i kartą sygnaturową:
+
+- Skaut — klasa startowa, wytrzymałość, tańsza budowa i mniejsze pragnienie;
+- Kucharz — mocniejsze jedzenie i wolniejsze psucie;
+- Budowlaniec — tańsze oraz wytrzymalsze budynki;
+- Zielarka — regeneracja zdrowia;
+- Łowca — eksploracja, leczenie i ekonomia jedzenia;
+- Strateg — większa ręka i szybsze zdobywanie XP;
+- Wędrowiec — darmowy ruch i dodatkowe zapasy;
+- Wojskowy — więcej HP i redukcja obrażeń potworów;
+- Informatyk — klasa challenge z mocnymi karami i premią XP.
+
+✅ Karty sygnaturowe są poza główną pulą nagród i występują tylko w
+odpowiednich taliach startowych.
+
+✅ Skaut jest zawsze odblokowany. Wygrany run daje 1 monetę, ruletka kosztuje
+3 monety i losuje jedną z zablokowanych klas.
+
+🟡 Aktualny sygnał balansowy z 30 runów bota na klasę:
+
+| Klasa | Wygrane |
+|---|---:|
+| Zielarka | 27/30 |
+| Skaut | 27/30 |
+| Wojskowy | 20/30 |
+| Wędrowiec | 20/30 |
+| Budowlaniec | 18/30 |
+| Łowca | 17/30 |
+| Kucharz | 15/30 |
+| Strateg | 12/30 |
+| Informatyk | 4/30 |
+
+To nie jest finalny balans. Informatyk ma być trudny, ale rozrzut wymaga
+playtestów człowieka.
+
+## Biomy i plansza
+
+✅ Plansza 3×2 losuje 6 kafli z puli **8 biomów**:
+
+- Las
+- Łąki
+- Góry
+- Bagno
+- Rzeka
+- Pustkowie
+- Jaskinie
+- Wybrzeże
+
+✅ Każdy biom ma dane, sloty budynków, akcje zbierania, zdarzenia oraz
+normalne i skażone tło.
+
+✅ Fog of war: run zaczyna się z jednym odkrytym kaflem, a wejście na sąsiada
+odsłania jego zawartość.
+
+🟡 Karty eksploracji działają, ale nie istnieje jeszcze pełny interfejs
+podglądu/oznaczania nieodkrytych kafli przed ruchem.
 
 ## Budynki
-**✅ W grze (15, dane `.tres` + ilustracja Akt I + Akt II, w puli nagród):**
-- Bazowe / startowe: Ognisko (`campfire`, +2 ciepła), Szałas (`hut`, ochrona
-  nocna), Studnia (`well`, +2 wody), Palisada (`palisade`, obrona 2).
-- Produkcja jedzenia: Farma (+2), Port rybacki (+2), Spiżarnia (+1),
-  Pułapki (+1 jedzenia + obrona 1).
-- Surowce: Drwalnia (+2 drewna), Magazyn drewna (+1 drewna), Kamieniołom
-  (+2 mat.), Warsztat (+1 mat.).
-- Woda/zdrowie/obrona: Filtr wodny (+1 wody), Zielarnia (+1 zdrowia/dzień),
-  Wieża obserwacyjna (obrona 2).
 
-**✅ Budowane z KATALOGU** w trybie **„Budowanie"** (toggle przy „Koniec dnia"
-podmienia rząd kart okolicy/ręki na przewijalny katalog budynków-kart; klik karty
-→ potwierdzenie), nie z talii ani nagród. Boczny popup kafla = już tylko naprawa/
-rozbiórka. **Budowa po BUM dostępna, ale z dopłatą** (+3 energii / +5 drewna /
-+5 mat. — `POST_BUM_BUILD_*_SURCHARGE`). Budynki magazynowe podnoszą cap zasobów
-(Spiżarnia/Magazyn/Filtr/Warsztat/Studnia).
-**✅ Specjale wpięte:** `slow_spoilage` (Spiżarnia — redukuje psucie jedzenia),
-`unlock_crafting` (Warsztat — przerabia drewno→materiał co świt),
-`night_protection` (Szałas). Dodano lekkie psucie jedzenia (1/dzień powyżej 4,
-łagodzone przez Kucharza i Spiżarnię). Przy
-progu BUM 60% budynki Aktu I giną doszczętnie — odbudowa w Akcie II jest możliwa,
-ale droga (świadomy koszt katastrofy). Karta budynku w katalogu pokazuje koszt
-bazowy; dopłatę po BUM widać w oknie potwierdzenia.
+✅ **19 budynków**:
 
-## Akcje
-- ✅ **29 kart akcji** (`data/cards/actions/`): bazowe (adrenaline, big_hunt,
-  campfire, craft_tools, expedition, explore, feast, find_water, first_aid,
-  fishing, forage, gather_sticks, gather_wood, herbs, hunt, murky_water*, rest,
-  scavenge, scout, snare_trap, tainted_hunt*, woodcraft) + 7 nowych (waterskin,
-  dried_meat, bandage, huddle, trail_snack, survey, deep_sleep).
-  (*skorumpowane akcje zbierania Akt II.)
-- ✅ **Ilustracje akcji KOMPLETNE** (audyt 2026-06-20): bazowe via
-  `ACTION_ART_ALIASES`, a 7 nowych akcji + 2 skażone + **9 sygnatur klas** mają
-  własne `action_<id>.png` w `actions_act1_candidates/`. Gap-check: 0 braków akcji.
+- Akt I / ogólne: Ognisko, Szałas, Studnia, Farma, Port rybacki, Spiżarnia,
+  Pułapki, Drwalnia, Magazyn drewna, Kamieniołom, Warsztat, Filtr wodny,
+  Zielarnia, Palisada i Wieża obserwacyjna;
+- dedykowana odbudowa Aktu II: Bastion, Cysterna, Szpital polowy i
+  Wzmocnione schronienie.
 
-## Zdarzenia nocne (aktywna pula — `NightEventPool`)
-- 🟡 **Ilustracje zdarzeń** w `assets/art/cards/illustrations/events/`
-  (`<id>.png`, auto-ładowane). Audyt 2026-06-20: art Plagi (5) + Zaćmienia (4) +
-  skażone akcje JUŻ SĄ (Codex). **Brak artu: 10 zdarzeń biomowych** (swamp_fever/
-  miasma, river_flood/mist, wasteland_dust_storm/scarcity, caves_rockfall/dark,
-  coast_storm/high_tide) — renderują się z samą ramką (prompt gotowy).
-  UWAGA: nowe PNG bywają nieZAIMPORTOWANE (brak `.import`) → po wrzuceniu ZAWSZE
-  `--import`, inaczej Godot ich nie pokaże mimo że plik jest na dysku.
-- ✅ **42 karty zdarzeń**: neutral 9, weather 13, biome 8, omen 6, disaster 6
-  (+ 4 potwory). System wag/cooldownów/limitów/severity/faz/pacingu.
-- ✅ **omen 6** — pojawiają się tylko w oknie dzień≥7 → BUM (faza OMEN).
-- 🟡 Część bazy z `dzien_50_baza_kart_v0_1.md` ZABLOKOWANA (sezony, nowe biomy,
-  Pęknięcie/Zaćmienie, obrażenia budynku ze zdarzeń, losowość, mitygacje
-  warunkowe) — patrz status w tamtym pliku.
-- ✅ **Balans (2026-06-19):** capy zasobów + zasoby per biom + budowanie z katalogu
-  (tryb „Budowanie") + decay 3/3/3 + energia 8 + BUM rujnuje 60–80% + budowa po BUM
-  za karę (+3E/+5D/+5M). Naiwny bot ~66% (33/50), zgony skupione w Akcie II (15).
-  Świadoma gra celuje wyżej.
-- 🔴 Popup nocy z rozliczeniem dopiero po „OK" (teraz efekty liczą się w tle).
+✅ Budynki są wybierane z katalogu, umieszczane w slotach biomu i mają HP.
 
-## Potwory (Akt II)
-- ✅ **7** (`data/monsters/`): Plaga — Zgnilec, Zarażony wilk, Krucza chmara, Rój
-  szczurów (z artem); Zaćmienie — Mroźny upiór, Cienisty pełzacz, Rój kłujek
-  (🟡 bez artu, frame-only). Wpięte w pulę po BUM wg wylosowanej katastrofy.
-- 🔴 Art dla 3 potworów Zaćmienia.
+✅ Działają:
 
-## Katastrofy (BUM)
-- ✅ **Plaga** (`plague.tres`) — gnicie/choroby (zdrowie/jedzenie). 6 zdarzeń + 4 potwory.
-- ✅ **Zaćmienie** (`eclipse.tres`) — zimno/mrok (ciepło/energia). 4 zdarzenia + 3 potwory.
-  BUM losuje teraz z 2 katastrof. ✅ **Wygląd Aktu II per katastrofa** (`run.gd ACT2_LOOK`):
-  Plaga = zgniła zieleń, Zaćmienie = lodowy granat (scrim, log, tło planszy i warstwy
-  FX BUM tintowane chłodno). 🟡 Skażone twarze kafli wciąż na zapieczonym zielonym
-  arcie Plagi (tint na niebiesko dałby muliste teal — czeka na osobny art kafli).
-- 🔴 Pęknięcie i kolejne typy.
+- limity magazynowe zasobów;
+- produkcja dzienna;
+- ochrona nocna;
+- spowolnienie psucia;
+- przeróbka drewna na materiały;
+- naprawa, ruina i rozbiórka;
+- dopłata za zwykłą budowę po BUM;
+- tańsze warianty odbudowy dostępne tylko w Akcie II.
 
-## Pory roku
-- ✅ Wiosna/Lato/Jesień/Zima z modyfikatorami + HUD (`season`).
-- ✅ FX pogodowe wpięte: deszcz (wiosna/jesień), śnieg (zima), czysto (lato) —
-  subtelna warstwa pod UI (`run.gd _update_weather`).
+## Karty akcji
 
-## Animacje / FX
-- ✅ **Odkrycie kafla** (warstwowa mgła, shader dissolve) — wpięte.
-- ✅ **BUM** (Akt I→II, warstwowa sekwencja) — wpięte.
-- ✅ **Flip nocnej karty** (rewers→front, glow/shine/burst/dust, tint per kategoria).
-- ✅ **Wpięte FX (cały wygenerowany zestaw):** pogoda sezonowa (deszcz/śnieg +
-  **mróz/winieta zimą** `fx_frost_edges`), **pazur** przy ataku potwora
-  (`fx_claw_slash`), **iskry** lecz./zasobów przy zagraniu karty
-  (`fx_heal_spark`/`fx_resource_gain`), oraz na zruinowanych budynkach: **dym**
-  (`fx_smoke_loop`) + **ogień** (`fx_small_fire_loop`) + **ślady wypalenia**
-  (`fx_burn_marks`). Wszystkie pod `ResourceLoader.exists` → działają na obecnych
-  i na zregenerowanych assetach.
-- ✅ **Despill keyowanych FX** (`tools/despill_blue.gd`): `chroma_key_blue`
-  despilluje tylko w miękkim pasku alfy, więc niebieski wtopiony w ZACHOWANY art
-  zostawał jako fioletowe halo (kurz/dym/winieta). Osobny przebieg zaciska B→G
-  (standardowa supresja blue-spillu): fiolet→czysta czerwień (winieta HP),
-  królewski niebieski→neutralny ciemny dym (mgła porażki), kurz→ciepły brąz.
-  Wpięte na: build_place, ruin_collapse, low_hp_vignette, defeat_haze, burn_marks,
-  smoke_loop, rot_wipe, corruption_vignette. Addytywne na czerni były czyste.
-- ✅ **Feedback jedzenia/picia** (`fx_eat_drink_feedback`) — sygnał
-  `SurvivalSystem.needs_consumed(food, water)` z `_resolve_needs` (po „OK" nocy);
-  `run.gd _on_needs_consumed` puszcza addytywny błysk nad paskami sytości/nawodnienia.
-- 🟡 **Pre-wpięte (kod gotowy, brak assetów):** winieta krytycznego HP
-  (`fx/ui/fx_low_hp_vignette`), FX budynków (`fx/buildings/` postawienie/naprawa/
-  zawalenie), ekran wyniku (`fx/result/` wygrana/przegrana). Haki pod
-  `ResourceLoader.exists` → zadziałają od razu po wrzuceniu PNG. Opc.
-  `fx/cards/fx_eat_drink_feedback`. Prompty gotowe.
-- 🔴 **Brak FX (do wygenerowania):** budynek postawienie/naprawa/ruina-zawalenie,
-  ekran wyniku (wygrana/przegrana), winieta krytycznego HP, feedback jedzenia/picia.
+✅ **27 kart** w głównej puli nagród.
 
-## UI / ramki
-- ✅ HUD górny (Akt I/Akt II), ramki kart, kafle, panel nocy, paski.
-- 🟡 Ramki górnego paska (`top_status_bar_panel_act1/act2_*`) — regeneracja pod
-  poprawny aspekt (1282×119) w toku przez Codex.
+✅ **2 skażone akcje biomów** używane po BUM.
 
-## Systemy / meta (z README, jeszcze nie ma)
-- ✅ **Save/load** runu — autozapis na każdym świcie do `user://run_save.tres`,
-  „Kontynuuj" w menu, `SurvivalSystem.resume`. Granulacja per dzień (postęp w
-  trakcie dnia nie jest zapisywany). 🔴 jeszcze: ręczny zapis/wiele slotów.
-- 🟡 **Meta-progresja:** ✅ złote monety (1/wygrany run) + ruletka (3 monety →
-  kolejna klasa wg drabinki easiest→hardest), zapis do `user://meta_state.tres`;
-  **7 klas** (Kucharz + Budowlaniec/Zielarka/Łowca/Strateg/Wędrowiec/Wojskowy).
-  🔴 jeszcze: kolekcja kart, odblokowania biomów/katastrof, drabinka trudności.
-- 🔴 **Ulepszanie kart** (dziś nagroda = nowa karta, nie ulepszenie).
-- 🔴 **Docelowy run do dnia 50** (teraz 30 — vertical slice).
-- 🔴 Karty zwiadu realnie podglądające/oznaczające kafle przed ruchem
-  (ilustracje scout/mapa są, efekt fog-of-war ograniczony).
+✅ **9 kart sygnaturowych** klas.
 
----
+✅ Wszystkie używane akcje mają ilustracje albo jawnie zdefiniowany alias artu.
 
-## Najbliższe „darmowe" zwycięstwa (bez generowania nowego artu)
-1. ~~Odblokować 11 budynków~~ ✅ ZROBIONE (2026-06-16) — 15 budynków w puli.
-2. **Wpiąć ZAPAS FX** — pogoda pod sezony, ogień/dym na ruinach, claw przy ataku.
-3. **Dosypać zdarzenia** (zwł. omeny) — system puli już to udźwignie.
-4. **Doważyć balans** — smoke ~80% po budynkach; rozważyć koszty/HP/pasywy
-   nowych budynków albo mocniejszy BUM/Akt II.
+🔴 Nie ma systemu ulepszania istniejących kart. Nagroda awansu dodaje nową
+kartę, zwiększa maksymalne HP albo maksymalną energię.
+
+## Zdarzenia nocne
+
+✅ **70 zasobów zdarzeń**:
+
+- 39 kart bazowych, pogodowych i omenów;
+- 15 zdarzeń biomowych;
+- 6 zdarzeń Plagi;
+- 4 zdarzenia Zaćmienia;
+- 3 zdarzenia Powodzi;
+- 3 zdarzenia Pęknięcia.
+
+✅ `NightEventPool` obsługuje wagi, cooldowny, limity wystąpień, fazy runu,
+sezony, odkryte biomy, katastrofę i potwory.
+
+✅ Omeny zaczynają się przed możliwym BUM.
+
+✅ Nocna karta ma animowany rewers, reveal i front. Efekt jest rozliczany
+dopiero po potwierdzeniu przez gracza.
+
+✅ Zdarzenia z wyborami prezentują wynik decyzji przed przejściem dalej.
+
+✅ Ilustracje zdarzeń biomowych i katastroficznych są obecne oraz zaimportowane.
+
+## Katastrofy i potwory
+
+✅ BUM następuje losowo o świcie dnia **22–27**.
+
+✅ BUM odwraca planszę, uruchamia sekwencję FX i uszkadza budynki o 35–80%.
+
+✅ Cztery katastrofy:
+
+- Plaga — większy głód i szybsze psucie;
+- Zaćmienie — większa utrata ciepła i mniej energii;
+- Powódź — zimno oraz psucie zapasów;
+- Pęknięcie — większe pragnienie i mniej energii.
+
+✅ **15 potworów**, wszystkie przypisane do odpowiednich katastrof i posiadające
+ilustracje.
+
+✅ Akt II ma osobną paletę, muzykę i ambient zależny od katastrofy.
+
+## Pory roku i balans runu
+
+✅ Wiosna, lato, jesień i zima mają własne modyfikatory oraz HUD.
+
+✅ Pogoda wizualna: deszcz, śnieg i zimowa winieta.
+
+✅ Docelowy warunek zwycięstwa to przetrwanie do dnia 50.
+
+🟡 Kontrolne smoke testy z 2026-06-22: **31–33/50 wygranych**. Wszystkie
+porażki wydarzyły się po BUM. Akt I jest dla bota bardzo bezpieczny, a Akt II
+odpowiada za całą śmiertelność.
+
+## UI, animacje i FX
+
+✅ Główne ekrany: menu, run i wynik.
+
+✅ HUD Aktu I/Aktu II, paski statystyk, dziennik, katalog budowy, popup kafla,
+panel awansu, samouczek, ustawienia i galeria klas.
+
+✅ Wpięte FX:
+
+- odkrywanie kafla;
+- wielowarstwowe BUM;
+- reveal nocnej karty;
+- deszcz, śnieg i mróz;
+- pazur potwora;
+- leczenie i zdobywanie zasobów;
+- postawienie i naprawa budynku;
+- dym, ogień, ślady wypalenia i zawalenie ruiny;
+- krytyczne HP;
+- feedback jedzenia/picia;
+- zwycięstwo i porażka.
+
+✅ Ekran wyniku ma osobne tła zwycięstwa i porażki.
+
+🟡 Dalszy polish może objąć czytelność tekstów na mniejszych oknach,
+ujednolicenie tempa animacji i testy innych proporcji ekranu.
+
+## Audio
+
+✅ Muzyka menu, Aktu I, zwycięstwa oraz osobne utwory Aktu II dla czterech
+katastrof.
+
+✅ Ambient lasu i warianty Aktu II; Plaga korzysta obecnie z generycznego
+ambientu Aktu II.
+
+✅ SFX kart, budowy, naprawy, BUM, potwora, awansu, odkrycia, jedzenia,
+picia, przycisku i przegranej.
+
+🟡 Brak `coin.wav`; nagroda monety działa bez dźwięku.
+
+🔴 `assets/audio/LICENSES.txt` nadal jest szablonem. Przed publicznym wydaniem
+trzeba wpisać źródło, autora, licencję i datę dla każdego pliku oraz dodać
+creditsy w grze.
+
+🟡 Muzyka jest przechowywana jako duże pliki WAV. Do buildu warto przygotować
+skompresowane OGG.
+
+## Save/load i meta
+
+✅ Autozapis runu na początku każdego dnia.
+
+✅ „Kontynuuj” w menu i odbudowa systemów runtime przez `SurvivalSystem.resume`.
+
+✅ Osobny zapis meta: monety, odblokowane klasy i informacja o obejrzeniu tutorialu.
+
+✅ Test zapisu runu oraz osobny test kosztu, odblokowania i zapisu meta-progresji.
+
+🟡 Brak ręcznego zapisu, wielu slotów i wersjonowania/migracji starych zapisów.
+
+🔴 Brak kolekcji kart, odblokowań biomów/katastrof i drabinki trudności.
+
+## Testy
+
+✅ Dziesięć testów headless:
+
+1. `smoke_test.gd`
+2. `fog_of_war_test.gd`
+3. `season_test.gd`
+4. `board_test.gd`
+5. `load_test.gd`
+6. `ui_layout_test.gd`
+7. `night_pool_test.gd`
+8. `save_load_test.gd`
+9. `meta_progression_test.gd`
+10. `audio_test.gd`
+
+Pokrywają pełne runy, wszystkie klasy, 200 plansz, dane `.tres`, 100 wariantów
+kart UI, pory roku, fog of war, pulę nocy, oba rodzaje zapisu i konfigurację audio.
+
+🔴 Brak CI uruchamiającego testy po każdym pushu.
+
+## Najbliższe priorytety
+
+1. Ręczne playtesty i balans klas oraz obu aktów.
+2. Presety eksportu Windows/Web i automatyczne testy CI.
+3. Uzupełnienie licencji audio i creditsów.
+4. Kompresja audio oraz ograniczenie rozmiaru repozytorium.
+5. Wersjonowanie zapisów.
+6. Dalsza meta-progresja i pełny zwiad nieodkrytych biomów.

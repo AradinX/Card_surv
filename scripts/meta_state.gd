@@ -5,8 +5,8 @@ extends Resource
 ## playable character classes. Saved to user:// so it survives app restarts.
 
 const SAVE_PATH := "user://meta_state.tres"
-## Cost of one roulette spin (in gold coins). TODO: przywrócić 3 po testach.
-const SPIN_COST := 0
+## Cost of one roulette spin (in gold coins).
+const SPIN_COST := 3
 ## The class everyone starts with — always unlocked.
 const STARTING_CLASS_ID := "scout"
 
@@ -16,10 +16,11 @@ const STARTING_CLASS_ID := "scout"
 @export var seen_tutorial: bool = false
 
 
-## Loads the saved meta-state, or returns a fresh one (cook unlocked).
-static func load_or_new() -> MetaState:
-	if ResourceLoader.exists(SAVE_PATH):
-		var res := ResourceLoader.load(SAVE_PATH, "", ResourceLoader.CACHE_MODE_IGNORE)
+## Loads the saved meta-state, or returns a fresh one (starting class unlocked).
+## The optional path keeps tests isolated from the player's real save.
+static func load_or_new(path: String = SAVE_PATH) -> MetaState:
+	if ResourceLoader.exists(path):
+		var res := ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
 		if res is MetaState:
 			var meta := res as MetaState
 			if not meta.unlocked_class_ids.has(STARTING_CLASS_ID):
@@ -28,8 +29,8 @@ static func load_or_new() -> MetaState:
 	return MetaState.new()
 
 
-func save() -> void:
-	ResourceSaver.save(self, SAVE_PATH)
+func save(path: String = SAVE_PATH) -> Error:
+	return ResourceSaver.save(self, path)
 
 
 func is_unlocked(class_id: String) -> bool:

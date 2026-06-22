@@ -398,6 +398,7 @@ func _refresh_building_actions() -> void:
 				repair_block != "",
 				func() -> void:
 					_survival.repair(repair_idx)
+					AudioManager.play_sfx("repair")
 					_spawn_tile_fx(REPAIR_FX, true)
 			))
 		else:

@@ -19,7 +19,7 @@ const RUN_SAVE_PATH := "user://run_save.tres"
 
 ## Meta-progression (coins + unlocked classes), persisted to user://.
 var meta_state: MetaState
-## All playable classes by id (cook + ones unlocked via the roulette).
+## All playable classes by id (Scout starts unlocked; the rest use the roulette).
 var class_catalog: Dictionary = {}
 ## Which unlocked class the next run will use.
 var selected_class_id := MetaState.STARTING_CLASS_ID
@@ -50,7 +50,7 @@ func class_count() -> int:
 	return class_catalog.size()
 
 
-## Class resources the player has unlocked (cook always present), easiest first.
+## Class resources the player has unlocked (Scout always present), easiest first.
 func unlocked_classes() -> Array[CharacterClassData]:
 	var result: Array[CharacterClassData] = []
 	for class_id in meta_state.unlocked_class_ids:
@@ -63,7 +63,8 @@ func unlocked_classes() -> Array[CharacterClassData]:
 
 ## Spends SPIN_COST coins and unlocks a RANDOM still-locked class. Returns null
 ## when the player can't spin (caller should check can_spin first).
-func spin_roulette() -> CharacterClassData:
+## The optional save path is used by the isolated meta-progression test.
+func spin_roulette(meta_save_path: String = MetaState.SAVE_PATH) -> CharacterClassData:
 	if not meta_state.can_spin(class_count()):
 		return null
 	var locked: Array[CharacterClassData] = []
@@ -75,7 +76,7 @@ func spin_roulette() -> CharacterClassData:
 	meta_state.gold_coins -= MetaState.SPIN_COST
 	var won_class := locked[randi() % locked.size()]
 	meta_state.unlock(won_class.id)
-	meta_state.save()
+	meta_state.save(meta_save_path)
 	return won_class
 
 

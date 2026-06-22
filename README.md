@@ -1,230 +1,162 @@
-# DZIEŃ 50 / DAY FIFTY (tytuł roboczy)
+# DZIEŃ 50 / DAY FIFTY
 
-Karciany roguelike survivalowy 2D (pixelart UI), singleplayer.
-Run trwa ~60-90 minut i ma dwuaktową strukturę: budowanie osady w walce
-z naturą, przerwane katastrofą **BUM**, po której świat — i plansza —
-zmieniają się na oczach gracza.
+Karciany roguelike survivalowy 2D dla jednego gracza, tworzony w Godot 4.5.
+Każdy dzień to zagrywanie kart, zbieranie zasobów, rozbudowa osady i nocne
+zdarzenie. W połowie runu następuje **BUM**: plansza zostaje skażona, budynki
+ulegają uszkodzeniu, a do puli nocy trafiają potwory. Celem jest przetrwanie
+do dnia 50.
 
-> **Status dokumentu:** koncept po pierwszej rundzie decyzji projektowych.
-> Alternatywne tytuły: „Długi Sen / The Long Dream", „Deck of Days",
-> „Przebudzenie / Wake".
+> **Stan projektu: 2026-06-22.** Grywalny, kompletny funkcjonalnie vertical
+> slice z pełnym 50-dniowym runem. Główna linia rozwoju to wersja Godot;
+> `web/` zawiera starszy, równoległy prototyp przeglądarkowy.
 
----
+## Co jest w grze
 
-## 1. Wizja i haczyk (elevator pitch)
+- pełny run do **dnia 50** w dwóch aktach;
+- BUM losowane na dzień **22–27**;
+- plansza 3×2 losowana z puli **8 biomów**, fog of war i ruch za energię;
+- cztery potrzeby: zdrowie, sytość, nawodnienie i ciepło;
+- **19 budynków** stawianych z katalogu na slotach biomów;
+- naprawy, ruiny, rozbiórka i kosztowna odbudowa po BUM;
+- **4 katastrofy**: Plaga, Zaćmienie, Powódź i Pęknięcie;
+- **15 potworów** przypisanych do katastrof;
+- cztery pory roku z osobnymi modyfikatorami i pogodą;
+- ważona pula nocnych zdarzeń z cooldownami, limitami i omenami;
+- XP oraz wybór nagrody przy awansie: energia, zdrowie albo nowa karta;
+- **9 klas**, każda z własną talią i kartą sygnaturową;
+- meta-progresja: moneta za wygrany run i ruletka klasy za 3 monety;
+- autozapis na początku dnia oraz opcja „Kontynuuj”;
+- samouczek, ustawienia obrazu i dźwięku, muzyka, ambient, SFX i rozbudowane FX.
 
-Budzisz się w dziczy. Każda tura to dzień: grasz kartami akcji, stawiasz
-budynki (które stają się kartami na stole) i przeżywasz pory roku na
-planszy złożonej z losowych biomów. Gdy osada w końcu kwitnie — następuje
-**BUM**: kafle mapy odwracają się na skorumpowane wersje, twoje budynki
-płoną w sekundę, a do talii zdarzeń wtasowują się potwory. Przetrwaj do
-dnia 50. Obudź się.
+Aktualne zasoby danych:
 
-**Wyróżniki na tle innych karcianych roguelike'ów:**
-1. Survival zamiast walki — przeciwnikiem są pory roku, głód i zimno,
-   nie rzędy wrogów.
-2. Osada jako karty fizycznie leżące na stole — widzisz, jak rośnie
-   (i jak ginie).
-3. Katastrofa w połowie runu, która przemeblowuje planszę, talię
-   i zasady. Moment stworzony pod klipy/streamy.
+| Rodzaj | Liczba |
+|---|---:|
+| Biomy | 8 |
+| Budynki | 19 |
+| Klasy i talie startowe | 9 |
+| Katastrofy | 4 |
+| Potwory | 15 |
+| Karty akcji w głównej puli nagród | 27 |
+| Skażone akcje biomów | 2 |
+| Karty sygnaturowe klas | 9 |
+| Zasoby zdarzeń nocnych | 70 |
 
-## 2. Filary projektu
+Szczegółowy spis zawartości i aktualnych braków znajduje się w
+[`docs/INWENTARZ.md`](docs/INWENTARZ.md). Historia prac jest prowadzona w
+[`CLAUDE.md`](CLAUDE.md).
 
-1. **Dwa akty, jeden run** — ta sama plansza, dramatycznie inna gra.
-2. **Wszystko jest kartą** — akcje, budynki, zdarzenia, potwory, biomy
-   (kafle). Zero animowanych postaci i mapy świata — zakres pod solo deva.
-3. **Strata napędza emocje** — BUM niszczy to, co gracz zbudował,
-   ale run jest na tyle krótki, że porażka zaprasza do kolejnej próby.
-4. **Każdy run inny** — losowa plansza biomów, losowy typ katastrofy,
-   odblokowywana różnorodność zamiast permanentnych ułatwień.
+## Pętla rozgrywki
 
-## 3. Plansza biomów (mapa runu)
+1. O świcie odnawia się energia, dobierana jest ręka i uruchamiają się
+   pasywy budynków.
+2. Gracz zagrywa karty, korzysta z akcji bieżącego biomu, podróżuje i buduje.
+3. Po zakończeniu dnia odkrywana jest duża karta nocnego zdarzenia.
+4. Efekt nocy jest rozliczany dopiero po potwierdzeniu przez gracza.
+5. Potrzeby spadają, zapasy są automatycznie zużywane i zaczyna się kolejny dzień.
 
-- Plansza składa się z **6 kafli biomów** losowanych i układanych na
-  starcie runu (siatka 3×2) z większej puli.
-- Pula biomów (startowo ~8, do rozszerzania): Wybrzeże, Góry, Bagna,
-  Las, Łąki, Jezioro, Jaskinie, Wzgórza.
-- Każdy biom definiuje:
-  - **dostępne karty zasobów** (Wybrzeże: ryby i woda; Góry: ruda
-    i kamień; Bagna: zioła i torf...),
-  - **modyfikatory zdarzeń** (Góry: ostrzejsza zima; Bagna: choroby;
-    Wybrzeże: sztormy),
-  - **sloty pod budynki: bazowo 3, zakres 2-4** (Łąki: 4, Góry: 2...).
-    Przy 6 kaflach ~18 miejsc łącznie — celowy niedobór wymuszający
-    decyzje o lokalizacji osady.
-- **Pozycja i ruch gracza:** gracz stoi na jednym kaflu; przejście na
-  sąsiedni kafel kosztuje **1 energię**. Karty zbierania zasobów działają
-  tylko w bieżącym biomie; **pasywne efekty budynków są globalne**
-  (Ognisko grzeje niezależnie od pozycji).
-- **Odkrywanie mapy w Akcie I:** na starcie gracz widzi tylko kafel
-  startowy, a pozostałe kafle są zakryte jako `Nieznany teren`. Wejście na
-  sąsiedni kafel odkrywa jego biom, sloty budynków, akcje zbierania i
-  zagrożenia. Karty eksploracji (`Eksploruj`, `Zwiad`, `Mapa okolicy`) mogą
-  docelowo podejrzeć lub oznaczyć kafel przed wejściem.
-- **Po BUM kafle odwracają się** na skorumpowane wersje (Martwe
-  Wybrzeże, Wyjące Góry...) z innymi zasobami i zagrożeniami.
-- Synergia układu: sąsiedztwo kafli ma znaczenie (np. Farma na Łące
-  obok Jeziora daje bonus) — głębia z prostych zasad.
+Akt I służy eksploracji i przygotowaniu osady. BUM odwraca kafle na skażone
+wersje i losowo uszkadza budynki. W Akcie II dochodzą reguły katastrofy,
+potwory, cięższa ekonomia i odbudowa po zniszczeniach.
 
-## 4. Akt I — Narodziny (dni 1 - ~25-30)
+## Klasy i meta-progresja
 
-- **Cel aktu:** rozwijać osadę i przygotować się na zimę / na to,
-  co nadchodzi.
-- Statystyki gracza: **HP, Głód, Pragnienie, Ciepło** — spadek któregoś
-  do zera = obrażenia / śmierć.
-- **Energia: 10 dziennie (bazowo).** Pętla dnia: dobierz rękę z talii
-  akcji → graj karty za energię → zakończ dzień → duża karta nocnego
-  zdarzenia → efekty budynków i rozliczenie nocy (głód/pragnienie/ciepło
-  tykają).
-- **Poziomy postaci w obrębie runu:** XP za działania; awans = wybór
-  1 z 3 nagród (+1 max energii / +max HP / ulepszenie karty z talii).
-  Poziomy NIE przenoszą się między runami. Karty zdarzeń mogą dawać
-  dodatkowe jednorazowe bonusy energii/statystyk.
-- **Budynki = karty na stole**, przypisane do slotów kafli: Ognisko
-  (+ciepło), Szałas (ochrona nocą), Spiżarnia (spowalnia psucie),
-  Studnia (woda), Farma, Wędzarnia, Warsztat (odblokowuje lepsze karty).
-- **Pory roku jako fazy talii zdarzeń:** wiosna → lato (upał, psucie
-  jedzenia) → jesień (obfitość, przygotowania) → zima (mróz, śnieżyce,
-  zamarznięta woda).
-- **Nocne zdarzenia jako kontrolowana pula, nie czysty chaos:** każdej nocy
-  dobierana jest jedna karta z aktywnej puli z wagami. Pula składa się z
-  kart bazowych, kart odkrytych biomów, kart sezonu, zapowiedzi BUM, a po
-  katastrofie także potworów i kart katastrofy. Zdarzenia mają `weight`,
-  `cooldown_days`, `max_per_run` i tagi, aby rzadkie zagrożenia (powódź,
-  choroba z bagien) nie powtarzały się frustrująco często. `Spokojna noc`
-  jest prawdziwą neutralną kartą, a nie brakiem zdarzenia.
-- **Prezentacja nocy:** po kliknięciu `Zakończ dzień` ekran przyciemnia się,
-  pokazuje rewers karty zdarzenia, flipuje ją na dużą kartę z opisem i
-  efektem, a gracz klika `OK`, żeby rozliczyć konsekwencje. Efekty trafiają
-  też do dziennika/logu.
-- **Foreshadowing** (zapowiedzi twista): od ~dnia 15 w talii zdarzeń
-  pojawiają się sygnały — martwe ptaki, drżenie ziemi, łuna na
-  horyzoncie, niespokojne sny. Gracz wie, że COŚ nadchodzi; nie wie
-  kiedy ani co.
+Klasą startową jest **Skaut**. Pozostałe klasy odblokowuje ruletka:
 
-## 5. BUM (losowy moment, dzień ~25-30)
+- wygrany run daje 1 złotą monetę;
+- losowanie kosztuje 3 monety;
+- ruletka wybiera jedną z jeszcze zablokowanych klas;
+- monety i odblokowania zapisują się w `user://meta_state.tres`.
 
-- **Fabularnie:** sen zamienia się w koszmar. Gracz nigdy nie widzi
-  źródła — tylko eksplozję na niebie / upadek czegoś za horyzontem.
-  Każdy typ katastrofy to inna twarz koszmaru.
-- Mechanicznie: animacja na całej planszy — kafle odwracają się,
-  a **każdy budynek losuje procent uszkodzeń**:
-  - **< 50% uszkodzeń** → budynek uszkodzony: działa słabiej lub wcale,
-    można go **naprawić** (koszt surowców proporcjonalny do uszkodzeń);
-  - **≥ 50% uszkodzeń** → **ruina**: można tylko rozebrać, odzyskując
-    ~50% surowców.
-- **Typ katastrofy losowany z puli** (startowo 2-3, kolejne
-  odblokowywane):
-  - *Plaga* — zombie, gnijące biomy, choroby;
-  - *Pęknięcie* — duchy i zjawy, kafle "wyciekają" mrokiem;
-  - *Zaćmienie* — wieczna noc, mróz, stwory ciemności;
-  - (pomysły na później: powódź, rój, "cisza").
-- Każdy typ ma własne potwory, skorumpowane wersje kafli i własną
-  strategię przetrwania → drugi run z innym BUM to inna gra.
+Dostępne klasy: Skaut, Kucharz, Budowlaniec, Zielarka, Łowca, Strateg,
+Wędrowiec, Wojskowy i Informatyk.
 
-## 6. Akt II — Po katastrofie (do dnia 50)
+Meta-progresja odblokowuje różnorodność, a nie stałe bonusy statystyk.
+Kolekcja kart, odblokowania biomów/katastrof i drabinka trudności nie są
+jeszcze zaimplementowane.
 
-- Talia zdarzeń zostaje zainfekowana **kartami potworów**, które
-  atakują nocą i **zadają obrażenia kartom budynków** (budynki mają HP;
-  uszkodzenia naprawialne wg progu 50% jak przy BUM).
-- Nowe karty: Palisada, Pułapki, Strażnica, Pochodnie (obrona),
-  plus karty rozbiórki ruin (odzysk surowców z własnych zgliszcz).
-- Statystyki przetrwania działają nadal — zima + fala potworów
-  to szczyt trudności.
-- **Cel: dotrwać do dnia 50.** Finał: budzisz się w domu. To był sen.
-  *(Scena po napisach z elementem ze snu — do przemyślenia.)*
+## Uruchomienie
 
-## 7. Klasy postaci
+Wymagany jest Godot 4.5 lub nowszy; projekt był testowany na 4.5.1.
 
-Start: tylko Kucharz. Kolejne klasy odblokowywane **przez wydarzenia
-w runach** (spotykasz postać jako kartę zdarzenia, pomagasz jej —
-dołącza do kolekcji jako grywalna klasa).
+1. Otwórz Godot Project Manager.
+2. Zaimportuj `project.godot`.
+3. Uruchom projekt klawiszem **F5**.
 
-| Klasa | Atuty | Słabości | Profil |
-|---|---|---|---|
-| **Kucharz** | jedzenie odnawia +50% głodu; wolniejsze psucie zapasów | budowanie kosztuje +1 energii | bezpieczny start, ekonomia jedzenia |
-| **Budowlaniec** | budynki tańsze w surowcach i z większym HP | jedzenie odnawia mniej głodu | osada-forteca, mocny po BUM |
-| **Wojskowy** | karty obrony/pułapek silniejsze; mniejsze obrażenia od potworów | szybszy wzrost głodu; droższe budowanie | słabszy Akt I, dominuje w Akcie II |
+Główna scena: `scenes/main_menu.tscn`.
 
-Każda klasa = własna talia startowa (~10 kart) + 1-2 karty unikalne.
+## Testy
 
-## 8. Meta-progresja między runami
+Po zmianach w skryptach lub zasobach najpierw odśwież import:
 
-Zasada projektowa: **odblokowujemy różnorodność, nie siłę.**
-Permanentne ułatwienia psują roguelike'i. Zamiast tego:
+```text
+Godot_v4.5.1-stable_win64_console.exe --headless --path . --import
+```
 
-- **Odblokowania (różnorodność):** nowe karty akcji i budynków
-  (trafiają do puli losowań), nowe kafle biomów, nowe typy katastrof,
-  klasy postaci (przez wydarzenia w runach — patrz sekcja 7).
-- **Drabinka trudności (dobrowolna):** po wygranej odblokowuje się
-  wyższy poziom z utrudnieniami (krótsze lato, szybszy głód,
-  wcześniejszy BUM...) — wzorzec Ascension/Stake.
-- **Waluta meta:** punkty za przebieg runu (dni przeżyte, poziom osady)
-  wydawane na odblokowania — postęp jest nawet po przegranej.
-- Śmierć = koniec runu, zawsze. Run trwa 60-90 min, więc to gatunkowa
-  norma, nie kara.
+Testy headless:
 
-## 9. Pozycjonowanie rynkowe
+```text
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/smoke_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/fog_of_war_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/season_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/board_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/load_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/ui_layout_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/night_pool_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/save_load_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/meta_progression_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/audio_test.gd
+```
 
-- Karciane roguelike'i to zatłoczony rynek, ale niemal w całości
-  **bojowy** (klony Slay the Spire). Nisza survivalowa w tym gatunku
-  jest płytko zagospodarowana.
-- Sprzedaje grę: moment BUM (trailer!), osada z kart, plansza biomów.
-- Grupa docelowa: gracze StS/Balatro szukający świeżego twista +
-  fani survivali bez czasu na 60-godzinne sandboxy.
-- Format idealny pod streamerów: pełny run w jednym materiale.
+Aktualny zestaw obejmuje:
 
-## 10. Plan produkcji (na bazie istniejącego prototypu!)
+- 50 pełnych runów bota oraz próbkę 30 runów dla każdej klasy;
+- walidację 200 proceduralnych plansz;
+- import i typy wszystkich ręcznie tworzonych zasobów;
+- pory roku, fog of war i ważoną pulę zdarzeń;
+- instancjonowanie 100 wariantów kart UI;
+- zapis/odczyt runu;
+- koszt, odblokowanie i zapis/odczyt meta-progresji;
+- katalogi audio, busy oraz start odtwarzaczy muzyki i SFX.
 
-Prototyp z etapów 1-2 (pętla dnia, statystyki, karty akcji, talia
-zdarzeń, mapa węzłów) to fundament — nie zaczynamy od zera.
+Kontrolne pomiary smoke testu z 2026-06-22: **31–33/50 wygranych**; wszystkie
+porażki nastąpiły po BUM.
+To sygnał do dalszego strojenia Aktu I oraz różnic między klasami, nie twarda
+bramka testowa.
 
-### Vertical slice (cel nr 1)
-- Przeróbka mapy węzłów na **planszę 6 kafli** (3-4 biomy w puli),
-  ruch za 1 energię, sloty budynków 2-4.
-- Odkrywanie mapy w Akcie I: start z jednym widocznym kaflem, reszta jako
-  `Nieznany teren`; odkrywanie przez wejście na sąsiedni kafel, później
-  wsparte kartami zwiadu.
-- Budynki jako karty na stole z przypisaniem do slotów i HP.
-- Statystyki: HP, Głód, Pragnienie, Ciepło; energia 10/dzień;
-  uproszczone pory roku (po kilka kart na porę).
-- Nocne zdarzenia: aktywna pula z wagami, karta `Spokojna noc`, duży popup
-  karty po zakończeniu dnia; cooldowny i limity jako następny krok balansu.
-- Poziomy w runie: XP + wybór 1 z 3 przy awansie.
-- **Jeden typ BUM** (Plaga): flip kafli, procentowe uszkodzenia
-  budynków (próg 50%), 3-4 typy potworów, podstawowa obrona.
-- Jedna klasa (Kucharz). Run skrócony do ~30 dni na czas testów.
-- Cel testowy: czy Akt I wciąga sam w sobie i czy BUM robi wrażenie.
+## Architektura
 
-### Milestone'y dalsze
-1. Pełna długość runu (50 dni), balans, synergie kafli.
-2. Meta-progresja: waluta, odblokowania, ekran kolekcji;
-   klasy Budowlaniec i Wojskowy + wydarzenia odblokowujące.
-3. Drugi i trzeci typ katastrofy, kolejne biomy.
-4. Drabinka trudności, polish, dźwięk, juice na moment BUM.
+Projekt rozdziela dane, logikę i UI:
 
-## 11. Technologia
+```text
+data/       zasoby .tres: karty, biomy, budynki, klasy, katastrofy, potwory
+systems/    logika niezależna od scen: run, plansza, talia, pula nocy
+scripts/    stan runu i meta, autoloady, definicje zasobów
+scenes/     menu, ekran runu i wynik
+ui/         reużywalne widoki kart, biomów, pasków i overlayów
+tests/      testy headless uruchamiane przez Godot -s
+assets/     grafika, FX i audio
+web/        starszy, niezależny prototyp przeglądarkowy
+```
 
-- **Silnik:** Godot 4.x, GDScript ze statycznym typowaniem.
-- **Workflow:** VS Code + Claude Code; CLAUDE.md jako żywa dokumentacja
-  i changelog.
-- Wszystkie dane (karty, kafle, klasy, katastrofy, potwory,
-  odblokowania) jako zasoby/JSON oddzielone od logiki.
-- RunState (stan runu, w tym poziomy postaci) oddzielony od MetaState
-  (kolekcja, odblokowane klasy, drabinka) — MetaState wchodzi
-  w milestone 2.
-- Grafika: placeholder → pakiety pixelart (itch.io) → docelowo własne.
+Największe moduły to `systems/survival_system.gd` i `scenes/run.gd`.
+Przed dodawaniem kolejnych dużych systemów warto wydzielić z nich obsługę
+nocy/BUM oraz prezentację efektów.
 
-## 12. Otwarte pytania (pozostałe)
+## Aktualne priorytety
 
-- [ ] Wielkość ręki kart i koszty energii poszczególnych akcji
-      (do ustalenia w praktyce podczas balansu vertical slice'a).
-- [ ] Ile XP za co i co dokładnie daje "poziom osady" w punktacji meta.
-- [ ] Dokładne wagi, cooldowny i limity nocnych zdarzeń dla biomów/sezonów.
-- [ ] Czy `Zwiad` tylko podgląda kafel, czy także czasowo ujawnia jego
-      zdarzenia/zasoby w puli planowania.
-- [ ] Szczegóły wydarzeń odblokowujących Budowlańca i Wojskowego.
-- [ ] Scena po napisach — czy element ze snu pojawia się w "realnym"
-      pokoju?
-- [ ] Ostateczny wybór tytułu: Dzień 50 / Day Fifty (faworyt),
-      Długi Sen / The Long Dream, Deck of Days, Przebudzenie / Wake.
+1. Ręczny playtest i balans Aktu I, Aktu II oraz skrajnie różnych klas.
+2. Powtarzalny eksport Windows/Web i automatyczne uruchamianie testów w CI.
+3. Uzupełnienie źródeł i licencji audio oraz ekran creditsów.
+4. Kompresja dużych plików WAV do formatu wydaniowego.
+5. Rozszerzenie meta-progresji i systemu podglądania nieodkrytych biomów.
+
+## Znane ograniczenia
+
+- balans klas jest szeroki: Zielarka i Skaut są znacznie łatwiejsze od Informatyka;
+- autozapis działa na granicy dni, bez ręcznych slotów zapisu;
+- brak drabinki trudności, kolekcji i ulepszania istniejących kart;
+- karty zwiadu nie oferują jeszcze pełnego podglądu nieodkrytego kafla;
+- brak wersjonowania/migracji starszych zapisów;
+- brak śledzonego presetu eksportu i CI;
+- `assets/audio/LICENSES.txt` wymaga uzupełnienia przed wydaniem.

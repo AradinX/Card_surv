@@ -1220,6 +1220,29 @@ Na podstawie feedbacku z gry:
   BRAK (opcjonalne): `sfx/ui/coin.wav` (cisza przy nagrodzie monety) i
   `ambience_act2_plague` (gra generyczny `ambience_act2`). `--import` 0 błędów.
 
+### Meta-progresja i dokumentacja stanu (2026-06-22)
+
+- Przywrócono produkcyjny koszt ruletki: `MetaState.SPIN_COST = 3`.
+- `MetaState.save/load_or_new` i `GameManager.spin_roulette` przyjmują opcjonalną
+  ścieżkę zapisu, dzięki czemu testy nie dotykają prawdziwego `user://meta_state.tres`.
+- Dodano `tests/meta_progression_test.gd`: brak losowania bez monet, koszt 3,
+  dokładnie jedno odblokowanie, blokada po zebraniu wszystkich klas i save/load.
+- README oraz `docs/INWENTARZ.md` przepisano pod faktyczny stan: run do dnia 50,
+  8 biomów, 19 budynków, 15 potworów, 4 katastrofy, 9 klas i 9 testów.
+- Weryfikacja: pełny zestaw 9 testów zielony; smoke 31/50, wszystkie zgony po BUM.
+
+### Naprawa odtwarzania audio na Windows/WASAPI (2026-06-22)
+
+- Przyczyna kompletnej ciszy muzyki/ambientu: `_set_loop()` włączał pętlę WAV,
+  ale pozostawiał domyślne punkty `0..0`. Prawdziwy sterownik WASAPI zatrzymywał
+  taki zerowy loop natychmiast (Dummy w headless myląco zostawiał `playing=true`).
+- AudioManager ustawia teraz `loop_end` na pełną długość WAV.
+- Wszystkie zwykłe `BaseButton` dostają automatycznie SFX kliknięcia, a `CardView`
+  używa `card_play`; dopięto też brakujący SFX naprawy i +3 dB gain dla efektów.
+- Dodano `tests/audio_test.gd`: katalogi, brakujące opcjonalne pliki, busy,
+  ładowanie streamów i start muzyki/SFX. Test na realnym WASAPI przeszedł.
+- Weryfikacja regresji: pełny zestaw 10 testów zielony; smoke 33/50.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -1239,6 +1262,8 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/load_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/ui_layout_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/night_pool_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/save_load_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/meta_progression_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/audio_test.gd
 ```
 
 - `smoke_test` — naiwny bot rozgrywa 50 pełnych runów na planszy (karty
@@ -1251,6 +1276,10 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/save_load_tes
   w UI-only kodzie typu auto-fit tekstu i dobór ramek.
 - `night_pool_test` — niezmienniki aktywnej puli nocnych zdarzeń: limit
   na run, odstęp cooldownu i bias wag (seedowany RNG).
+- `meta_progression_test` — koszt ruletki, blokada przy braku monet, pojedyncze
+  odblokowanie klasy oraz zapis/odczyt meta-stanu bez dotykania zapisu gracza.
+- `audio_test` — dostępność audio, busy Music/SFX, ładowanie streamów oraz start
+  odtwarzaczy; realny problem sterownika sprawdzamy dodatkowo bez `--headless`.
 
 Poza tym testujemy ręcznie przez rozegranie runu w edytorze.
 
