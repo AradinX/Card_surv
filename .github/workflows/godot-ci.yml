@@ -44,7 +44,7 @@ jobs:
       - name: Zaimportuj projekt
         run: godot --headless --path . --import
 
-      - name: Uruchom testy
+      - name: Uruchom testy i wygeneruj raport
         shell: bash
         run: |
           set -euo pipefail
@@ -62,8 +62,47 @@ jobs:
             audio_test.gd
           )
 
+          commit_name="$(git log -1 --pretty=%s)"
+          commit_sha="$(git rev-parse --short HEAD)"
+          commit_author="$(git log -1 --pretty=%an)"
+
+          passed=0
+          failed=0
+
+          {
+            echo "# Raport testów Godot"
+            echo ""
+            echo "- **Commit:** \`$commit_sha\` — $commit_name"
+            echo "- **Autor:** $commit_author"
+            echo "- **Branch:** \`${GITHUB_REF_NAME}\`"
+            echo ""
+            echo "| Test | Wynik |"
+            echo "|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+
           for test in "${tests[@]}"; do
             echo "::group::$test"
-            godot --headless --path . -s "tests/$test"
+
+            if godot --headless --path . -s "tests/$test"; then
+              echo "| \`$test\` | ✅ Zielony |" >> "$GITHUB_STEP_SUMMARY"
+              passed=$((passed + 1))
+            else
+              echo "| \`$test\` | ❌ Czerwony |" >> "$GITHUB_STEP_SUMMARY"
+              echo "::error title=Test nie przeszedł::$test"
+              failed=$((failed + 1))
+            fi
+
             echo "::endgroup::"
           done
+
+          {
+            echo ""
+            echo "## Podsumowanie"
+            echo ""
+            echo "- ✅ Zaliczone: **$passed**"
+            echo "- ❌ Niezaliczone: **$failed**"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$failed" -gt 0 ]; then
+            exit 1
+          fi
