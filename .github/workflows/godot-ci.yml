@@ -1,0 +1,69 @@
+name: Godot CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Testy Godot
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      GODOT_VERSION: "4.5.1"
+
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v6
+
+      - name: Zainstaluj Godota
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl -L \
+            -o godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+
+          unzip godot.zip
+          chmod +x "Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" "$RUNNER_TEMP/godot"
+
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Sprawdź wersję Godota
+        run: godot --version
+
+      - name: Zaimportuj projekt
+        run: godot --headless --path . --import
+
+      - name: Uruchom testy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tests=(
+            smoke_test.gd
+            fog_of_war_test.gd
+            season_test.gd
+            board_test.gd
+            load_test.gd
+            ui_layout_test.gd
+            night_pool_test.gd
+            save_load_test.gd
+            meta_progression_test.gd
+            audio_test.gd
+          )
+
+          for test in "${tests[@]}"; do
+            echo "::group::$test"
+            godot --headless --path . -s "tests/$test"
+            echo "::endgroup::"
+          done
