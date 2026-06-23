@@ -106,3 +106,86 @@ jobs:
           if [ "$failed" -gt 0 ]; then
             exit 1
           fi
+  build-windows:
+    name: Build Windows
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      GODOT_VERSION: "4.5.1"
+
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v6
+
+      - name: Zainstaluj Godota
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl -L \
+            -o godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+
+          unzip -q godot.zip
+          chmod +x "Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" "$RUNNER_TEMP/godot"
+
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: Zainstaluj szablony eksportu
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl -L \
+            -o templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+
+          mkdir -p "$RUNNER_TEMP/export-templates"
+          unzip -q templates.tpz -d "$RUNNER_TEMP/export-templates"
+
+          template_dir="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$template_dir"
+
+          cp -r "$RUNNER_TEMP/export-templates/templates/." "$template_dir/"
+
+      - name: Zaimportuj projekt
+        run: godot --headless --path . --import
+
+      - name: Zbuduj wersję Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p build/windows
+
+          godot --headless \
+            --path . \
+            --export-release Windows \
+            build/windows/Dzien50.exe
+
+          test -f build/windows/Dzien50.exe
+          test -f build/windows/Dzien50.pck
+
+      - name: Wyślij gotową grę
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: Dzien50-Windows-${{ github.sha }}
+          path: build/windows/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      - name: Dodaj build do raportu
+        shell: bash
+        run: |
+          {
+            echo "## Build Windows"
+            echo ""
+            echo "- ✅ Eksport zakończony"
+            echo "- **Commit:** \`${GITHUB_SHA::7}\`"
+            echo "- **Artifact:** [Pobierz Dzien50-Windows](${{ steps.upload.outputs.artifact-url }})"
+          } >> "$GITHUB_STEP_SUMMARY"
