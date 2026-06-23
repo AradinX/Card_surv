@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags: 
+      - 'v*'
   pull_request:
   workflow_dispatch:
 
@@ -106,6 +108,7 @@ jobs:
           if [ "$failed" -gt 0 ]; then
             exit 1
           fi
+
   build-windows:
     name: Build Windows
     needs: test
@@ -188,4 +191,52 @@ jobs:
             echo "- ✅ Eksport zakończony"
             echo "- **Commit:** \`${GITHUB_SHA::7}\`"
             echo "- **Artifact:** [Pobierz Dzien50-Windows](${{ steps.upload.outputs.artifact-url }})"
+          } >> "$GITHUB_STEP_SUMMARY"
+           
+  release:
+    name: GitHub Release
+    needs: build-windows
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Pobierz build Windows
+        uses: actions/download-artifact@v8
+        with:
+          name: Dzien50-Windows-${{ github.sha }}
+          path: release-files
+
+      - name: Spakuj wersję Windows
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          cd release-files
+          zip -r "../Dzien50-Windows-${GITHUB_REF_NAME}.zip" .
+          cd ..
+
+          test -f "Dzien50-Windows-${GITHUB_REF_NAME}.zip"
+
+      - name: Utwórz GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            "Dzien50-Windows-${GITHUB_REF_NAME}.zip" \
+            --verify-tag \
+            --generate-notes \
+            --title "Dzień 50 ${GITHUB_REF_NAME}"
+
+      - name: Dodaj release do raportu
+        shell: bash
+        run: |
+          {
+            echo "## GitHub Release"
+            echo ""
+            echo "- ✅ Opublikowano **${GITHUB_REF_NAME}**"
+            echo "- [Otwórz wydanie](https://github.com/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME})"
           } >> "$GITHUB_STEP_SUMMARY"
