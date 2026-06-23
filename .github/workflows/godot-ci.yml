@@ -192,7 +192,7 @@ jobs:
             echo "- **Commit:** \`${GITHUB_SHA::7}\`"
             echo "- **Artifact:** [Pobierz Dzien50-Windows](${{ steps.upload.outputs.artifact-url }})"
           } >> "$GITHUB_STEP_SUMMARY"
-           
+
   release:
     name: GitHub Release
     needs: build-windows
@@ -224,6 +224,7 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
             "Dzien50-Windows-${GITHUB_REF_NAME}.zip" \
