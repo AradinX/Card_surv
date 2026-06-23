@@ -1,7 +1,9 @@
 # Godot 4 — pliki generowane przez edytor
 .godot/
 *.translation
-export_presets.cfg
+
+# Lokalne buildy (preset eksportu jest śledzony dla CI)
+build/
 
 # Systemowe
 .DS_Store
