@@ -1243,6 +1243,16 @@ Na podstawie feedbacku z gry:
   ładowanie streamów i start muzyki/SFX. Test na realnym WASAPI przeszedł.
 - Weryfikacja regresji: pełny zestaw 10 testów zielony; smoke 33/50.
 
+### Muzyka WAV → OGG Vorbis przed demem (2026-06-23)
+
+- Siedem utworów z `assets/audio/music/` przekonwertowano przez FFmpeg 8.1.1
+  do OGG Vorbis `q=6`; nazwy bazowe bez zmian, więc AudioManager automatycznie
+  wybiera OGG przed WAV.
+- Łączny rozmiar muzyki spadł z 123,46 MB do 12,13 MB (−90,2%).
+- Czasy wszystkich utworów są identyczne z WAV co do 0,001 s.
+- OGG przeszły `audio_test` zarówno headless, jak i na prawdziwym WASAPI.
+- Źródłowe WAV-y muzyki usunięto; ambient i krótkie SFX pozostają w WAV.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

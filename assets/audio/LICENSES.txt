@@ -25,8 +25,8 @@ SFX  -> assets/audio/sfx/
   coin.ogg          eat_drink.ogg     discover.ogg
   button_click.ogg  alarm_clock.ogg   (budzik = przegrana)
 
-WAŻNE (loop muzyki): w Godocie zaznacz importowanym plikom muzyki
-„Loop" (zakładka Import) albo zostaw .ogg z domyślnym loopem.
+Muzyka jest przechowywana jako OGG Vorbis. AudioManager ustawia zapętlenie
+w runtime, więc import nie wymaga ręcznego zaznaczania opcji „Loop”.
 
 
 LICENCJE — stan na 2026-06-22
@@ -39,13 +39,13 @@ wygenerowanego outputu (zgodnie z regulaminem Suno). Zachowaj dowód subskrypcji
 Format: <plik> | <źródło> | <licencja> | <data>
 
 MUZYKA (assets/audio/music/)
-  music_menu.wav          | Suno Pro | komercyjna (output) | 2026-06-22
-  music_act1.wav          | Suno Pro | komercyjna (output) | 2026-06-22
-  music_act2_plague.wav   | Suno Pro | komercyjna (output) | 2026-06-22
-  music_act2_eclipse.wav  | Suno Pro | komercyjna (output) | 2026-06-22
-  music_act2_rift.wav     | Suno Pro | komercyjna (output) | 2026-06-22
-  music_act2_flood.wav    | Suno Pro | komercyjna (output) | 2026-06-22
-  music_win.wav           | Suno Pro | komercyjna (output) | 2026-06-22
+  music_menu.ogg          | Suno Pro | komercyjna (output) | 2026-06-22
+  music_act1.ogg          | Suno Pro | komercyjna (output) | 2026-06-22
+  music_act2_plague.ogg   | Suno Pro | komercyjna (output) | 2026-06-22
+  music_act2_eclipse.ogg  | Suno Pro | komercyjna (output) | 2026-06-22
+  music_act2_rift.ogg     | Suno Pro | komercyjna (output) | 2026-06-22
+  music_act2_flood.ogg    | Suno Pro | komercyjna (output) | 2026-06-22
+  music_win.ogg           | Suno Pro | komercyjna (output) | 2026-06-22
 
 AMBIENT (assets/audio/ambience/)
   ambience_forest.wav         | Suno Pro | komercyjna (output) | 2026-06-22

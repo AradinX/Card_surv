@@ -148,7 +148,7 @@ nocy/BUM oraz prezentację efektów.
 1. Ręczny playtest i balans Aktu I, Aktu II oraz skrajnie różnych klas.
 2. Powtarzalny eksport Windows/Web i automatyczne uruchamianie testów w CI.
 3. Uzupełnienie źródeł i licencji audio oraz ekran creditsów.
-4. Kompresja dużych plików WAV do formatu wydaniowego.
+4. Dalsza optymalizacja rozmiaru builda i repozytorium.
 5. Rozszerzenie meta-progresji i systemu podglądania nieodkrytych biomów.
 
 ## Znane ograniczenia

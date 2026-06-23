@@ -212,8 +212,8 @@ picia, przycisku i przegranej.
 trzeba wpisać źródło, autora, licencję i datę dla każdego pliku oraz dodać
 creditsy w grze.
 
-🟡 Muzyka jest przechowywana jako duże pliki WAV. Do buildu warto przygotować
-skompresowane OGG.
+✅ Muzyka została przekonwertowana z WAV do OGG Vorbis (`q=6`): 123,46 MB
+→ 12,13 MB bez zmiany długości utworów. Ambient i krótkie SFX pozostają w WAV.
 
 ## Save/load i meta
 
