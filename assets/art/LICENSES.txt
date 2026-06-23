@@ -1,0 +1,34 @@
+GRAFIKA — Dzień 50
+==================
+Stan na 2026-06-22.
+
+Cała grafika w assets/art/ jest WYGENEROWANA AI z promptów projektowych
+(oryginalna dla tej gry — brak stocków, brak cudzych prac). Narzędzia:
+
+  - GPT Image (OpenAI) — wbudowane `imagegen` / pipeline przez Codex
+  - Higgsfield (GPT Image 2) — wcześniejsze partie (ramki kart, biomy, ikony)
+
+LICENCJA / PRAWA
+----------------
+Output obu narzędzi jest generowany przez użytkownika z własnych promptów;
+zgodnie z regulaminami dostawców użytkownik może go wykorzystywać komercyjnie
+(OpenAI: użytkownik jest właścicielem outputu; Higgsfield: prawa komercyjne na
+planie płatnym). Zachowaj dowód konta/subskrypcji.
+(To nie jest porada prawna — zweryfikuj aktualne regulaminy przed wydaniem.)
+
+ZAKRES (kategorie wygenerowane z promptów)
+------------------------------------------
+  cards/illustrations/actions*      — ilustracje kart akcji
+  cards/illustrations/buildings*    — ilustracje budynków (Akt I/II)
+  cards/illustrations/events        — ilustracje zdarzeń nocnych
+  cards/illustrations/monsters      — ilustracje potworów (4 katastrofy)
+  cards/backs, cards/frames, cards/icons — rewersy, ramki, ikony kart
+  biomes/backgrounds (normal/corrupted) — tła 8 biomów (Akt I/II)
+  biomes/frames, biomes/overlays, slot_markers — oprawa kafli
+  characters/marker_*               — medaliony 9 postaci
+  backgrounds/ (menu, run, result)  — tła menu/planszy/ekranu wyniku (POV łóżko)
+  fx/ (bum, corruption, cards, weather, fire, smoke, ui, result, ...) — efekty
+  ui/ (buttons, panels, bars, icons) — elementy interfejsu
+
+UWAGA: materiały w assets/_reference/ to historia/odrzuty (Godot ich nie importuje,
+mają .gdignore) — nie wchodzą do wydania.
