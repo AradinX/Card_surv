@@ -946,28 +946,55 @@ func _build_night_choices(card: CardData) -> void:
 	for i in choices.size():
 		var choice = choices[i]
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(380, 52)
+		button.custom_minimum_size = Vector2(420, 86)
 		button.disabled = true
-		button.text = "%s  —  %s" % [choice.label, _choice_summary(choice)]
+		button.text = _choice_button_text(choice)
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.add_theme_font_size_override("font_size", 14)
+		button.add_theme_font_size_override("font_size", 12)
 		ButtonSkin.apply_minimal(button)
 		button.pressed.connect(_on_night_choice.bind(i))
 		_night_choices.add_child(button)
 
 
-## Short "+3 jedz · ryzyko" style summary of a choice's effects.
-func _choice_summary(choice) -> String:
+## Full choice copy: clear risk odds plus explicit success/failure outcomes.
+func _choice_button_text(choice) -> String:
+	var label := _choice_label_without_risk(choice.label)
+	var title := label
+	if choice.risk_chance > 0:
+		title = "%s (%d%% na sukces)" % [label, 100 - choice.risk_chance]
+
+	var lines: PackedStringArray = [title]
+	var success := _choice_success_summary(choice)
+	if success != "":
+		lines.append("Sukces: %s" % success)
+	if choice.risk_chance > 0:
+		lines.append("Porażka: %s" % _choice_failure_summary(choice))
+	return "\n".join(lines)
+
+
+func _choice_label_without_risk(label: String) -> String:
+	return label.replace(" (ryzyko)", "").replace("(ryzyko)", "").strip_edges()
+
+
+func _choice_success_summary(choice) -> String:
 	var parts: PackedStringArray = []
-	if choice.health_delta != 0: parts.append("%+d zdr" % choice.health_delta)
-	if choice.food_gain != 0: parts.append("%+d jedz" % choice.food_gain)
-	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
-	if choice.wood_gain != 0: parts.append("%+d drew" % choice.wood_gain)
-	if choice.materials_gain != 0: parts.append("%+d mat" % choice.materials_gain)
+	if choice.health_delta != 0: parts.append("%+d zdrowia" % choice.health_delta)
+	if choice.hunger_delta != 0: parts.append("%+d sytości" % choice.hunger_delta)
+	if choice.thirst_delta != 0: parts.append("%+d nawodnienia" % choice.thirst_delta)
 	if choice.warmth_delta != 0: parts.append("%+d ciepła" % choice.warmth_delta)
-	if choice.grant_random_card: parts.append("+karta")
-	if choice.risk_chance > 0: parts.append("ryzyko %d%%" % choice.risk_chance)
-	return ", ".join(parts) if not parts.is_empty() else "—"
+	if choice.food_gain != 0: parts.append("%+d jedzenia" % choice.food_gain)
+	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
+	if choice.wood_gain != 0: parts.append("%+d drewna" % choice.wood_gain)
+	if choice.materials_gain != 0: parts.append("%+d materiałów" % choice.materials_gain)
+	if choice.next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.next_day_energy_delta)
+	if choice.grant_random_card: parts.append("+1 karta do talii")
+	return ", ".join(parts)
+
+
+func _choice_failure_summary(choice) -> String:
+	if choice.risk_health > 0:
+		return "-%d zdrowia" % choice.risk_health
+	return "brak efektu"
 
 
 ## Picking a choice applies it immediately but PAUSES on a result summary — the
