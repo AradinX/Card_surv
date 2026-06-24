@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "snare_trap"
-display_name = "Sidła"
-description = "Zastaw wnyki na zwierzynę (koszt: 1 materiał). +2 jedzenia."
 energy_cost = 1
 materials_cost = 1
 food_gain = 2
+id = "snare_trap"
+display_name = "Sidła"
+description = "Zastaw wnyki na zwierzynę."

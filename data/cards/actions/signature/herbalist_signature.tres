@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "herbalist_signature"
-display_name = "Maść z ziół"
-description = "Twój wywar stawia na nogi. +4 zdrowia, +1 sytości."
 energy_cost = 1
 health_delta = 4
 hunger_delta = 1
+id = "herbalist_signature"
+display_name = "Maść z ziół"
+description = "Twój wywar stawia na nogi."

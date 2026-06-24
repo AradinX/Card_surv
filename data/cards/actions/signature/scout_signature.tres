@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "scout_signature"
-display_name = "Rozpoznanie"
-description = "Przeczesujesz teren i wracasz z łupem. Przeszukujesz okolicę i +1 materiał."
 energy_cost = 1
 materials_gain = 1
 special = "explore"
+id = "scout_signature"
+display_name = "Rozpoznanie"
+description = "Przeczesujesz teren i wracasz z łupem."

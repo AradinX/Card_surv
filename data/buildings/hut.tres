@@ -4,10 +4,11 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_hut"
-display_name = "Szałas"
-description = "Dach nad głową. Chroni przed tym, co przychodzi nocą."
 energy_cost = 2
 wood_cost = 3
 max_hp = 8
 special = "night_protection"
+required_biome_ids = PackedStringArray()
+id = "building_hut"
+display_name = "Szałas"
+description = "Dach nad głową na niespokojne noce."

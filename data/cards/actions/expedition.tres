@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "expedition"
-display_name = "Daleka wyprawa"
-description = "Wyrusz na cały dzień w nieznane. Dwa losowe znaleziska."
 energy_cost = 4
 special = "double_explore"
+id = "expedition"
+display_name = "Daleka wyprawa"
+description = "Wyrusz na cały dzień w nieznane."

@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "gather_sticks"
-display_name = "Chrust"
-description = "Pozbieraj suche gałęzie po drodze. +1 drewna."
 energy_cost = 1
 wood_gain = 1
+id = "gather_sticks"
+display_name = "Chrust"
+description = "Pozbieraj suche gałęzie po drodze."

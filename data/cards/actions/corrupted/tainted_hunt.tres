@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
+energy_cost = 2
+health_delta = -1
+food_gain = 3
 id = "tainted_hunt"
 display_name = "Skażona zwierzyna"
-description = "Mięso pachnie słodko i niedobrze. +3 jedzenia, -1 zdrowia."
-energy_cost = 2
-food_gain = 3
-health_delta = -1
+description = "Mięso pachnie słodko i niedobrze."

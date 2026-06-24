@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "cook_signature"
-display_name = "Sycący gulasz"
-description = "Twoja specjalność: z zapasów warzysz prawdziwy posiłek (koszt: 2 jedzenia). +6 sytości, +2 ciepła, +1 zdrowia."
 energy_cost = 1
 food_cost = 2
 health_delta = 1
 hunger_delta = 6
 warmth_delta = 2
+id = "cook_signature"
+display_name = "Sycący gulasz"
+description = "Twoja specjalność — prawdziwy posiłek z zapasów."

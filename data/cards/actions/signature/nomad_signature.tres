@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "nomad_signature"
-display_name = "Skrytka wędrowca"
-description = "Zapasy ukryte na szlaku w sam raz na teraz. +2 jedzenia, +2 wody."
 energy_cost = 1
 food_gain = 2
 water_gain = 2
+id = "nomad_signature"
+display_name = "Skrytka wędrowca"
+description = "Zapasy ukryte na szlaku — w sam raz na teraz."

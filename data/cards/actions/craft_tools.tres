@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "craft_tools"
-display_name = "Wytwórz narzędzia"
-description = "Skleć prymitywne narzędzia (koszt: 2 materiały). Polowanie i rąbanie dają +1 na stałe."
 energy_cost = 2
 materials_cost = 2
 special = "craft_tools"
+id = "craft_tools"
+display_name = "Wytwórz narzędzia"
+description = "Skleć prymitywne narzędzia."

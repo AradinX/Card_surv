@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "scavenge"
-display_name = "Szukaj materiałów"
-description = "Przeszukaj okolicę w poszukiwaniu przydatnych rzeczy. +2 materiałów."
 energy_cost = 2
 materials_gain = 2
+id = "scavenge"
+display_name = "Szukaj materiałów"
+description = "Przeszukaj okolicę za przydatnym złomem."

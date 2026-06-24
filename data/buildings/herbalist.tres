@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_herbalist"
-display_name = "Zielarnia"
-description = "Zioła koją rany (+1 zdrowia dziennie)."
 energy_cost = 2
 wood_cost = 2
 materials_cost = 2
 max_hp = 7
 health_delta = 1
 required_biome_ids = PackedStringArray("meadows", "forest", "swamp")
+id = "building_herbalist"
+display_name = "Zielarnia"
+description = "Chatka pełna leczniczych ziół."

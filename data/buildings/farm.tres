@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_farm"
-display_name = "Farma"
-description = "Grządki rodzą jedzenie (+2 jedzenia dziennie)."
 energy_cost = 3
 wood_cost = 2
 materials_cost = 2
 max_hp = 9
 food_gain = 1
 required_biome_ids = PackedStringArray("meadows")
+id = "building_farm"
+display_name = "Farma"
+description = "Grządki obsiane na własne jedzenie."

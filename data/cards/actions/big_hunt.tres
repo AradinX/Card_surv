@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "big_hunt"
-display_name = "Wielkie polowanie"
-description = "Całodniowa wyprawa za grubym zwierzem. +5 jedzenia."
 energy_cost = 4
 food_gain = 5
+id = "big_hunt"
+display_name = "Wielkie polowanie"
+description = "Całodniowa wyprawa za grubym zwierzem."

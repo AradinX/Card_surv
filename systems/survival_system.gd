@@ -31,17 +31,18 @@ signal run_ended(won: bool, days_survived: int)
 ## Full run: Act I (build up) -> BUM mid-run -> Act II (survive the disaster).
 ## Target length per README — Dzień 50.
 const WIN_DAY := 50
-## BUM strikes at dawn of a day rolled from this range at run start (~mid-run).
-const BUM_DAY_MIN := 22
-const BUM_DAY_MAX := 27
+## BUM strikes at dawn of a day rolled from this range at run start. Playtesters
+## had a full board by ~day 10, so the cataclysm hits earlier (Act I ~2 weeks).
+const BUM_DAY_MIN := 14
+const BUM_DAY_MAX := 18
 ## Each building rolls this damage percent range when BUM strikes. A building
 ## survives (stays usable) only if it takes <=50% (ruin threshold), so this range
 ## leaves roughly a third of buildings standing into Act II instead of wiping all.
 const BUM_DAMAGE_PERCENT_MIN := 35
 const BUM_DAMAGE_PERCENT_MAX := 80
 ## Scripted dawn omens start on this day (foreshadowing), so they always show
-## before BUM (which strikes day 22-27) regardless of the rolled BUM day.
-const OMEN_START_DAY := 16
+## before BUM (which strikes day 14-18) regardless of the rolled BUM day.
+const OMEN_START_DAY := 8
 const REPAIR_ENERGY_COST := 1
 const DEMOLISH_ENERGY_COST := 1
 ## Building after the cataclysm is allowed but taxed — raw materials are scarce
@@ -422,6 +423,24 @@ func building_catalog() -> Array[BuildingCardData]:
 	return _building_catalog
 
 
+## True if the building should SHOW in the build panel now: its biome is
+## discovered (or none required) and it isn't an Act II-only building pre-BUM.
+func is_building_available(building: BuildingCardData) -> bool:
+	if building.act2_only and not state.bum_happened:
+		return false
+	return _biome_lock_reason(building) == ""
+
+
+## Catalog filtered to what the player can currently build (locked biome / Act II
+## buildings are hidden, not greyed). Affordability still greys via can_build.
+func available_buildings() -> Array[BuildingCardData]:
+	var out: Array[BuildingCardData] = []
+	for building in _building_catalog:
+		if is_building_available(building):
+			out.append(building)
+	return out
+
+
 ## Tonight's predicted needs so the UI can show it instead of the player doing
 ## the math: decay per stat (class + season + disaster), passive warmth from
 ## buildings, current supplies and how much each portion restores.
@@ -611,7 +630,7 @@ func claim_max_energy() -> void:
 		return
 	state.pending_rewards -= 1
 	state.max_energy += 1
-	state.energy = mini(state.energy + 1, state.max_energy + 1)
+	state.energy = mini(state.energy + 1, state.max_energy)
 	log_message.emit("Nagroda: +1 maks. energii (%d)." % state.max_energy)
 	stats_changed.emit(state)
 
@@ -671,11 +690,11 @@ func _start_day() -> void:
 			_trigger_bum()
 		elif state.day >= OMEN_START_DAY:
 			_log_omen()
-	# Energy may exceed the cap by one (e.g. the Sunny Morning event); the active
-	# disaster can sap a flat amount in Act II (Zaćmienie: dark, restless nights).
+	# Hard cap at max energy (no overflow). The active disaster can sap a flat
+	# amount in Act II (Zaćmienie: dark, restless nights).
 	state.energy = clampi(
 		state.max_energy + state.next_day_energy_delta - _act2_rule("act2_energy_penalty"),
-		1, state.max_energy + 1
+		1, state.max_energy
 	)
 	state.next_day_energy_delta = 0
 
@@ -807,7 +826,7 @@ func _resolve_action(card: ActionCardData) -> void:
 	_apply_stat_deltas(
 		card.health_delta, card.hunger_delta, card.thirst_delta, card.warmth_delta
 	)
-	state.energy = clampi(state.energy + card.energy_delta, 0, state.max_energy + 1)
+	state.energy = clampi(state.energy + card.energy_delta, 0, state.max_energy)
 
 	match card.special:
 		"craft_tools":

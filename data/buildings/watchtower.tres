@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_watchtower"
-display_name = "Wieża obserwacyjna"
-description = "Strażnicy wypatrują zagrożeń (osłona budynków na kaflu o 2)."
 energy_cost = 2
 wood_cost = 3
 materials_cost = 2
-max_hp = 10
 defense = 2
+required_biome_ids = PackedStringArray()
+id = "building_watchtower"
+display_name = "Wieża obserwacyjna"
+description = "Z wieży strażnicy wypatrują zagrożeń."

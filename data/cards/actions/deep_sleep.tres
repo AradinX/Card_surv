@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "deep_sleep"
-display_name = "Głęboki sen"
-description = "Prześpij część dnia, by dojść do siebie. +2 zdrowia."
 energy_cost = 1
 health_delta = 2
+id = "deep_sleep"
+display_name = "Głęboki sen"
+description = "Prześpij część dnia, by dojść do siebie."

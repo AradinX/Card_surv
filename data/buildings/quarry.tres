@@ -4,12 +4,11 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_quarry"
-display_name = "Kamieniołom"
-description = "Wydobycie kamienia i rudy (+2 materiałów dziennie)."
 energy_cost = 3
 wood_cost = 2
 materials_cost = 1
-max_hp = 10
 materials_gain = 1
 required_biome_ids = PackedStringArray("mountains", "caves")
+id = "building_quarry"
+display_name = "Kamieniołom"
+description = "Wyrobisko kamienia i rudy."

@@ -4,10 +4,10 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "feast"
-display_name = "Uczta"
-description = "Najedz się raz porządnie (koszt: 3 jedzenia). +5 sytości, +1 zdrowia."
 energy_cost = 1
 food_cost = 3
 health_delta = 1
 hunger_delta = 5
+id = "feast"
+display_name = "Uczta"
+description = "Najedz się raz a porządnie."

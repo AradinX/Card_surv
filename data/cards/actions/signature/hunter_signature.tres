@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "hunter_signature"
-display_name = "Tropy zwierzyny"
-description = "Czytasz las jak otwartą księgę: dwa razy przeszukujesz okolicę."
 energy_cost = 2
 special = "double_explore"
+id = "hunter_signature"
+display_name = "Tropy zwierzyny"
+description = "Czytasz las jak otwartą księgę."

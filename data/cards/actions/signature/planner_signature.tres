@@ -4,8 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
+special = "draw_two"
 id = "planner_signature"
 display_name = "Plan dnia"
-description = "Rozpisujesz dzień co do minuty. Dobierasz 2 karty."
-energy_cost = 0
-special = "draw_two"
+description = "Rozpisujesz dzień co do minuty."

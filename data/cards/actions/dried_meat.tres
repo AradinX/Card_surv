@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "dried_meat"
-display_name = "Suszone mięso"
-description = "Sięgnij po zapas suszonego mięsa. +2 jedzenia, +1 sytości."
 energy_cost = 1
 hunger_delta = 1
 food_gain = 2
+id = "dried_meat"
+display_name = "Suszone mięso"
+description = "Sięgnij po zapas suszonego mięsa."

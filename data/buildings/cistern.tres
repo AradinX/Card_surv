@@ -4,13 +4,14 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_cistern"
-display_name = "Cysterna"
-description = "Zbiornik na wodę z ocalałych rur: +2 wody dziennie i większy zapas."
 energy_cost = 3
 wood_cost = 2
 materials_cost = 3
 max_hp = 9
-water_gain = 2
 water_cap_bonus = 6
+water_gain = 2
+required_biome_ids = PackedStringArray()
 act2_only = true
+id = "building_cistern"
+display_name = "Cysterna"
+description = "Zbiornik na wodę z ocalałych rur."

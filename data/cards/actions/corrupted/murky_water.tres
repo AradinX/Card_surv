@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "murky_water"
-display_name = "Mętna woda"
-description = "Cuchnąca kałuża po deszczu. Lepsze to niż nic. +1 wody."
 energy_cost = 1
 water_gain = 1
+id = "murky_water"
+display_name = "Mętna woda"
+description = "Cuchnąca kałuża po deszczu — lepsze to niż nic."

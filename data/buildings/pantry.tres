@@ -4,13 +4,14 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_pantry"
-display_name = "Spiżarnia"
-description = "Zapasy dłużej się trzymają: +1 jedzenia dziennie i mniej psucia."
 energy_cost = 1
 wood_cost = 2
 materials_cost = 1
 max_hp = 8
-food_gain = 1
 food_cap_bonus = 6
+food_gain = 1
 special = "slow_spoilage"
+required_biome_ids = PackedStringArray()
+id = "building_pantry"
+display_name = "Spiżarnia"
+description = "Chłodna spiżarnia na zapasy."

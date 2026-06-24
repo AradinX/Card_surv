@@ -455,7 +455,7 @@ func _refresh_build_cards() -> void:
 	for child in _build_cards.get_children():
 		_build_cards.remove_child(child)
 		child.queue_free()
-	for building in _survival.building_catalog():
+	for building in _survival.available_buildings():
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		_build_cards.add_child(view)
 		view.setup(building, _survival.can_build(building), _build_cost_summary(building))
@@ -465,7 +465,7 @@ func _refresh_build_cards() -> void:
 ## Update greying of existing build cards without rebuilding the row (cheaper on
 ## frequent stats changes, avoids flicker).
 func _refresh_build_playability() -> void:
-	var catalog := _survival.building_catalog()
+	var catalog := _survival.available_buildings()
 	var views := _build_cards.get_children()
 	for i in mini(views.size(), catalog.size()):
 		(views[i] as CardView).setup(

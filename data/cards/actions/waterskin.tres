@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "waterskin"
-display_name = "Bukłak"
-description = "Napełnij bukłak po brzegi. +3 wody."
 energy_cost = 2
 water_gain = 3
+id = "waterskin"
+display_name = "Bukłak"
+description = "Napełnij bukłak po brzegi."

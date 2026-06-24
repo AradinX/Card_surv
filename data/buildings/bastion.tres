@@ -4,12 +4,13 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_bastion"
-display_name = "Bastion"
-description = "Z gruzów wznosisz twierdzę. Silna obrona kafla (obrona 3) i wytrzymałe mury."
 energy_cost = 4
 wood_cost = 3
 materials_cost = 4
 max_hp = 16
 defense = 3
+required_biome_ids = PackedStringArray()
 act2_only = true
+id = "building_bastion"
+display_name = "Bastion"
+description = "Z gruzów wznosisz twierdzę o grubych murach."

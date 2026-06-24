@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "fishing"
-display_name = "Wędkowanie"
-description = "Spędź kilka godzin nad wodą. +2 jedzenia."
 energy_cost = 2
 food_gain = 2
+id = "fishing"
+display_name = "Wędkowanie"
+description = "Spędź kilka godzin nad wodą."

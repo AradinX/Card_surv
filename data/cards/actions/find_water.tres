@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "find_water"
-display_name = "Źródło"
-description = "Nabierz wody ze strumienia. +2 wody."
 energy_cost = 1
 water_gain = 2
+id = "find_water"
+display_name = "Źródło"
+description = "Nabierz wody ze strumienia."

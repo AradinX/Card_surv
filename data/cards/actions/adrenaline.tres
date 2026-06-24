@@ -4,9 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "adrenaline"
-display_name = "Adrenalina"
-description = "Przekrocz swoje granice. +3 energii, -1 zdrowia."
-energy_cost = 0
 health_delta = -1
 energy_delta = 3
+id = "adrenaline"
+display_name = "Adrenalina"
+description = "Przekrocz swoje granice."

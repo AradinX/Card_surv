@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "forage"
-display_name = "Zbieractwo"
-description = "Zbierz jagody i korzonki w okolicy. +1 jedzenia, +1 sytości."
 energy_cost = 1
 hunger_delta = 1
 food_gain = 1
+id = "forage"
+display_name = "Zbieractwo"
+description = "Zbierz jagody i korzonki w okolicy."

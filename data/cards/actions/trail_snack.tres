@@ -4,8 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
+food_gain = 1
 id = "trail_snack"
 display_name = "Przekąska"
-description = "Skub coś w biegu, bez tracenia czasu. +1 jedzenia."
-energy_cost = 0
-food_gain = 1
+description = "Skub coś w biegu, bez tracenia czasu."

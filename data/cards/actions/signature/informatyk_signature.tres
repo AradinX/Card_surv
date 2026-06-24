@@ -4,9 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "informatyk_signature"
-display_name = "Refaktoryzacja"
-description = "Porządkujesz plan i zyskujesz rozpęd. Dobierasz 2 karty, +1 energii."
-energy_cost = 0
 energy_delta = 1
 special = "draw_two"
+id = "informatyk_signature"
+display_name = "Refaktoryzacja"
+description = "Porządkujesz plan i zyskujesz rozpęd."

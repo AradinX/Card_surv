@@ -4,12 +4,13 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_well"
-display_name = "Studnia"
-description = "Czysta woda na miejscu (+2 wody dziennie)."
 energy_cost = 3
 wood_cost = 1
 materials_cost = 1
 max_hp = 8
-water_gain = 1
 water_cap_bonus = 4
+water_gain = 1
+required_biome_ids = PackedStringArray()
+id = "building_well"
+display_name = "Studnia"
+description = "Studnia z czystą wodą na miejscu."

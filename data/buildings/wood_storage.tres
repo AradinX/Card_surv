@@ -4,12 +4,13 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_wood_storage"
-display_name = "Magazyn drewna"
-description = "Sucha skład na opał (+1 drewna dziennie)."
 energy_cost = 1
 wood_cost = 1
 materials_cost = 1
 max_hp = 8
-wood_gain = 1
 wood_cap_bonus = 8
+wood_gain = 1
+required_biome_ids = PackedStringArray()
+id = "building_wood_storage"
+display_name = "Magazyn drewna"
+description = "Suchy skład na opał i budulec."

@@ -4,12 +4,12 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_logging_camp"
-display_name = "Drwalnia"
-description = "Stały dopływ drewna (+2 drewna dziennie)."
 energy_cost = 3
 wood_cost = 1
 materials_cost = 2
 max_hp = 9
 wood_gain = 1
 required_biome_ids = PackedStringArray("forest")
+id = "building_logging_camp"
+display_name = "Drwalnia"
+description = "Obóz drwali ze stałym dopływem drewna."

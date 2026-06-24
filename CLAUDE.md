@@ -1253,6 +1253,20 @@ Na podstawie feedbacku z gry:
 - OGG przeszły `audio_test` zarówno headless, jak i na prawdziwym WASAPI.
 - Źródłowe WAV-y muzyki usunięto; ambient i krótkie SFX pozostają w WAV.
 
+### Feedback z dema — runda 1 (odtworzona po cofnięciu) (2026-06-24)
+
+Poprzedni chat cofnął te zmiany — odtworzone, plus nowy format opisu:
+- **Opis karty = flavor + linia efektów** (`card_view._effects_summary`): linia 1 to
+  krótki flavor (pole `description`, BEZ liczb), linia 2 to efekty GENEROWANE z danych
+  (zawsze dokładne, spójne nazwy). Format jak prosił gracz: „Rozejrzyj się i zaplanuj
+  dzień / +2 karty do ręki". Flavory akcji+budynków (57) przepisane na czyste przez
+  `tools/set_flavors.gd` (ResourceSaver). Budynki dodają „Wytrzymałość: N HP".
+- **Ognisko grzeje** — `warmth_delta` 2→4. **Twardy cap energii = 10** (usunięty
+  overflow w 3 miejscach). **Zablokowane budynki ukryte** (`available_buildings()` —
+  Kamieniołom dopiero po Górach, Akt II po BUM). **BUM 14–18** (omeny od dnia 8).
+- `tools/dump_cards.gd`: kolumny „Opis (fabularny)" + „Co robi". Smoke ~33→**28/50**.
+  Cała ósemka zielona.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

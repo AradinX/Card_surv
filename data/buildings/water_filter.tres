@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_water_filter"
-display_name = "Filtr wodny"
-description = "Czysta woda bez wysiłku (+1 wody dziennie)."
 energy_cost = 2
 wood_cost = 1
 materials_cost = 2
 max_hp = 7
-water_gain = 1
 water_cap_bonus = 4
+water_gain = 1
 required_biome_ids = PackedStringArray("river", "swamp", "coast")
+id = "building_water_filter"
+display_name = "Filtr wodny"
+description = "Filtr daje czystą wodę bez wysiłku."

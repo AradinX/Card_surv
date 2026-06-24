@@ -4,8 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
+energy_delta = 2
 id = "rest"
 display_name = "Odpoczynek"
-description = "Złap oddech i zbierz siły. +2 energii."
-energy_cost = 0
-energy_delta = 2
+description = "Złap oddech i zbierz siły."

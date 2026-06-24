@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "woodcraft"
-display_name = "Ciesielka"
-description = "Przerób drewno na użyteczne części (koszt: 1 drewno). +2 materiałów."
 energy_cost = 2
 wood_cost = 1
 materials_gain = 2
+id = "woodcraft"
+display_name = "Ciesielka"
+description = "Przerób drewno na użyteczne części."

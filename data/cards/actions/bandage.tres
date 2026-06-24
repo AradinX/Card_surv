@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "bandage"
-display_name = "Bandaż"
-description = "Porządnie opatrz ranę (koszt: 1 materiał). +3 zdrowia."
 energy_cost = 1
 materials_cost = 1
 health_delta = 3
+id = "bandage"
+display_name = "Bandaż"
+description = "Porządnie opatrz ranę."

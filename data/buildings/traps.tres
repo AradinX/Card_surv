@@ -4,11 +4,12 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "building_traps"
-display_name = "Pułapki"
-description = "Sidła łapią zwierzynę i intruzów (+1 jedzenia dziennie, osłona budynków o 1)."
 energy_cost = 1
 wood_cost = 2
 max_hp = 5
 defense = 1
 food_gain = 1
+required_biome_ids = PackedStringArray()
+id = "building_traps"
+display_name = "Pułapki"
+description = "Sidła rozstawione wokół osady."

@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-id = "scout"
-display_name = "Zwiad"
-description = "Rozejrzyj się i zaplanuj dzień. Dobierz 2 karty."
 energy_cost = 1
 special = "draw_two"
+id = "scout"
+display_name = "Zwiad"
+description = "Rozejrzyj się i zaplanuj dzień."

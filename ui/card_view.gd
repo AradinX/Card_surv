@@ -171,12 +171,78 @@ func _label_box_size(label: Label) -> Vector2:
 	)
 
 
-## Building cards carry their durability (HP) in the description rather than in
-## the cost bar — HP is a property of the placed building, not a build cost.
+## Card text = flavour line (from `description`) + a line of effects GENERATED
+## from the card data, so amounts are always accurate and consistent across cards
+## (no hand-written numbers to drift). Events/monsters keep plain flavour.
 func _format_description(card: CardData) -> String:
 	if card is BuildingCardData:
-		return "%s\nWytrzymałość: %d HP" % [card.description, (card as BuildingCardData).max_hp]
+		var b := card as BuildingCardData
+		return "%s\n%s\nWytrzymałość: %d HP" % [b.description, _effects_summary(card), b.max_hp]
+	if card is ActionCardData:
+		return "%s\n%s" % [card.description, _effects_summary(card)]
 	return card.description
+
+
+## Generated, consistent list of a card's effects + amounts (PL).
+func _effects_summary(card: CardData) -> String:
+	var p: PackedStringArray = []
+	if card is ActionCardData:
+		var a := card as ActionCardData
+		_push_delta(p, a.health_delta, "zdrowia")
+		_push_delta(p, a.hunger_delta, "sytości")
+		_push_delta(p, a.thirst_delta, "nawodnienia")
+		_push_delta(p, a.warmth_delta, "ciepła")
+		_push_delta(p, a.energy_delta, "energii")
+		_push_delta(p, a.food_gain, "jedzenia")
+		_push_delta(p, a.water_gain, "wody")
+		_push_delta(p, a.wood_gain, "drewna")
+		_push_delta(p, a.materials_gain, "materiałów")
+		var sp := _action_special_text(a.special)
+		if sp != "":
+			p.append(sp)
+	elif card is BuildingCardData:
+		var b := card as BuildingCardData
+		_push_delta(p, b.food_gain, "jedzenia/dzień")
+		_push_delta(p, b.water_gain, "wody/dzień")
+		_push_delta(p, b.wood_gain, "drewna/dzień")
+		_push_delta(p, b.materials_gain, "materiałów/dzień")
+		_push_delta(p, b.health_delta, "zdrowia/dzień")
+		_push_delta(p, b.warmth_delta, "ciepła/dzień")
+		if b.defense > 0:
+			p.append("obrona %d" % b.defense)
+		_push_delta(p, b.food_cap_bonus, "limitu jedzenia")
+		_push_delta(p, b.water_cap_bonus, "limitu wody")
+		_push_delta(p, b.wood_cap_bonus, "limitu drewna")
+		_push_delta(p, b.materials_cap_bonus, "limitu materiałów")
+		var sp := _building_special_text(b.special)
+		if sp != "":
+			p.append(sp)
+	if p.is_empty():
+		return ""
+	return "  ·  ".join(p)
+
+
+func _push_delta(parts: PackedStringArray, value: int, name: String) -> void:
+	if value != 0:
+		parts.append("%+d %s" % [value, name])
+
+
+func _action_special_text(special: String) -> String:
+	match special:
+		"craft_tools": return "narzędzia (+zbiory)"
+		"explore": return "+1 losowe znalezisko"
+		"double_explore": return "+2 losowe znaleziska"
+		"draw_two": return "+2 karty do ręki"
+		"scout_reveal": return "odkrywa sąsiedni teren"
+		_: return ""
+
+
+func _building_special_text(special: String) -> String:
+	match special:
+		"night_protection": return "ochrona nocna"
+		"slow_spoilage": return "wolniejsze psucie jedzenia"
+		"unlock_crafting": return "drewno→materiał/dzień"
+		_: return ""
 
 
 func _format_costs(card: CardData) -> String:
