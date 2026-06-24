@@ -8,6 +8,7 @@ extends Button
 @onready var _name_label: Label = $NameLabel
 @onready var _cost_label: Label = $CostLabel
 @onready var _desc_label: Label = $DescLabel
+@onready var _effect_label: Label = $EffectLabel
 @onready var _illustration: TextureRect = $Illustration
 @onready var _frame: TextureRect = $Frame
 
@@ -56,7 +57,14 @@ const MONSTER_ART_ALIASES := {
 func setup(card: CardData, block_reason: String, cost_override: String = "") -> void:
 	_name_label.text = card.display_name
 	_cost_label.text = cost_override if cost_override != "" else _format_costs(card)
-	_desc_label.text = _format_description(card)
+	# Flavour on its own label (top), effects on a separate label (bottom) so the
+	# effect line can never be clipped by a long flavour or font auto-fit.
+	_desc_label.text = card.description
+	var effects := _effects_summary(card)
+	if card is BuildingCardData:
+		effects += ("  ·  " if effects != "" else "") + "%d HP" % (card as BuildingCardData).max_hp
+	_effect_label.text = effects
+	_effect_label.visible = effects != ""
 	disabled = block_reason != ""
 	tooltip_text = block_reason
 	self_modulate = Color(0.62, 0.62, 0.62, 1.0) if disabled else Color.WHITE
@@ -90,12 +98,15 @@ func _frame_path(card: CardData) -> String:
 func _apply_text_layout(card: CardData) -> void:
 	var has_cost_bar := not (card is EventCardData or card is MonsterCardData)
 	_cost_label.visible = has_cost_bar
-	if has_cost_bar:
-		_desc_label.anchor_top = 0.575
-		_desc_label.anchor_bottom = 0.815
+	var text_bottom := 0.815 if has_cost_bar else 0.93
+	_desc_label.anchor_top = 0.575
+	if _effect_label.visible:
+		# Split the text window: flavour on top, effects on their own band.
+		_desc_label.anchor_bottom = 0.73
+		_effect_label.anchor_top = 0.73
+		_effect_label.anchor_bottom = text_bottom
 	else:
-		_desc_label.anchor_top = 0.575
-		_desc_label.anchor_bottom = 0.93
+		_desc_label.anchor_bottom = text_bottom
 
 
 func _illustration_path(card: CardData) -> String:
@@ -118,7 +129,9 @@ func _illustration_path(card: CardData) -> String:
 ## backstop, then font size is reduced until the rendered text fits that window.
 func _fit_all_text() -> void:
 	_fit_label_font(_name_label, 14, 7, 2)
-	_fit_label_font(_desc_label, 11, 6, 7)
+	_fit_label_font(_desc_label, 11, 6, 5)
+	if _effect_label.visible:
+		_fit_label_font(_effect_label, 10, 6, 3)
 	if _cost_label.visible:
 		_fit_label_font(_cost_label, 10, 6, 2)
 
@@ -169,18 +182,6 @@ func _label_box_size(label: Label) -> Vector2:
 		(label.anchor_bottom - label.anchor_top) * base_size.y
 			+ label.offset_bottom - label.offset_top
 	)
-
-
-## Card text = flavour line (from `description`) + a line of effects GENERATED
-## from the card data, so amounts are always accurate and consistent across cards
-## (no hand-written numbers to drift). Events/monsters keep plain flavour.
-func _format_description(card: CardData) -> String:
-	if card is BuildingCardData:
-		var b := card as BuildingCardData
-		return "%s\n%s\nWytrzymałość: %d HP" % [b.description, _effects_summary(card), b.max_hp]
-	if card is ActionCardData:
-		return "%s\n%s" % [card.description, _effects_summary(card)]
-	return card.description
 
 
 ## Generated, consistent list of a card's effects + amounts (PL).
