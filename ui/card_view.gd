@@ -8,7 +8,7 @@ extends Button
 @onready var _name_label: Label = $NameLabel
 @onready var _cost_label: Label = $CostLabel
 @onready var _desc_label: Label = $DescLabel
-@onready var _effect_label: Label = $EffectLabel
+@onready var _effect_label: Label = get_node_or_null("EffectLabel") as Label
 @onready var _illustration: TextureRect = $Illustration
 @onready var _frame: TextureRect = $Frame
 
@@ -63,8 +63,9 @@ func setup(card: CardData, block_reason: String, cost_override: String = "") -> 
 	var effects := _effects_summary(card)
 	if card is BuildingCardData:
 		effects += ("  ·  " if effects != "" else "") + "%d HP" % (card as BuildingCardData).max_hp
-	_effect_label.text = effects
-	_effect_label.visible = effects != ""
+	if _effect_label != null:
+		_effect_label.text = effects
+		_effect_label.visible = effects != ""
 	disabled = block_reason != ""
 	tooltip_text = block_reason
 	self_modulate = Color(0.62, 0.62, 0.62, 1.0) if disabled else Color.WHITE
@@ -100,7 +101,7 @@ func _apply_text_layout(card: CardData) -> void:
 	_cost_label.visible = has_cost_bar
 	var text_bottom := 0.815 if has_cost_bar else 0.93
 	_desc_label.anchor_top = 0.575
-	if _effect_label.visible:
+	if _effect_label != null and _effect_label.visible:
 		# Split the text window: flavour on top, effects on their own band.
 		_desc_label.anchor_bottom = 0.73
 		_effect_label.anchor_top = 0.73
@@ -128,20 +129,24 @@ func _illustration_path(card: CardData) -> String:
 ## Card text has fixed frame windows in the bitmap. Labels are clipped as a
 ## backstop, then font size is reduced until the rendered text fits that window.
 func _fit_all_text() -> void:
-	_fit_label_font(_name_label, 14, 7, 2)
-	_fit_label_font(_desc_label, 11, 6, 5)
-	if _effect_label.visible:
-		_fit_label_font(_effect_label, 10, 6, 3)
+	_fit_label_font(_name_label, 14, 6, 2)
+	_fit_label_font(_desc_label, 11, 5, 5)
+	if _effect_label != null and _effect_label.visible:
+		_fit_label_font(_effect_label, 10, 4, 3)
 	if _cost_label.visible:
-		_fit_label_font(_cost_label, 10, 6, 2)
+		_fit_label_font(_cost_label, 10, 5, 2)
 
 
 func _fit_label_font(label: Label, max_size: int, min_size: int, max_lines: int) -> void:
 	var box_size := _label_box_size(label)
 	if box_size.x <= 1.0 or box_size.y <= 1.0:
+		label.add_theme_constant_override("line_spacing", 0)
 		label.add_theme_font_size_override("font_size", min_size)
+		label.max_lines_visible = max_lines
 		return
 
+	label.add_theme_constant_override("line_spacing", 0)
+	label.max_lines_visible = max_lines
 	for font_size in range(max_size, min_size - 1, -1):
 		if _label_text_fits(label, box_size, font_size, max_lines):
 			label.add_theme_font_size_override("font_size", font_size)
@@ -150,6 +155,13 @@ func _fit_label_font(label: Label, max_size: int, min_size: int, max_lines: int)
 
 
 func _label_text_fits(label: Label, box_size: Vector2, font_size: int, max_lines: int) -> bool:
+	label.add_theme_font_size_override("font_size", font_size)
+
+	var line_count := label.get_line_count()
+	var visible_line_count := label.get_visible_line_count()
+	if line_count > max_lines or line_count > visible_line_count:
+		return false
+
 	var font := label.get_theme_font("font")
 	if font == null:
 		return _estimate_text_fits(label.text, box_size, font_size, max_lines)
@@ -158,7 +170,7 @@ func _label_text_fits(label: Label, box_size: Vector2, font_size: int, max_lines
 		label.horizontal_alignment,
 		box_size.x,
 		font_size,
-		max_lines
+		-1
 	)
 	return measured.x <= box_size.x + 1.0 and measured.y <= box_size.y + 1.0
 

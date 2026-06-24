@@ -47,8 +47,14 @@ func _run() -> void:
 		root_control.add_child(view)
 		view.setup(card, "")
 		await process_frame
-		assert(view.get_node("NameLabel").get_theme_font_size("font_size") >= 7)
-		assert(view.get_node("DescLabel").get_theme_font_size("font_size") >= 6)
+		assert(view.get_node("NameLabel").get_theme_font_size("font_size") >= 6)
+		assert(view.get_node("DescLabel").get_theme_font_size("font_size") >= 5)
+		_assert_label_text_visible(view.get_node("NameLabel"))
+		_assert_label_text_visible(view.get_node("DescLabel"))
+		if view.get_node("EffectLabel").visible:
+			_assert_label_text_visible(view.get_node("EffectLabel"))
+		if view.get_node("CostLabel").visible:
+			_assert_label_text_visible(view.get_node("CostLabel"))
 		view.queue_free()
 
 	for card in cards:
@@ -61,6 +67,8 @@ func _run() -> void:
 		assert(night_view.get_node("CostLabel").visible == false)
 		assert(night_view.get_node("NameLabel").get_theme_font_size("font_size") >= 8)
 		assert(night_view.get_node("DescLabel").get_theme_font_size("font_size") >= 7)
+		_assert_label_text_visible(night_view.get_node("NameLabel"))
+		_assert_label_text_visible(night_view.get_node("DescLabel"))
 		night_view.queue_free()
 
 	var biomes := CardLibrary.load_biomes_from_dir("res://data/biomes")
@@ -88,3 +96,16 @@ func _run() -> void:
 
 	print("UI layout test OK: %d cards, %d biomes" % [cards.size(), biomes.size()])
 	quit(0)
+
+
+func _assert_label_text_visible(label: Label) -> void:
+	assert(
+		label.get_line_count() <= label.get_visible_line_count(),
+		"%s clips '%s' (%d lines, %d visible, font %d)" % [
+			label.name,
+			label.text,
+			label.get_line_count(),
+			label.get_visible_line_count(),
+			label.get_theme_font_size("font_size"),
+		]
+	)

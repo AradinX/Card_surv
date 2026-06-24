@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://4p50fxy4vppd"]
 
-[ext_resource type="Script" path="res://ui/night_card_view.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cyud6e878q282" path="res://ui/night_card_view.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://n044k56eftcw" path="res://assets/art/cards/frames/card_frame_event.png" id="2_event_frame"]
 
 [node name="NightCardView" type="Button"]
@@ -8,17 +8,6 @@ custom_minimum_size = Vector2(170, 255)
 size_flags_vertical = 4
 flat = true
 script = ExtResource("1_script")
-
-[node name="Frame" type="TextureRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("2_event_frame")
-expand_mode = 1
 
 [node name="Illustration" type="TextureRect" parent="."]
 layout_mode = 1
@@ -32,6 +21,17 @@ grow_vertical = 2
 mouse_filter = 2
 expand_mode = 1
 stretch_mode = 6
+
+[node name="Frame" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_event_frame")
+expand_mode = 1
 
 [node name="NameLabel" type="Label" parent="."]
 layout_mode = 1
