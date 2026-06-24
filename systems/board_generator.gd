@@ -9,7 +9,7 @@ const GRID_COLS := 3
 const GRID_ROWS := 2
 const BOARD_SIZE := GRID_COLS * GRID_ROWS
 ## Biomes that MUST appear on every board so their resources are always reachable
-## (Las = drewno, Góry = materiały). Missing ids are simply skipped.
+## (Las = drewno, Góry = kamień). Missing ids are simply skipped.
 const GUARANTEED_BIOME_IDS := ["forest", "mountains"]
 
 

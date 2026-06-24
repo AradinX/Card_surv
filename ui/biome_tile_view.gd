@@ -105,6 +105,7 @@ static var _dissolve_shader: Shader
 
 
 func _ready() -> void:
+	_slots_row.mouse_filter = Control.MOUSE_FILTER_PASS
 	_buildings_button.pressed.connect(func() -> void:
 		buildings_pressed.emit()
 	)
@@ -180,6 +181,7 @@ func setup(
 	is_current: bool,
 	block_reason: String,
 	tile_tooltip: String,
+	building_tooltips: Array[String] = [],
 ) -> void:
 	if not tile.is_discovered:
 		_setup_unknown_tile(tile, is_current, block_reason, tile_tooltip)
@@ -211,7 +213,7 @@ func setup(
 	# (so you can construct even on an empty tile); elsewhere only if built.
 	_buildings_button.visible = is_current or not tile.buildings.is_empty()
 	_state_overlay.color = _overlay_color(is_current, block_reason, tile.is_corrupted)
-	_refresh_slots(tile)
+	_refresh_slots(tile, building_tooltips)
 
 
 func _setup_unknown_tile(
@@ -338,17 +340,20 @@ func _unknown_overlay_color(block_reason: String, is_corrupted: bool) -> Color:
 ## One slot per building slot of the biome. Empty slot = a plain
 ## semi-transparent rectangle; occupied = the building's art with its name and
 ## HP (or RUINA) on a label below it.
-func _refresh_slots(tile: TileState) -> void:
+func _refresh_slots(tile: TileState, building_tooltips: Array[String] = []) -> void:
 	_clear_slots()
 
 	var count := mini(tile.biome.building_slots, MAX_SLOTS)
 	for i in count:
 		var slot := _make_slot()
+		var tip := ""
 		if i < tile.buildings.size():
-			_fill_occupied_slot(slot, tile.buildings[i])
+			tip = building_tooltips[i] if i < building_tooltips.size() else ""
+			_fill_occupied_slot(slot, tile.buildings[i], tip)
 		# Wrap each slot so a per-slot top margin can stagger the row.
 		var wrap := MarginContainer.new()
-		wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		wrap.mouse_filter = Control.MOUSE_FILTER_PASS if tip != "" else Control.MOUSE_FILTER_IGNORE
+		wrap.tooltip_text = tip
 		wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		wrap.add_theme_constant_override("margin_top", SLOT_STAGGER[i % SLOT_STAGGER.size()])
 		wrap.add_child(slot)
@@ -378,7 +383,9 @@ func _make_slot() -> Panel:
 	return slot
 
 
-func _fill_occupied_slot(slot: Panel, built: BuildingState) -> void:
+func _fill_occupied_slot(slot: Panel, built: BuildingState, building_tooltip: String) -> void:
+	slot.mouse_filter = Control.MOUSE_FILTER_PASS
+	slot.tooltip_text = building_tooltip
 	var art_path := "%s/%s.png" % [BUILDING_ART_DIR, built.data.id]
 	if ResourceLoader.exists(art_path):
 		var thumb := TextureRect.new()

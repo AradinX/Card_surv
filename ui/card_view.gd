@@ -209,7 +209,7 @@ func _effects_summary(card: CardData) -> String:
 		_push_delta(p, a.food_gain, "jedzenia")
 		_push_delta(p, a.water_gain, "wody")
 		_push_delta(p, a.wood_gain, "drewna")
-		_push_delta(p, a.materials_gain, "materiałów")
+		_push_delta(p, a.materials_gain, "kamienia")
 		var sp := _action_special_text(a.special)
 		if sp != "":
 			p.append(sp)
@@ -218,7 +218,7 @@ func _effects_summary(card: CardData) -> String:
 		_push_delta(p, b.food_gain, "jedzenia/dzień")
 		_push_delta(p, b.water_gain, "wody/dzień")
 		_push_delta(p, b.wood_gain, "drewna/dzień")
-		_push_delta(p, b.materials_gain, "materiałów/dzień")
+		_push_delta(p, b.materials_gain, "kamienia/dzień")
 		_push_delta(p, b.health_delta, "zdrowia/dzień")
 		_push_delta(p, b.warmth_delta, "ciepła/dzień")
 		if b.defense > 0:
@@ -226,7 +226,7 @@ func _effects_summary(card: CardData) -> String:
 		_push_delta(p, b.food_cap_bonus, "limitu jedzenia")
 		_push_delta(p, b.water_cap_bonus, "limitu wody")
 		_push_delta(p, b.wood_cap_bonus, "limitu drewna")
-		_push_delta(p, b.materials_cap_bonus, "limitu materiałów")
+		_push_delta(p, b.materials_cap_bonus, "limitu kamienia")
 		var sp := _building_special_text(b.special)
 		if sp != "":
 			p.append(sp)
@@ -254,7 +254,7 @@ func _building_special_text(special: String) -> String:
 	match special:
 		"night_protection": return "ochrona nocna"
 		"slow_spoilage": return "wolniejsze psucie jedzenia"
-		"unlock_crafting": return "drewno→materiał/dzień"
+		"unlock_crafting": return "drewno→kamień/dzień"
 		_: return ""
 
 
@@ -268,7 +268,7 @@ func _format_costs(card: CardData) -> String:
 		if action.wood_cost > 0:
 			parts.append("Drewno %d" % action.wood_cost)
 		if action.materials_cost > 0:
-			parts.append("Materiały %d" % action.materials_cost)
+			parts.append("Kamień %d" % action.materials_cost)
 	elif card is BuildingCardData:
 		var building := card as BuildingCardData
 		parts.append("Energia %d" % building.energy_cost)
@@ -277,7 +277,7 @@ func _format_costs(card: CardData) -> String:
 		if building.wood_cost > 0:
 			parts.append("Drewno %d" % building.wood_cost)
 		if building.materials_cost > 0:
-			parts.append("Materiały %d" % building.materials_cost)
+			parts.append("Kamień %d" % building.materials_cost)
 	elif card is MonsterCardData:
 		var monster := card as MonsterCardData
 		var dmg: PackedStringArray = []

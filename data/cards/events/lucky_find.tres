@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 id = "lucky_find"
 display_name = "Znalezisko"
-description = "Natrafiasz na porzucony plecak. +2 materiałów."
+description = "Natrafiasz na porzucony plecak. +2 kamienia."
 materials_delta = 2
 category = "neutral"
 severity = "minor"

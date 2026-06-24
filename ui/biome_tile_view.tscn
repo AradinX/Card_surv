@@ -127,7 +127,7 @@ anchor_right = 0.94
 anchor_bottom = 0.94
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
+mouse_filter = 1
 theme_override_constants/separation = 8
 alignment = 1
 

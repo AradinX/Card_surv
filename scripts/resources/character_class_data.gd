@@ -117,7 +117,7 @@ func ability_summary() -> String:
 	if start_wood != 0:
 		starts.append("%+d drewna" % start_wood)
 	if start_materials != 0:
-		starts.append("%+d mat." % start_materials)
+		starts.append("%+d kamienia" % start_materials)
 	if not starts.is_empty():
 		lines.append("Start: " + ", ".join(starts))
 	var out: PackedStringArray = []

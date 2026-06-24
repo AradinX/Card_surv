@@ -46,22 +46,22 @@ func _apply_season_style(season: int) -> void:
 	match season:
 		RunState.Season.SPRING:
 			color = Color(0.62, 0.94, 0.52, 1.0)
-			tooltip = "Wiosna\nBuff: akcje zbierajace jedzenie daja +1 jedzenia.\nDebuff: brak."
+			tooltip = "Wiosna\nBuff: akcje zbierające jedzenie dają +1 jedzenia.\nDebuff: brak."
 		RunState.Season.SUMMER:
 			color = Color(1.0, 0.76, 0.32, 1.0)
 			tooltip = "Lato\nBuff: brak.\nDebuff: nocny spadek nawodnienia jest o 1 mocniejszy."
 		RunState.Season.AUTUMN:
 			color = Color(0.95, 0.58, 0.24, 1.0)
-			tooltip = "Jesien\nBuff: akcje z drewnem daja +1 drewna.\nDebuff: brak."
+			tooltip = "Jesień\nBuff: akcje z drewnem dają +1 drewna.\nDebuff: brak."
 		RunState.Season.WINTER:
 			color = Color(0.62, 0.84, 1.0, 1.0)
-			tooltip = "Zima\nBuff: brak.\nDebuff: nocny spadek ciepla jest o 1 mocniejszy."
+			tooltip = "Zima\nBuff: brak.\nDebuff: nocny spadek ciepła jest o 1 mocniejszy."
 	_season_label.add_theme_color_override("font_color", color)
 	_season_label.tooltip_text = tooltip
 	_season_label.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
-func set_state(state: RunState, xp_to_next: int) -> void:
+func set_state(state: RunState, xp_to_next: int, resource_caps := {}) -> void:
 	_level_label.text = "Poziom %d  XP %d/%d" % [state.level, state.xp, xp_to_next]
 	_xp_bar.max_value = xp_to_next
 	_xp_bar.value = state.xp
@@ -73,7 +73,7 @@ func set_state(state: RunState, xp_to_next: int) -> void:
 	_hunger_label.text = "Sytość %d/%d" % [state.hunger, RunState.MAX_HUNGER]
 	_hunger_bar.value = state.hunger
 
-	_thirst_label.text = "Woda %d/%d" % [state.thirst, RunState.MAX_THIRST]
+	_thirst_label.text = "Nawodnienie %d/%d" % [state.thirst, RunState.MAX_THIRST]
 	_thirst_bar.value = state.thirst
 
 	_warmth_label.text = "Ciepło %d/%d" % [state.warmth, RunState.MAX_WARMTH]
@@ -83,10 +83,19 @@ func set_state(state: RunState, xp_to_next: int) -> void:
 	_energy_bar.max_value = state.max_energy
 	_energy_bar.value = state.energy
 
-	_resources_label.text = "Jedzenie %d   |   Woda %d   |   Drewno %d   |   Materiały %d   |   Narzędzia: %s" % [
-		state.food, state.water, state.wood, state.materials,
+	var food_cap := int(resource_caps.get("food", RunState.MAX_FOOD))
+	var water_cap := int(resource_caps.get("water", RunState.MAX_WATER))
+	var wood_cap := int(resource_caps.get("wood", RunState.MAX_WOOD))
+	var stone_cap := int(resource_caps.get("materials", RunState.MAX_MATERIALS))
+	_resources_label.text = "Jedzenie %d/%d   |   Woda %d/%d   |   Drewno %d/%d   |   Kamień %d/%d   |   Narzędzia: %s" % [
+		state.food, food_cap,
+		state.water, water_cap,
+		state.wood, wood_cap,
+		state.materials, stone_cap,
 		"TAK" if state.has_tools else "nie",
 	]
+	_resources_label.tooltip_text = "Jedzenie: zapas automatycznie zjadany nocą.\nWoda: zapas automatycznie pity nocą.\nDrewno: budowa, naprawy i ogień.\nKamień: zasób budowlany używany w kosztach kart i budynków.\nNarzędzia: gdy masz narzędzia, zyski jedzenia i drewna z kart są większe."
+	_resources_label.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
 func set_act2() -> void:

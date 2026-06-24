@@ -13,4 +13,4 @@ wood_gain = 1
 required_biome_ids = PackedStringArray()
 id = "building_wood_storage"
 display_name = "Magazyn drewna"
-description = "Suchy skład na opał i budulec."
+description = "Suchy skład na opał i drewno do budowy."

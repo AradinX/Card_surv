@@ -6,6 +6,10 @@ extends ColorRect
 
 signal closed
 
+const PANEL_BASE_SIZE := Vector2(540, 500)
+const PANEL_PADDING := Vector2(32, 32)
+
+@onready var _panel: PanelContainer = $Panel
 @onready var _fullscreen_check: CheckButton = $Panel/PanelMargin/VBox/FullscreenRow/FullscreenCheck
 @onready var _vsync_check: CheckButton = $Panel/PanelMargin/VBox/VsyncRow/VsyncCheck
 @onready var _volume_slider: HSlider = $Panel/PanelMargin/VBox/VolumeRow/VolumeSlider
@@ -26,6 +30,25 @@ func _ready() -> void:
 	_volume_slider.value_changed.connect(_on_volume_changed)
 	_music_slider.value_changed.connect(_on_music_changed)
 	_sfx_slider.value_changed.connect(_on_sfx_changed)
+	_apply_responsive_layout()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED and is_node_ready():
+		_apply_responsive_layout()
+
+
+func _apply_responsive_layout() -> void:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 1.0 or viewport_size.y <= 1.0:
+		return
+	var available := Vector2(
+		maxf(viewport_size.x - PANEL_PADDING.x * 2.0, 1.0),
+		maxf(viewport_size.y - PANEL_PADDING.y * 2.0, 1.0)
+	)
+	var panel_scale := minf(1.0, minf(available.x / PANEL_BASE_SIZE.x, available.y / PANEL_BASE_SIZE.y))
+	_panel.scale = Vector2(panel_scale, panel_scale)
+	_panel.pivot_offset = _panel.size * 0.5
 
 
 ## Show the overlay with controls synced to the current saved values.

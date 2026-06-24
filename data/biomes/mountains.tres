@@ -14,7 +14,7 @@
 script = ExtResource("1_script")
 id = "mountains"
 display_name = "Góry"
-description = "Surowe skały bogate w materiały. Zima przychodzi tu pierwsza."
+description = "Surowe skały bogate w kamień. Zima przychodzi tu pierwsza."
 building_slots = 2
 gather_cards = [ExtResource("2_scav"), ExtResource("7_water")]
 extra_event_cards = [ExtResource("4_cold"), ExtResource("5_storm"), ExtResource("9_thin")]

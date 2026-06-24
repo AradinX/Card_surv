@@ -8,6 +8,7 @@ const NIGHT_CARD_VIEW_SCENE := preload("res://ui/night_card_view.tscn")
 const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
 const MAX_GATHER_CARD_VIEWS := 3
 const LOG_PANEL_ACT2 := "res://assets/art/ui/panels/log_panel_act2.png"
+const LOG_PANEL_ACT1 := "res://assets/art/ui/panels/log_panel_act1.png"
 const LOG_TEXT_ACT2 := Color(0.82, 0.78, 0.64, 1.0)
 const REPAIR_ICON := "res://assets/art/ui/icons/icon_repair_round.png"
 const RUIN_ICON := "res://assets/art/ui/icons/icon_ruin_round.png"
@@ -73,7 +74,7 @@ const NIGHT_FX := {
 	"shine": "res://assets/art/fx/cards/fx_card_shine_sweep.png",
 	"dust": "res://assets/art/fx/cards/fx_card_dust_puff.png",
 }
-const NIGHT_CARD_SIZE := Vector2(132, 198)
+const NIGHT_CARD_SIZE := Vector2(170, 255)
 ## Ambient / feedback FX (all optional — guarded by ResourceLoader.exists, so a
 ## missing or mid-regeneration asset simply skips the effect).
 const WEATHER_RAIN := "res://assets/art/fx/weather/fx_rain_overlay.png"
@@ -90,9 +91,18 @@ const REPAIR_FX := "res://assets/art/fx/buildings/fx_repair_sparkle.png"
 const COLLAPSE_FX := "res://assets/art/fx/buildings/fx_ruin_collapse.png"
 ## Low-HP danger vignette shows at or below this fraction of max health.
 const LOW_HP_FRACTION := 0.3
+const DESIGN_VIEWPORT := Vector2(1280, 720)
+const OVERLAY_PADDING := Vector2(32, 32)
+const LEVEL_PANEL_BASE := Vector2(900, 470)
+const NIGHT_PANEL_BASE := Vector2(460, 560)
+const NIGHT_NOTE_BASE := Vector2(340, 300)
+const NIGHT_LAYOUT_GAP := 28.0
+const PAUSE_PANEL_BASE := Vector2(460, 430)
 
 @onready var _background: ColorRect = $Background
 @onready var _background_art: TextureRect = $BackgroundArt
+@onready var _main_scroll: ScrollContainer = $Scroll
+@onready var _main_margin: MarginContainer = $Scroll/Margin
 @onready var _top_status_bar: TopStatusBarView = $Scroll/Margin/Layout/TopStatusBar
 @onready var _board_grid: GridContainer = $Scroll/Margin/Layout/MidRow/Board
 @onready var _log_panel_art: TextureRect = $Scroll/Margin/Layout/MidRow/LogPanel/LogPanelArt
@@ -106,9 +116,11 @@ const LOW_HP_FRACTION := 0.3
 @onready var _hand_container: HBoxContainer = $Scroll/Margin/Layout/CardsRow/BottomBar/Hand
 @onready var _build_scroll: ScrollContainer = $Scroll/Margin/Layout/CardsRow/BottomBar/BuildScroll
 @onready var _build_cards: HBoxContainer = $Scroll/Margin/Layout/CardsRow/BottomBar/BuildScroll/BuildCards
+@onready var _button_column: VBoxContainer = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn
 @onready var _build_toggle_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/BuildToggleButton
 @onready var _end_day_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/EndDayButton
 @onready var _level_overlay: ColorRect = $LevelUpOverlay
+@onready var _level_panel: PanelContainer = $LevelUpOverlay/Panel
 @onready var _level_title: Label = $LevelUpOverlay/Panel/PanelMargin/VBox/TitleLabel
 @onready var _reward_buttons: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons
 @onready var _energy_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/EnergyButton
@@ -116,13 +128,17 @@ const LOW_HP_FRACTION := 0.3
 @onready var _card_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/CardButton
 @onready var _card_choices: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/CardChoices
 @onready var _night_overlay: ColorRect = $NightEventOverlay
+@onready var _night_panel: PanelContainer = $NightEventOverlay/Panel
+@onready var _night_note_panel: Control = $NightEventOverlay/NotePanel
+@onready var _night_note_art: TextureRect = $NightEventOverlay/NotePanel/NoteArt
 @onready var _night_card_slot: CenterContainer = $NightEventOverlay/Panel/PanelMargin/VBox/CardSlot
+@onready var _night_summary: Label = $NightEventOverlay/NotePanel/NoteMargin/SummaryLabel
 @onready var _night_continue_button: Button = $NightEventOverlay/Panel/PanelMargin/VBox/ContinueButton
 @onready var _night_choices: VBoxContainer = $NightEventOverlay/Panel/PanelMargin/VBox/ChoiceButtons
 @onready var _night_result: Label = $NightEventOverlay/Panel/PanelMargin/VBox/ResultLabel
 @onready var _forecast_label: Label = $Scroll/Margin/Layout/MidRow/LogPanel/ForecastLabel
-@onready var _pause_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/PauseButton
 @onready var _pause_overlay: ColorRect = $PauseOverlay
+@onready var _pause_panel: PanelContainer = $PauseOverlay/Panel
 @onready var _pause_resume_button: Button = $PauseOverlay/Panel/PanelMargin/VBox/ResumeButton
 @onready var _pause_settings_button: Button = $PauseOverlay/Panel/PanelMargin/VBox/SettingsButton
 @onready var _pause_menu_button: Button = $PauseOverlay/Panel/PanelMargin/VBox/MenuButton
@@ -135,6 +151,10 @@ var _building_popup_requested := false
 var _build_mode := false
 var _build_confirm: ConfirmationDialog
 var _pending_build: BuildingCardData
+var _action_confirm: ConfirmationDialog
+var _pending_confirm_action := Callable()
+var _deck_button: Button
+var _deck_dialog: AcceptDialog
 var _night_fx: Array[Node] = []
 var _night_tween: Tween
 var _weather_overlay: TextureRect
@@ -153,10 +173,15 @@ func _ready() -> void:
 		GameManager.return_to_menu()
 		return
 
+	_main_scroll.horizontal_scroll_mode = 0
+	_main_scroll.vertical_scroll_mode = 0
+	_build_scroll.horizontal_scroll_mode = 2
+	_card_choices.custom_minimum_size = Vector2(0, 232)
 	_top_status_bar.setup_max_values()
 	_apply_button_skin()
 	_create_weather_overlay()
 	_create_low_hp_overlay()
+	_setup_deck_dialog()
 
 	# Current-tile marker = the played character's medallion (fallback inside).
 	if _survival.state != null and _survival.state.character_class != null:
@@ -165,8 +190,11 @@ func _ready() -> void:
 	# Background music + nature ambience for the current act (resumed runs may
 	# already be post-BUM).
 	if _survival.state != null and _survival.state.bum_happened and _survival.state.disaster != null:
+		var key := _survival.state.disaster.id
+		_act2_look = ACT2_LOOK.get(key, ACT2_LOOK["plague"])
 		AudioManager.play_act2_music(_survival.state.disaster.id)
 		AudioManager.play_act2_ambience(_survival.state.disaster.id)
+		_apply_act2_look()
 	else:
 		AudioManager.play_music("act1")
 		AudioManager.play_ambience("forest")
@@ -187,6 +215,7 @@ func _ready() -> void:
 	_end_day_button.pressed.connect(_on_end_day_pressed)
 	_build_toggle_button.pressed.connect(_on_build_toggle_pressed)
 	_setup_build_confirm()
+	_setup_action_confirm()
 	_building_close_button.pressed.connect(_hide_building_popup)
 	_building_label.text = "Naprawa / rozbiórka"
 	_energy_button.pressed.connect(_on_reward_energy)
@@ -196,12 +225,89 @@ func _ready() -> void:
 	ButtonSkin.apply_minimal_many([
 		_pause_resume_button, _pause_settings_button, _pause_menu_button
 	])
-	_pause_button.pressed.connect(func() -> void: _pause_overlay.visible = true)
 	_pause_resume_button.pressed.connect(_hide_pause)
 	_pause_settings_button.pressed.connect(_settings_overlay.open)
 	_pause_menu_button.pressed.connect(GameManager.return_to_menu)
+	_apply_responsive_layout()
 
 	_survival.begin()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED and is_node_ready():
+		_apply_responsive_layout()
+
+
+func _apply_responsive_layout() -> void:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 1.0 or viewport_size.y <= 1.0:
+		return
+	var main_scale := minf(1.0, minf(
+		viewport_size.x / DESIGN_VIEWPORT.x,
+		viewport_size.y / DESIGN_VIEWPORT.y
+	))
+	_main_margin.scale = Vector2(main_scale, main_scale)
+	_main_scroll.scroll_horizontal = 0
+	_main_scroll.scroll_vertical = 0
+
+	_fit_centered_panel(_level_panel, LEVEL_PANEL_BASE, viewport_size)
+	_fit_night_layout(viewport_size)
+	_fit_centered_panel(_pause_panel, PAUSE_PANEL_BASE, viewport_size)
+	_fit_building_popup(viewport_size)
+
+
+func _fit_centered_panel(panel: Control, base_size: Vector2, viewport_size: Vector2) -> void:
+	var available := Vector2(
+		maxf(viewport_size.x - OVERLAY_PADDING.x * 2.0, 1.0),
+		maxf(viewport_size.y - OVERLAY_PADDING.y * 2.0, 1.0)
+	)
+	var panel_scale := minf(1.0, minf(available.x / base_size.x, available.y / base_size.y))
+	panel.scale = Vector2(panel_scale, panel_scale)
+	panel.pivot_offset = panel.size * 0.5
+
+
+func _fit_night_layout(viewport_size: Vector2) -> void:
+	var available := Vector2(
+		maxf(viewport_size.x - OVERLAY_PADDING.x * 2.0, 1.0),
+		maxf(viewport_size.y - OVERLAY_PADDING.y * 2.0, 1.0)
+	)
+	var total_width := NIGHT_NOTE_BASE.x + NIGHT_LAYOUT_GAP + NIGHT_PANEL_BASE.x
+	var max_height := maxf(NIGHT_NOTE_BASE.y, NIGHT_PANEL_BASE.y)
+	var panel_scale := minf(1.0, minf(available.x / total_width, available.y / max_height))
+	var scaled_total := total_width * panel_scale
+	var left := (viewport_size.x - scaled_total) * 0.5
+	var top := (viewport_size.y - max_height * panel_scale) * 0.5
+
+	_place_overlay_panel(_night_note_panel, NIGHT_NOTE_BASE, panel_scale, Vector2(
+		left,
+		top + (max_height - NIGHT_NOTE_BASE.y) * panel_scale * 0.5
+	))
+	_place_overlay_panel(_night_panel, NIGHT_PANEL_BASE, panel_scale, Vector2(
+		left + (NIGHT_NOTE_BASE.x + NIGHT_LAYOUT_GAP) * panel_scale,
+		top
+	))
+
+
+func _place_overlay_panel(panel: Control, base_size: Vector2, panel_scale: float, pos: Vector2) -> void:
+	panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	panel.custom_minimum_size = base_size
+	panel.size = base_size
+	panel.position = pos
+	panel.scale = Vector2(panel_scale, panel_scale)
+	panel.pivot_offset = Vector2.ZERO
+
+
+func _fit_building_popup(viewport_size: Vector2) -> void:
+	var width := minf(692.0, maxf(viewport_size.x - 32.0, 320.0))
+	var height := minf(344.0, maxf(viewport_size.y - 96.0, 220.0))
+	_building_bar.anchor_left = 1.0
+	_building_bar.anchor_top = 1.0
+	_building_bar.anchor_right = 1.0
+	_building_bar.anchor_bottom = 1.0
+	_building_bar.offset_left = -width - 28.0
+	_building_bar.offset_top = -height - 104.0
+	_building_bar.offset_right = -28.0
+	_building_bar.offset_bottom = -104.0
 
 
 ## Esc toggles the pause menu. If the settings panel is open (from pause), Esc
@@ -233,21 +339,41 @@ func _create_tile_buttons() -> void:
 
 func _on_tile_pressed(tile_index: int) -> void:
 	if tile_index != _survival.state.current_tile:
-		_building_popup_requested = false
-		_building_bar.visible = false
-		_survival.move_to(tile_index)
+		_request_move(tile_index)
 
 
 func _on_buildings_pressed(tile_index: int) -> void:
 	if tile_index != _survival.state.current_tile:
-		_building_popup_requested = false
-		_building_bar.visible = false
-		var move_block := _survival.can_move(tile_index)
-		_survival.move_to(tile_index)
-		if move_block != "":
-			return
+		_request_move(tile_index, func() -> void:
+			_building_popup_requested = true
+			_refresh_building_actions()
+		)
+		return
 	_building_popup_requested = true
 	_refresh_building_actions()
+
+
+func _request_move(tile_index: int, after_move: Callable = Callable()) -> void:
+	var block := _survival.can_move(tile_index)
+	if block != "":
+		_on_log_message(block)
+		return
+	var tile := _survival.state.board[tile_index]
+	var is_discovery := not tile.is_discovered
+	var title := "Odkryć kafel?" if is_discovery else "Przejść na kafel?"
+	var ok_text := "Odkryj" if is_discovery else "Przejdź"
+	var body := "%s\nKoszt: %d energii" % [
+		"Nieznany teren. Odkrycie aktywuje jego nocne zagrożenia." if is_discovery
+			else tile.biome.display_name,
+		SurvivalSystem.MOVE_ENERGY_COST,
+	]
+	_confirm_action(title, body, ok_text, func() -> void:
+		_building_popup_requested = false
+		_building_bar.visible = false
+		_survival.move_to(tile_index)
+		if after_move.is_valid():
+			after_move.call()
+	)
 
 
 func _hide_building_popup() -> void:
@@ -270,7 +396,7 @@ func _on_day_started(day: int) -> void:
 
 func _on_stats_changed(state: RunState) -> void:
 	_top_status_bar.set_day(state.day, SurvivalSystem.WIN_DAY, state.season)
-	_top_status_bar.set_state(state, _survival.xp_to_next_level())
+	_top_status_bar.set_state(state, _survival.xp_to_next_level(), _resource_caps())
 	_refresh_playability()
 	_refresh_tiles(state)
 	_update_low_hp_vignette(state)
@@ -285,7 +411,7 @@ func _update_forecast() -> void:
 	var f := _survival.end_of_day_forecast()
 	var warmth_net: int = f["warmth_net"]
 	var warmth_txt := ("%+d" % warmth_net) if warmth_net != 0 else "0"
-	_forecast_label.text = "Noc: syt −%d, naw −%d, cie %s · zapasy: %d jedz, %d wody" % [
+	_forecast_label.text = "Noc: sytość -%d, nawodnienie -%d, ciepło %s · zapasy: %d jedzenia, %d wody" % [
 		f["hunger_decay"], f["thirst_decay"], warmth_txt, f["food"], f["water"]
 	]
 
@@ -317,8 +443,20 @@ func _refresh_tiles(state: RunState) -> void:
 		else:
 			tooltip = block_reason if block_reason != "" \
 				else "Przejdź (koszt: %d energii)" % SurvivalSystem.MOVE_ENERGY_COST
-		button.setup(tile, i == state.current_tile, block_reason, tooltip)
+		var building_tooltips: Array[String] = []
+		for built in tile.buildings:
+			building_tooltips.append(_building_tooltip(built))
+		button.setup(tile, i == state.current_tile, block_reason, tooltip, building_tooltips)
 	_refresh_building_actions()
+
+
+func _resource_caps() -> Dictionary:
+	return {
+		"food": _survival.food_cap(),
+		"water": _survival.water_cap(),
+		"wood": _survival.wood_cap(),
+		"materials": _survival.materials_cap(),
+	}
 
 ## Repair/demolish controls for buildings on the player's current tile.
 func _refresh_building_actions() -> void:
@@ -353,25 +491,32 @@ func _refresh_building_actions() -> void:
 		label.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 1.0))
 		label.add_theme_constant_override("shadow_offset_x", 1)
 		label.add_theme_constant_override("shadow_offset_y", 1)
+		label.tooltip_text = _building_tooltip(built)
+		label.mouse_filter = Control.MOUSE_FILTER_STOP
 		row.add_child(label)
 
 		if built.is_ruined:
 			label.text = "%s\nRUINA" % built.data.display_name
+			var refund := _demolish_refund_summary(built)
 			row.add_child(_make_building_cost_label(
-				"Rozbiorka: %d energii" % SurvivalSystem.DEMOLISH_ENERGY_COST
+				"Rozbiórka: %d energii\nZwrot: %s" % [
+					SurvivalSystem.DEMOLISH_ENERGY_COST,
+					refund,
+				]
 			))
 			var demolish_block := _survival.can_demolish(i)
 			var demolish_tooltip := demolish_block if demolish_block != "" \
-				else "Koszt: %d energii, odzysk ~polowy surowcow" \
-					% SurvivalSystem.DEMOLISH_ENERGY_COST
+				else "Koszt: %d energii\nZwrot: %s" % [
+					SurvivalSystem.DEMOLISH_ENERGY_COST,
+					refund,
+				]
 			var demolish_idx := i
 			row.add_child(_make_icon_action_button(
 				RUIN_ICON,
 				demolish_tooltip,
 				demolish_block != "",
 				func() -> void:
-					_survival.demolish(demolish_idx)
-					_spawn_tile_fx(COLLAPSE_FX, false)
+					_confirm_demolish(demolish_idx)
 			))
 		elif built.hp < _survival.building_max_hp(built.data):
 			label.text = "%s\nHP %d/%d" % [
@@ -407,16 +552,96 @@ func _refresh_building_actions() -> void:
 				built.hp,
 				_survival.building_max_hp(built.data),
 			]
-			var status := Label.new()
-			status.custom_minimum_size = Vector2(150, 0)
-			status.text = "Niezniszczony"
-			status.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			status.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			status.add_theme_font_size_override("font_size", 12)
-			status.add_theme_color_override("font_color", Color(0.72, 0.92, 0.58, 1.0))
-			row.add_child(status)
+			var refund := _demolish_refund_summary(built)
+			row.add_child(_make_building_cost_label(
+				"Rozbiórka: %d energii\nZwrot: %s" % [
+					SurvivalSystem.DEMOLISH_ENERGY_COST,
+					refund,
+				]
+			))
+			var demolish_block := _survival.can_demolish(i)
+			var demolish_tooltip := demolish_block if demolish_block != "" \
+				else "Koszt: %d energii\nZwrot: %s\nMniejszy zwrot niż z ruin" % [
+					SurvivalSystem.DEMOLISH_ENERGY_COST,
+					refund,
+				]
+			var demolish_idx := i
+			row.add_child(_make_icon_action_button(
+				RUIN_ICON,
+				demolish_tooltip,
+				demolish_block != "",
+				func() -> void:
+					_confirm_demolish(demolish_idx)
+			))
 
 	_building_bar.visible = _building_popup_requested
+
+
+func _confirm_demolish(building_index: int) -> void:
+	var buildings := _survival.current_tile().buildings
+	if building_index < 0 or building_index >= buildings.size():
+		return
+	var built = buildings[building_index]
+	var title := "Rozebrać ruinę?" if built.is_ruined else "Rozebrać budynek?"
+	var text := "%s\nKoszt: %d energii\nZwrot: %s" % [
+		built.data.display_name,
+		SurvivalSystem.DEMOLISH_ENERGY_COST,
+		_demolish_refund_summary(built),
+	]
+	_confirm_action(title, text, "Rozbierz", func() -> void:
+		_survival.demolish(building_index)
+		_spawn_tile_fx(COLLAPSE_FX, false)
+	)
+
+
+func _demolish_refund_summary(built) -> String:
+	var divisor := SurvivalSystem.DEMOLISH_REFUND_DIVISOR if built.is_ruined \
+		else SurvivalSystem.DEMOLISH_STANDING_REFUND_DIVISOR
+	var wood_refund := floori(built.data.wood_cost / float(divisor))
+	var stone_refund := floori(built.data.materials_cost / float(divisor))
+	return "+%d drewna, +%d kamienia" % [wood_refund, stone_refund]
+
+
+func _building_tooltip(built) -> String:
+	var data: BuildingCardData = built.data
+	var parts: PackedStringArray = [
+		data.display_name,
+		"HP %d/%d" % [built.hp, _survival.building_max_hp(data)],
+	]
+	var production := _building_effect_parts(data)
+	if not production.is_empty():
+		parts.append("Efekty: %s" % ", ".join(production))
+	if data.special != "":
+		parts.append("Specjalne: %s" % _building_special_description(data.special))
+	return "\n".join(parts)
+
+
+func _building_effect_parts(data: BuildingCardData) -> PackedStringArray:
+	var parts: PackedStringArray = []
+	if data.food_gain != 0: parts.append("%+d jedzenia/dzień" % data.food_gain)
+	if data.water_gain != 0: parts.append("%+d wody/dzień" % data.water_gain)
+	if data.wood_gain != 0: parts.append("%+d drewna/dzień" % data.wood_gain)
+	if data.materials_gain != 0: parts.append("%+d kamienia/dzień" % data.materials_gain)
+	if data.health_delta != 0: parts.append("%+d zdrowia/dzień" % data.health_delta)
+	if data.warmth_delta != 0: parts.append("%+d ciepła/dzień" % data.warmth_delta)
+	if data.defense > 0: parts.append("obrona %d" % data.defense)
+	if data.food_cap_bonus > 0: parts.append("+%d limitu jedzenia" % data.food_cap_bonus)
+	if data.water_cap_bonus > 0: parts.append("+%d limitu wody" % data.water_cap_bonus)
+	if data.wood_cap_bonus > 0: parts.append("+%d limitu drewna" % data.wood_cap_bonus)
+	if data.materials_cap_bonus > 0: parts.append("+%d limitu kamienia" % data.materials_cap_bonus)
+	return parts
+
+
+func _building_special_description(special: String) -> String:
+	match special:
+		"night_protection":
+			return "chroni przed częścią nocnych strat zdrowia/ciepła"
+		"slow_spoilage":
+			return "spowalnia psucie jedzenia"
+		"unlock_crafting":
+			return "przerabia drewno na kamień każdego dnia"
+		_:
+			return special
 
 
 ## --- Build mode ---
@@ -432,6 +657,84 @@ func _setup_build_confirm() -> void:
 	_build_confirm.cancel_button_text = "Anuluj"
 	_build_confirm.confirmed.connect(_on_build_confirmed)
 	add_child(_build_confirm)
+
+
+func _setup_action_confirm() -> void:
+	_action_confirm = ConfirmationDialog.new()
+	_action_confirm.cancel_button_text = "Anuluj"
+	_action_confirm.confirmed.connect(_on_action_confirmed)
+	add_child(_action_confirm)
+
+
+func _setup_deck_dialog() -> void:
+	_deck_button = Button.new()
+	_deck_button.custom_minimum_size = Vector2(220, 44)
+	_deck_button.text = "Talia"
+	_deck_button.clip_text = true
+	_button_column.add_child(_deck_button)
+	_button_column.move_child(_deck_button, 0)
+	ButtonSkin.apply_primary(_deck_button, _button_act)
+	_deck_button.pressed.connect(_show_deck_dialog)
+
+	_deck_dialog = AcceptDialog.new()
+	_deck_dialog.title = "Talia"
+	_deck_dialog.ok_button_text = "OK"
+	add_child(_deck_dialog)
+
+
+func _confirm_action(title: String, text: String, ok_text: String, action: Callable) -> void:
+	_pending_confirm_action = action
+	_action_confirm.title = title
+	_action_confirm.dialog_text = text
+	_action_confirm.ok_button_text = ok_text
+	_action_confirm.popup_centered(Vector2i(420, 220))
+
+
+func _on_action_confirmed() -> void:
+	var action := _pending_confirm_action
+	_pending_confirm_action = Callable()
+	if action.is_valid():
+		action.call()
+
+
+func _show_deck_dialog() -> void:
+	_deck_dialog.dialog_text = _deck_summary()
+	_deck_dialog.popup_centered(Vector2i(560, 520))
+
+
+func _deck_summary() -> String:
+	var counts := _deck_counts()
+	if counts.is_empty():
+		return "Talia jest pusta."
+	var lines: PackedStringArray = ["Karty w talii: %d" % _survival.state.deck.size(), ""]
+	var names: Array[String] = []
+	for id in counts.keys():
+		names.append(str(id))
+	names.sort()
+	for id in names:
+		var item: Dictionary = counts[id]
+		var card: CardData = item["card"]
+		lines.append("%s x%d" % [card.display_name, int(item["count"])])
+	return "\n".join(lines)
+
+
+func _deck_counts() -> Dictionary:
+	var counts := {}
+	for card in _survival.state.deck:
+		if card == null:
+			continue
+		var key := card.id
+		if not counts.has(key):
+			counts[key] = {"card": card, "count": 0}
+		counts[key]["count"] = int(counts[key]["count"]) + 1
+	return counts
+
+
+func _deck_count_for(card: CardData) -> int:
+	if card == null:
+		return 0
+	var counts := _deck_counts()
+	return int(counts.get(card.id, {"count": 0})["count"])
 
 
 func _on_build_toggle_pressed() -> void:
@@ -504,7 +807,7 @@ func _build_cost_summary(b: BuildingCardData) -> String:
 	if int(cost["wood"]) > 0:
 		parts.append("%d drewna" % int(cost["wood"]))
 	if int(cost["materials"]) > 0:
-		parts.append("%d mat." % int(cost["materials"]))
+		parts.append("%d kamienia" % int(cost["materials"]))
 	if int(cost["food"]) > 0:
 		parts.append("%d jedz." % int(cost["food"]))
 	return ", ".join(parts)
@@ -570,6 +873,7 @@ func _apply_act2_look() -> void:
 	_top_status_bar.set_act2()
 	if ResourceLoader.exists(LOG_PANEL_ACT2):
 		_log_panel_art.texture = load(LOG_PANEL_ACT2)
+		_night_note_art.texture = load(LOG_PANEL_ACT2)
 	_log.add_theme_color_override("default_color", _act2_look["log_text"])
 	_background.color = _act2_look["scrim"]
 
@@ -873,13 +1177,16 @@ func _update_low_hp_vignette(state: RunState) -> void:
 
 
 func _apply_button_skin() -> void:
-	ButtonSkin.apply_many([
+	var buttons := [
 		_energy_button,
 		_health_button,
 		_card_button,
 		_end_day_button,
 		_night_continue_button,
-	], _button_act)
+	]
+	if _deck_button != null:
+		buttons.append(_deck_button)
+	ButtonSkin.apply_many(buttons, _button_act)
 	_apply_close_button_skin()
 
 
@@ -906,6 +1213,7 @@ func _on_night_card_drawn(card: CardData) -> void:
 	# they land on the exact same centred rect. The card flips from back to front.
 	var view: NightCardView = NIGHT_CARD_VIEW_SCENE.instantiate()
 	_night_card_slot.add_child(view)
+	view.custom_minimum_size = NIGHT_CARD_SIZE
 	view.setup(card, "")
 	view.focus_mode = Control.FOCUS_NONE
 	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -923,6 +1231,9 @@ func _on_night_card_drawn(card: CardData) -> void:
 	back.pivot_offset = NIGHT_CARD_SIZE * 0.5
 	_night_card_slot.add_child(back)
 
+	_night_summary.text = _night_summary_text(card)
+	_night_summary.visible = true
+	_night_note_panel.visible = true
 	_build_night_choices(card)
 	_play_night_reveal(view, back, _night_tint(card))
 	if is_monster:
@@ -966,7 +1277,7 @@ func _choice_button_text(choice) -> String:
 	var lines: PackedStringArray = [title]
 	var success := _choice_success_summary(choice)
 	if success != "":
-		lines.append("Sukces: %s" % success)
+		lines.append("%s: %s" % ["Sukces" if choice.risk_chance > 0 else "Efekt", success])
 	if choice.risk_chance > 0:
 		lines.append("Porażka: %s" % _choice_failure_summary(choice))
 	return "\n".join(lines)
@@ -985,7 +1296,7 @@ func _choice_success_summary(choice) -> String:
 	if choice.food_gain != 0: parts.append("%+d jedzenia" % choice.food_gain)
 	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
 	if choice.wood_gain != 0: parts.append("%+d drewna" % choice.wood_gain)
-	if choice.materials_gain != 0: parts.append("%+d materiałów" % choice.materials_gain)
+	if choice.materials_gain != 0: parts.append("%+d kamienia" % choice.materials_gain)
 	if choice.next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.next_day_energy_delta)
 	if choice.grant_random_card: parts.append("+1 karta do talii")
 	return ", ".join(parts)
@@ -997,6 +1308,121 @@ func _choice_failure_summary(choice) -> String:
 	return "brak efektu"
 
 
+func _night_summary_text(card: CardData) -> String:
+	var lines: PackedStringArray = []
+	var card_effect := _night_card_effect_summary(card)
+	if card_effect != "":
+		lines.append("Karta: %s" % card_effect)
+	var passives := _night_building_passive_summary()
+	if passives != "":
+		lines.append("Budynki: %s" % passives)
+	lines.append("Noc: %s" % _night_needs_summary())
+	return "\n".join(lines)
+
+
+func _night_card_effect_summary(card: CardData) -> String:
+	if card is MonsterCardData:
+		var monster := card as MonsterCardData
+		var parts: PackedStringArray = []
+		if monster.damage_to_player > 0:
+			parts.append("-%d zdrowia" % monster.damage_to_player)
+		if monster.damage_to_buildings > 0:
+			parts.append("-%d HP budynku" % monster.damage_to_buildings)
+		return ", ".join(parts) if not parts.is_empty() else "atak bez obrażeń"
+	if not (card is EventCardData):
+		return ""
+	var event := card as EventCardData
+	if not event.choices.is_empty():
+		return "wybierz opcję poniżej"
+	var health_delta := event.health_delta
+	var warmth_delta := event.warmth_delta
+	if event.shelter_protects and _has_standing_special("night_protection"):
+		health_delta = maxi(health_delta, mini(health_delta + SurvivalSystem.NIGHT_PROTECTION_VALUE, 0))
+		warmth_delta = maxi(warmth_delta, mini(warmth_delta + SurvivalSystem.NIGHT_PROTECTION_VALUE, 0))
+	var parts := _stat_delta_parts(
+		health_delta, event.hunger_delta, event.thirst_delta, warmth_delta,
+		event.food_delta, event.water_delta, event.wood_delta, event.materials_delta,
+		event.next_day_energy_delta
+	)
+	return ", ".join(parts) if not parts.is_empty() else "brak zmian"
+
+
+func _night_building_passive_summary() -> String:
+	if _survival == null or _survival.state == null:
+		return ""
+	var health := 0
+	var hunger := 0
+	var thirst := 0
+	var warmth := 0
+	var food := 0
+	var water := 0
+	var wood := 0
+	var stone := 0
+	var workshop_crafts := false
+	for tile in _survival.state.board:
+		for built in tile.buildings:
+			if built.is_ruined:
+				continue
+			var data: BuildingCardData = built.data
+			health += data.health_delta
+			hunger += data.hunger_delta
+			thirst += data.thirst_delta
+			warmth += data.warmth_delta
+			food += data.food_gain
+			water += data.water_gain
+			wood += data.wood_gain
+			stone += data.materials_gain
+			if data.special == "unlock_crafting" and _survival.state.wood > 0:
+				workshop_crafts = true
+	var parts := _stat_delta_parts(health, hunger, thirst, warmth, food, water, wood, stone, 0)
+	if workshop_crafts:
+		parts.append("-1 drewna, +1 kamienia")
+	return ", ".join(parts)
+
+
+func _night_needs_summary() -> String:
+	if _survival == null or _survival.state == null:
+		return "-3 sytości, -3 nawodnienia, -3 ciepła"
+	var state := _survival.state
+	var hunger_decay := SurvivalSystem.DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta
+	var thirst_decay := SurvivalSystem.DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta
+	var warmth_decay := SurvivalSystem.DAILY_WARMTH_DECAY + state.character_class.warmth_rate_delta
+	if state.season == RunState.Season.SUMMER:
+		thirst_decay += SurvivalSystem.SUMMER_EXTRA_THIRST_DECAY
+	if state.season == RunState.Season.WINTER:
+		warmth_decay += SurvivalSystem.WINTER_EXTRA_WARMTH_DECAY
+	return "-%d sytości, -%d nawodnienia, -%d ciepła" % [
+		hunger_decay, thirst_decay, warmth_decay
+	]
+
+
+func _stat_delta_parts(
+	health: int, hunger: int, thirst: int, warmth: int,
+	food: int, water: int, wood: int, stone: int, next_energy: int
+) -> PackedStringArray:
+	var parts: PackedStringArray = []
+	if health != 0: parts.append("%+d zdrowia" % health)
+	if hunger != 0: parts.append("%+d sytości" % hunger)
+	if thirst != 0: parts.append("%+d nawodnienia" % thirst)
+	if warmth != 0: parts.append("%+d ciepła" % warmth)
+	if food != 0: parts.append("%+d jedzenia" % food)
+	if water != 0: parts.append("%+d wody" % water)
+	if wood != 0: parts.append("%+d drewna" % wood)
+	if stone != 0: parts.append("%+d kamienia" % stone)
+	if next_energy != 0: parts.append("%+d energii jutro" % next_energy)
+	return parts
+
+
+func _has_standing_special(special: String) -> bool:
+	if _survival == null or _survival.state == null:
+		return false
+	for tile in _survival.state.board:
+		for built in tile.buildings:
+			if not built.is_ruined and built.data.special == special:
+				return true
+	return false
+
+
 ## Picking a choice applies it immediately but PAUSES on a result summary — the
 ## player reads what happened and clicks „Dalej" to settle the night.
 func _on_night_choice(index: int) -> void:
@@ -1006,6 +1432,11 @@ func _on_night_choice(index: int) -> void:
 	_night_choices.visible = false
 	_night_result.text = summary
 	_night_result.visible = true
+	_night_summary.text = "Wybór: %s\nNoc: %s" % [
+		summary.replace("\n", " "),
+		_night_needs_summary()
+	]
+	_night_note_panel.visible = true
 	_night_continue_button.visible = true
 	_night_continue_button.disabled = false
 
@@ -1139,11 +1570,15 @@ func _clear_night_card() -> void:
 		child.queue_free()
 	_night_result.visible = false
 	_night_result.text = ""
+	_night_note_panel.visible = false
+	_night_summary.visible = false
+	_night_summary.text = ""
 
 
 func _on_hand_changed(hand: Array[CardData]) -> void:
 	_rebuild_cards(_hand_container, hand, func(i: int, _card: CardData) -> void:
-		_survival.play_card(i))
+		_survival.play_card(i)
+	, true)
 	_refresh_playability()
 
 
@@ -1154,12 +1589,13 @@ func _on_gather_actions_changed(_actions: Array[ActionCardData]) -> void:
 	for action in _survival.available_gather_actions().slice(0, MAX_GATHER_CARD_VIEWS):
 		cards.append(action)
 	_rebuild_cards(_gather_container, cards, func(_i: int, card: CardData) -> void:
-		_survival.play_gather(card as ActionCardData))
+		_survival.play_gather(card as ActionCardData)
+	, true)
 	_refresh_playability()
 
 
 func _rebuild_cards(
-	container: HBoxContainer, cards: Array[CardData], on_pressed: Callable
+	container: HBoxContainer, cards: Array[CardData], on_pressed: Callable, confirm_cards := false
 ) -> void:
 	for child in container.get_children():
 		container.remove_child(child)
@@ -1170,10 +1606,35 @@ func _rebuild_cards(
 		view.setup(cards[i], "")
 		var card := cards[i]
 		var index := i
-		# Sparkle feedback fires before the card resolves (and frees the view).
 		view.pressed.connect(func() -> void:
-			_card_feedback_fx(card, view)
-			on_pressed.call(index, card))
+			if confirm_cards:
+				_confirm_action(
+					"Zagrać kartę?",
+					"%s\n%s\nKoszt: %s" % [
+						card.display_name,
+						card.description,
+						_card_cost_summary(card),
+					],
+					"Zagraj",
+					func() -> void:
+						if is_instance_valid(view):
+							_card_feedback_fx(card, view)
+						on_pressed.call(index, card)
+				)
+			else:
+				_card_feedback_fx(card, view)
+				on_pressed.call(index, card))
+
+
+func _card_cost_summary(card: CardData) -> String:
+	if card is ActionCardData:
+		var action := card as ActionCardData
+		var parts: PackedStringArray = ["%d energii" % action.energy_cost]
+		if action.food_cost > 0: parts.append("%d jedzenia" % action.food_cost)
+		if action.wood_cost > 0: parts.append("%d drewna" % action.wood_cost)
+		if action.materials_cost > 0: parts.append("%d kamienia" % action.materials_cost)
+		return ", ".join(parts)
+	return "brak"
 
 
 ## Energy/resources may change without the hand changing (e.g. Rest), so
@@ -1234,11 +1695,25 @@ func _on_reward_card() -> void:
 		return
 	_reward_buttons.visible = false
 	_clear_card_choices()
+	_level_title.text = "Wybierz kartę do talii (obecnie: %d kart)" % _survival.state.deck.size()
 	for card in rewards:
+		var wrap := VBoxContainer.new()
+		wrap.custom_minimum_size = Vector2(132, 228)
+		wrap.add_theme_constant_override("separation", 4)
+		_card_choices.add_child(wrap)
+
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
-		_card_choices.add_child(view)
+		wrap.add_child(view)
 		view.setup(card, "")
+		view.tooltip_text = "Masz w talii: %d" % _deck_count_for(card)
 		view.pressed.connect(_on_reward_card_chosen.bind(card))
+
+		var count_label := Label.new()
+		count_label.text = "Masz w talii: %d" % _deck_count_for(card)
+		count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		count_label.add_theme_font_size_override("font_size", 12)
+		count_label.add_theme_color_override("font_color", Color(0.93, 0.87, 0.66, 1.0))
+		wrap.add_child(count_label)
 	_card_choices.visible = true
 
 

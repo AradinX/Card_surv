@@ -238,7 +238,7 @@ theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 12
-text = "Woda 8/10"
+text = "Nawodnienie 8/10"
 clip_text = true
 
 [node name="ThirstBar" type="TextureProgressBar" parent="Inset/Rows/TopRow/ThirstBox"]
@@ -270,7 +270,7 @@ theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 12
-text = "CiepĹ‚o 8/10"
+text = "Ciepło 8/10"
 clip_text = true
 
 [node name="WarmthBar" type="TextureProgressBar" parent="Inset/Rows/TopRow/WarmthBox"]
@@ -334,7 +334,7 @@ theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 13
-text = "Jedzenie 2   |   Woda 1   |   Drewno 0   |   Materiały 0   |   Narzędzia: nie"
+text = "Jedzenie 2/8   |   Woda 1/8   |   Drewno 0/12   |   Kamień 0/12   |   Narzędzia: nie"
 horizontal_alignment = 1
 vertical_alignment = 1
 clip_text = true

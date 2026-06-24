@@ -51,8 +51,10 @@ const DEMOLISH_ENERGY_COST := 1
 const POST_BUM_BUILD_ENERGY_SURCHARGE := 3
 const POST_BUM_BUILD_WOOD_SURCHARGE := 5
 const POST_BUM_BUILD_MATERIALS_SURCHARGE := 5
-## Tearing down a ruin refunds about half of the build resources.
+## Tearing down a ruin refunds about half of the build resources; standing
+## buildings return less, because some materials are lost during careful removal.
 const DEMOLISH_REFUND_DIVISOR := 2
+const DEMOLISH_STANDING_REFUND_DIVISOR := 4
 const HAND_SIZE := 4
 const MOVE_ENERGY_COST := 1
 const DAILY_HUNGER_DECAY := 3
@@ -332,35 +334,37 @@ func repair(building_index: int) -> void:
 	board_changed.emit(state)
 
 
-## Returns "" when the ruin on the current tile can be torn down.
+## Returns "" when the building on the current tile can be torn down.
 func can_demolish(building_index: int) -> String:
 	if not _day_active:
 		return "Dzień dobiegł końca."
 	var buildings := current_tile().buildings
 	if building_index < 0 or building_index >= buildings.size():
 		return "Nie ma takiego budynku."
-	if not buildings[building_index].is_ruined:
-		return "Budynek stoi — rozbiórka tylko dla ruin."
 	if state.energy < DEMOLISH_ENERGY_COST:
 		return "Za mało energii (potrzeba %d)." % DEMOLISH_ENERGY_COST
 	return ""
 
 
-## Tearing down a ruin frees the slot and refunds ~half the build resources.
+## Tearing down a building frees the slot and refunds part of build resources.
 func demolish(building_index: int) -> void:
 	var block_reason := can_demolish(building_index)
 	if block_reason != "":
 		log_message.emit(block_reason)
 		return
 	var built := current_tile().buildings[building_index]
-	var wood_refund := floori(built.data.wood_cost / float(DEMOLISH_REFUND_DIVISOR))
-	var materials_refund := floori(built.data.materials_cost / float(DEMOLISH_REFUND_DIVISOR))
+	var refund_divisor := DEMOLISH_REFUND_DIVISOR if built.is_ruined else DEMOLISH_STANDING_REFUND_DIVISOR
+	var wood_refund := floori(built.data.wood_cost / float(refund_divisor))
+	var materials_refund := floori(built.data.materials_cost / float(refund_divisor))
 	state.energy -= DEMOLISH_ENERGY_COST
 	_add_wood(wood_refund)
 	_add_materials(materials_refund)
 	current_tile().buildings.remove_at(building_index)
-	log_message.emit("Rozbierasz ruinę: %s (+%d drewna, +%d materiałów)." % [
-		built.data.display_name, wood_refund, materials_refund
+	log_message.emit("Rozbierasz %s: %s (+%d drewna, +%d kamienia)." % [
+		"ruinę" if built.is_ruined else "budynek",
+		built.data.display_name,
+		wood_refund,
+		materials_refund,
 	])
 	stats_changed.emit(state)
 	board_changed.emit(state)
@@ -773,13 +777,13 @@ func _season_for_day(day: int) -> int:
 func _season_description(season: int) -> String:
 	match season:
 		RunState.Season.SPRING:
-			return "Dzicz budzi sie do zycia: zbieranie jedzenia daje +1."
+			return "Dzicz budzi się do życia: zbieranie jedzenia daje +1."
 		RunState.Season.SUMMER:
-			return "Upal wysusza gardlo: nocne pragnienie spada o 1 mocniej."
+			return "Upał wysusza gardło: nocne pragnienie spada o 1 mocniej."
 		RunState.Season.AUTUMN:
-			return "Las zrzuca galezie: akcje z drewnem daja +1 drewna."
+			return "Las zrzuca gałęzie: akcje z drewnem dają +1 drewna."
 		RunState.Season.WINTER:
-			return "Mroz wgryza sie w kosci: cieplo spada o 1 mocniej."
+			return "Mróz wgryza się w kości: ciepło spada o 1 mocniej."
 		_:
 			return ""
 
@@ -806,7 +810,7 @@ func _resolve_action(card: ActionCardData) -> void:
 		log_message.emit("Wiosna sprzyja zbieraniu. +%d jedzenia." % SPRING_FOOD_BONUS)
 	if state.season == RunState.Season.AUTUMN and card.wood_gain > 0:
 		wood_gain += AUTUMN_WOOD_BONUS
-		log_message.emit("Jesien daje suche galezie. +%d drewna." % AUTUMN_WOOD_BONUS)
+		log_message.emit("Jesień daje suche gałęzie. +%d drewna." % AUTUMN_WOOD_BONUS)
 	# Winter: nature gives less — every gathered resource yields one fewer.
 	var materials_gain := card.materials_gain
 	if state.season == RunState.Season.WINTER:
@@ -917,7 +921,7 @@ func _resolve_explore() -> void:
 			log_message.emit("Trafiasz na powalone drzewo. +2 drewna.")
 		2:
 			_add_materials(2)
-			log_message.emit("Odkrywasz stary obóz. +2 materiałów.")
+			log_message.emit("Odkrywasz stary obóz. +2 kamienia.")
 		3:
 			_add_water(1)
 			_add_food(1)
@@ -1126,7 +1130,7 @@ func _resolve_building_passives() -> void:
 			if data.special == "unlock_crafting" and state.wood > 0:
 				state.wood -= 1
 				_add_materials(1)
-				log_message.emit("%s przerabia drewno na materiały." % data.display_name)
+				log_message.emit("%s przerabia drewno na kamień." % data.display_name)
 
 
 ## Counts standing (non-ruined) buildings with a given special.
@@ -1212,7 +1216,7 @@ func _resolve_event_choice(event: EventCardData, choice_index: int) -> String:
 	if choice.food_gain != 0: parts.append("%+d jedzenia" % choice.food_gain)
 	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
 	if choice.wood_gain != 0: parts.append("%+d drewna" % choice.wood_gain)
-	if choice.materials_gain != 0: parts.append("%+d materiałów" % choice.materials_gain)
+	if choice.materials_gain != 0: parts.append("%+d kamienia" % choice.materials_gain)
 	if choice.next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.next_day_energy_delta)
 	if choice.grant_random_card and not _card_pool.is_empty():
 		var card: CardData = _card_pool[_rng.randi_range(0, _card_pool.size() - 1)]
@@ -1261,7 +1265,7 @@ func _resolve_needs() -> void:
 		+ _act2_rule("act2_thirst_decay_delta")
 	if state.season == RunState.Season.SUMMER:
 		thirst_decay += SUMMER_EXTRA_THIRST_DECAY
-		log_message.emit("Letni upal wysusza cie szybciej. -%d nawodnienia." %
+		log_message.emit("Letni upał wysusza cię szybciej. -%d nawodnienia." %
 			SUMMER_EXTRA_THIRST_DECAY)
 	state.thirst = clampi(state.thirst - thirst_decay, 0, RunState.MAX_THIRST)
 	var water_drunk := 0
@@ -1281,7 +1285,7 @@ func _resolve_needs() -> void:
 		+ _act2_rule("act2_warmth_decay_delta")
 	if state.season == RunState.Season.WINTER:
 		warmth_decay += WINTER_EXTRA_WARMTH_DECAY
-		log_message.emit("Zimowa noc odbiera dodatkowe cieplo. -%d ciepla." %
+		log_message.emit("Zimowa noc odbiera dodatkowe ciepło. -%d ciepła." %
 			WINTER_EXTRA_WARMTH_DECAY)
 	state.warmth = clampi(state.warmth - warmth_decay, 0, RunState.MAX_WARMTH)
 	if state.warmth <= 0:
@@ -1344,7 +1348,7 @@ func _cost_block_reason(
 	if state.wood < wood_cost:
 		return "Za mało drewna (potrzeba %d)." % wood_cost
 	if state.materials < materials_cost:
-		return "Za mało materiałów (potrzeba %d)." % materials_cost
+		return "Za mało kamienia (potrzeba %d)." % materials_cost
 	return ""
 
 

@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 id = "old_tracks"
 display_name = "Stare ślady"
-description = "Ktoś tędy przechodził i coś zgubił. +1 materiału."
+description = "Ktoś tędy przechodził i coś zgubił. +1 kamienia."
 materials_delta = 1
 weight = 10
 cooldown_days = 3

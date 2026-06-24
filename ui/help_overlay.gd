@@ -14,7 +14,7 @@ const PAGES := [
 	},
 	{
 		"title": "Plansza i mgła",
-		"body": "Osada to 6 kafli biomów. Na starcie widzisz tylko jeden — reszta to nieznany teren.\n\nWejście na sąsiedni kafel (lub karta zwiadu, np. „Rozejrzyj się”) odkrywa go. UWAGA: odkrycie aktywuje też jego NOCNE ZAGROŻENIA. Las daje drewno, Góry materiały — te biomy są zawsze.",
+		"body": "Osada to 6 kafli biomów. Na starcie widzisz tylko jeden — reszta to nieznany teren.\n\nWejście na sąsiedni kafel (lub karta zwiadu, np. „Rozejrzyj się”) odkrywa go. UWAGA: odkrycie aktywuje też jego NOCNE ZAGROŻENIA. Las daje drewno, Góry kamień — te biomy są zawsze.",
 	},
 	{
 		"title": "Noc i wybory",
@@ -26,6 +26,10 @@ const PAGES := [
 	},
 ]
 
+const PANEL_BASE_SIZE := Vector2(720, 520)
+const PANEL_PADDING := Vector2(32, 32)
+
+@onready var _panel: PanelContainer = $Panel
 @onready var _title: Label = $Panel/PanelMargin/VBox/Title
 @onready var _body: Label = $Panel/PanelMargin/VBox/Body
 @onready var _counter: Label = $Panel/PanelMargin/VBox/Nav/Counter
@@ -42,6 +46,25 @@ func _ready() -> void:
 	_prev.pressed.connect(func() -> void: _show_page(_page - 1))
 	_next.pressed.connect(func() -> void: _show_page(_page + 1))
 	_close.pressed.connect(func() -> void: visible = false)
+	_apply_responsive_layout()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED and is_node_ready():
+		_apply_responsive_layout()
+
+
+func _apply_responsive_layout() -> void:
+	var viewport_size := get_viewport_rect().size
+	if viewport_size.x <= 1.0 or viewport_size.y <= 1.0:
+		return
+	var available := Vector2(
+		maxf(viewport_size.x - PANEL_PADDING.x * 2.0, 1.0),
+		maxf(viewport_size.y - PANEL_PADDING.y * 2.0, 1.0)
+	)
+	var panel_scale := minf(1.0, minf(available.x / PANEL_BASE_SIZE.x, available.y / PANEL_BASE_SIZE.y))
+	_panel.scale = Vector2(panel_scale, panel_scale)
+	_panel.pivot_offset = _panel.size * 0.5
 
 
 func open() -> void:

@@ -172,6 +172,7 @@ theme_override_constants/separation = 8
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
+horizontal_scroll_mode = 2
 vertical_scroll_mode = 0
 
 [node name="BuildCards" type="HBoxContainer" parent="Scroll/Margin/Layout/CardsRow/BottomBar/BuildScroll"]
@@ -184,14 +185,6 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 theme_override_constants/separation = 8
-
-[node name="PauseButton" type="Button" parent="Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn"]
-custom_minimum_size = Vector2(220, 44)
-layout_mode = 2
-theme = ExtResource("4_button_theme")
-theme_override_font_sizes/font_size = 16
-text = "Menu (Esc)"
-clip_text = true
 
 [node name="BuildToggleButton" type="Button" parent="Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn"]
 custom_minimum_size = Vector2(220, 88)
@@ -320,7 +313,7 @@ layout_mode = 2
 theme = ExtResource("4_button_theme")
 theme_override_font_sizes/font_size = 16
 text = "Nowa karta do talii
-(wybĂłr 1 z 3)"
+(wybór 1 z 3)"
 
 [node name="CardChoices" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
 visible = false
@@ -337,6 +330,41 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.02, 0.025, 0.02, 0.72)
+
+[node name="NotePanel" type="Control" parent="NightEventOverlay"]
+visible = false
+custom_minimum_size = Vector2(340, 300)
+layout_mode = 1
+
+[node name="NoteArt" type="TextureRect" parent="NightEventOverlay/NotePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_log_panel_act1")
+expand_mode = 1
+
+[node name="NoteMargin" type="MarginContainer" parent="NightEventOverlay/NotePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 46
+theme_override_constants/margin_top = 48
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 40
+
+[node name="SummaryLabel" type="Label" parent="NightEventOverlay/NotePanel/NoteMargin"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(0.12, 0.09, 0.05, 1)
+text = ""
+autowrap_mode = 2
 
 [node name="Panel" type="PanelContainer" parent="NightEventOverlay"]
 layout_mode = 1

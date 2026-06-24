@@ -8,4 +8,4 @@ energy_cost = 2
 wood_gain = 2
 id = "gather_wood"
 display_name = "Rąb drewno"
-description = "Narąb drewna na opał i budulec."
+description = "Narąb drewna na opał i rozbudowę obozu."

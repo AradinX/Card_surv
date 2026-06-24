@@ -65,7 +65,7 @@ static func season_name(value: int) -> String:
 		Season.SUMMER:
 			return "Lato"
 		Season.AUTUMN:
-			return "Jesien"
+			return "Jesień"
 		Season.WINTER:
 			return "Zima"
 		_:
