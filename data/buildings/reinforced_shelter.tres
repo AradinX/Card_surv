@@ -14,4 +14,4 @@ required_biome_ids = PackedStringArray()
 act2_only = true
 id = "building_reinforced_shelter"
 display_name = "Wzmocniony schron"
-description = "Solidne legowisko zbite z gruzów."
+description = "Nocą daje ciepło i chroni przed częścią strat zdrowia lub ciepła."

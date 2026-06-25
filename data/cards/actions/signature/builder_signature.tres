@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 1
 wood_cost = 2
-materials_gain = 3
+materials_gain = 2
 id = "builder_signature"
 display_name = "Prefabrykaty"
 description = "Z desek składasz gotowe elementy."

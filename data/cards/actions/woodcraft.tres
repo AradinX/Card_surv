@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 2
 wood_cost = 1
-materials_gain = 2
+materials_gain = 1
 id = "woodcraft"
 display_name = "Ciesielka"
 description = "Przerób drewno na użyteczne części."

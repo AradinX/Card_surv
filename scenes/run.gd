@@ -626,12 +626,12 @@ func _building_tooltip(built) -> String:
 
 func _building_effect_parts(data: BuildingCardData) -> PackedStringArray:
 	var parts: PackedStringArray = []
-	if data.food_gain != 0: parts.append("%+d jedzenia/dzień" % data.food_gain)
-	if data.water_gain != 0: parts.append("%+d wody/dzień" % data.water_gain)
-	if data.wood_gain != 0: parts.append("%+d drewna/dzień" % data.wood_gain)
-	if data.materials_gain != 0: parts.append("%+d kamienia/dzień" % data.materials_gain)
-	if data.health_delta != 0: parts.append("%+d zdrowia/dzień" % data.health_delta)
-	if data.warmth_delta != 0: parts.append("%+d ciepła/dzień" % data.warmth_delta)
+	if data.food_gain != 0: parts.append("%+d jedzenia nocą" % data.food_gain)
+	if data.water_gain != 0: parts.append("%+d wody nocą" % data.water_gain)
+	if data.wood_gain != 0: parts.append("%+d drewna nocą" % data.wood_gain)
+	if data.materials_gain != 0: parts.append("%+d kamienia nocą" % data.materials_gain)
+	if data.health_delta != 0: parts.append("%+d zdrowia nocą" % data.health_delta)
+	if data.warmth_delta != 0: parts.append("%+d ciepła nocą" % data.warmth_delta)
 	if data.defense > 0: parts.append("obrona %d" % data.defense)
 	if data.food_cap_bonus > 0: parts.append("+%d limitu jedzenia" % data.food_cap_bonus)
 	if data.water_cap_bonus > 0: parts.append("+%d limitu wody" % data.water_cap_bonus)
@@ -647,7 +647,7 @@ func _building_special_description(special: String) -> String:
 		"slow_spoilage":
 			return "spowalnia psucie jedzenia"
 		"unlock_crafting":
-			return "przerabia drewno na kamień każdego dnia"
+			return "przerabia drewno na kamień nocą"
 		_:
 			return special
 
@@ -1680,6 +1680,11 @@ func _show_reward_panel() -> void:
 	_level_title.text = "Awans! Poziom %d — wybierz nagrodę%s" % [state.level, suffix]
 	_reward_buttons.visible = true
 	_clear_card_choices()
+	_energy_button.disabled = state.max_energy >= SurvivalSystem.MAX_ENERGY_CAP
+	if _energy_button.disabled:
+		_energy_button.tooltip_text = "Limit maksymalnej energii: %d" % SurvivalSystem.MAX_ENERGY_CAP
+	else:
+		_energy_button.tooltip_text = ""
 	_level_overlay.visible = true
 
 
@@ -1698,7 +1703,10 @@ func _on_reward_health() -> void:
 func _on_reward_card() -> void:
 	var rewards := _survival.roll_card_rewards()
 	if rewards.is_empty():
-		_survival.claim_max_energy()
+		if _survival.state.max_energy >= SurvivalSystem.MAX_ENERGY_CAP:
+			_survival.claim_max_health()
+		else:
+			_survival.claim_max_energy()
 		_show_reward_panel()
 		return
 	_reward_buttons.visible = false

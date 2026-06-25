@@ -5,12 +5,12 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 2
-wood_cost = 2
-materials_cost = 2
+wood_cost = 3
+materials_cost = 3
 materials_cap_bonus = 6
-materials_gain = 1
+materials_gain = 0
 special = "unlock_crafting"
 required_biome_ids = PackedStringArray()
 id = "building_workshop"
 display_name = "Warsztat"
-description = "Stół roboczy do obróbki surowców."
+description = "Nocą przerabia 1 drewno na 1 kamień, jeśli masz zapas drewna."

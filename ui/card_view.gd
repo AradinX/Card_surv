@@ -215,12 +215,12 @@ func _effects_summary(card: CardData) -> String:
 			p.append(sp)
 	elif card is BuildingCardData:
 		var b := card as BuildingCardData
-		_push_delta(p, b.food_gain, "jedzenia/dzień")
-		_push_delta(p, b.water_gain, "wody/dzień")
-		_push_delta(p, b.wood_gain, "drewna/dzień")
-		_push_delta(p, b.materials_gain, "kamienia/dzień")
-		_push_delta(p, b.health_delta, "zdrowia/dzień")
-		_push_delta(p, b.warmth_delta, "ciepła/dzień")
+		_push_delta(p, b.food_gain, "jedzenia nocą")
+		_push_delta(p, b.water_gain, "wody nocą")
+		_push_delta(p, b.wood_gain, "drewna nocą")
+		_push_delta(p, b.materials_gain, "kamienia nocą")
+		_push_delta(p, b.health_delta, "zdrowia nocą")
+		_push_delta(p, b.warmth_delta, "ciepła nocą")
 		if b.defense > 0:
 			p.append("obrona %d" % b.defense)
 		_push_delta(p, b.food_cap_bonus, "limitu jedzenia")
@@ -254,7 +254,7 @@ func _building_special_text(special: String) -> String:
 	match special:
 		"night_protection": return "ochrona nocna"
 		"slow_spoilage": return "wolniejsze psucie jedzenia"
-		"unlock_crafting": return "drewno→kamień/dzień"
+		"unlock_crafting": return "drewno→kamień nocą"
 		_: return ""
 
 

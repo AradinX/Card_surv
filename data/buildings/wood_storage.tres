@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 1
-wood_cost = 1
+wood_cost = 2
 materials_cost = 1
 max_hp = 8
 wood_cap_bonus = 8
@@ -13,4 +13,4 @@ wood_gain = 1
 required_biome_ids = PackedStringArray()
 id = "building_wood_storage"
 display_name = "Magazyn drewna"
-description = "Suchy skład na opał i drewno do budowy."
+description = "Co noc daje 1 drewno i zwiększa limit drewna."

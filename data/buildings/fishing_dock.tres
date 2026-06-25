@@ -12,4 +12,4 @@ food_gain = 1
 required_biome_ids = PackedStringArray("river", "coast")
 id = "building_fishing_dock"
 display_name = "Port rybacki"
-description = "Pomost z sieciami pełnymi ryb."
+description = "Co noc daje 1 jedzenie z połowu."

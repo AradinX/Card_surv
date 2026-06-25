@@ -14,4 +14,4 @@ required_biome_ids = PackedStringArray()
 act2_only = true
 id = "building_cistern"
 display_name = "Cysterna"
-description = "Zbiornik na wodę z ocalałych rur."
+description = "Co noc daje 2 wody i zwiększa limit wody."

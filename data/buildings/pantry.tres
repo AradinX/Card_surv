@@ -14,4 +14,4 @@ special = "slow_spoilage"
 required_biome_ids = PackedStringArray()
 id = "building_pantry"
 display_name = "Spiżarnia"
-description = "Chłodna spiżarnia na zapasy."
+description = "Co noc daje 1 jedzenie i spowalnia psucie zapasów."

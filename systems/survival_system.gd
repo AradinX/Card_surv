@@ -33,8 +33,8 @@ signal run_ended(won: bool, days_survived: int)
 const WIN_DAY := 50
 ## BUM strikes at dawn of a day rolled from this range at run start. Playtesters
 ## had a full board by ~day 10, so the cataclysm hits earlier (Act I ~2 weeks).
-const BUM_DAY_MIN := 14
-const BUM_DAY_MAX := 18
+const BUM_DAY_MIN := 11
+const BUM_DAY_MAX := 14
 ## Each building rolls this damage percent range when BUM strikes. A building
 ## survives (stays usable) only if it takes <=50% (ruin threshold), so this range
 ## leaves roughly a third of buildings standing into Act II instead of wiping all.
@@ -88,6 +88,7 @@ const XP_BASE_COST := 8
 const XP_COST_GROWTH := 4
 const REWARD_CHOICES := 3
 const REWARD_HEAL := 1
+const MAX_ENERGY_CAP := 10
 
 var state: RunState
 var hand: Array[CardData] = []
@@ -143,7 +144,7 @@ func start(
 	# Class max-stat tweaks (tanky/frail, more/less energy).
 	state.max_health = maxi(state.max_health + character_class.health_bonus, 1)
 	state.health = state.max_health
-	state.max_energy = maxi(state.max_energy + character_class.max_energy_bonus, 1)
+	state.max_energy = clampi(state.max_energy + character_class.max_energy_bonus, 1, MAX_ENERGY_CAP)
 	state.energy = state.max_energy
 	# Class starting resource bonuses (clamped to [0, base storage cap]).
 	state.food = clampi(state.food + character_class.start_food, 0, RunState.MAX_FOOD)
@@ -238,7 +239,7 @@ func move_to(tile_index: int) -> void:
 	log_message.emit("Przechodzisz do biomu: %s." % _tile_name(current_tile()))
 	if discovered_now:
 		log_message.emit("Odkrywasz nowy teren: %s." % _tile_name(current_tile()))
-		_rebuild_event_deck()
+	_rebuild_event_deck()
 	stats_changed.emit(state)
 	board_changed.emit(state)
 	if discovered_now:
@@ -630,8 +631,11 @@ func has_pending_reward() -> bool:
 func claim_max_energy() -> void:
 	if not has_pending_reward():
 		return
+	if state.max_energy >= MAX_ENERGY_CAP:
+		log_message.emit("Maksymalna energia ma limit %d. Wybierz inną nagrodę." % MAX_ENERGY_CAP)
+		return
 	state.pending_rewards -= 1
-	state.max_energy += 1
+	state.max_energy = mini(state.max_energy + 1, MAX_ENERGY_CAP)
 	state.energy = mini(state.energy + 1, state.max_energy)
 	log_message.emit("Nagroda: +1 maks. energii (%d)." % state.max_energy)
 	stats_changed.emit(state)
@@ -1012,9 +1016,8 @@ func _rebuild_event_deck() -> void:
 
 func _event_pool() -> Array[CardData]:
 	var event_pool: Array[CardData] = _base_event_cards.duplicate()
-	for tile in state.board:
-		if not tile.is_discovered:
-			continue
+	var tile := current_tile()
+	if tile.is_discovered:
 		var biome_events := tile.biome.corrupted_extra_event_cards \
 			if tile.is_corrupted else tile.biome.extra_event_cards
 		for event in biome_events:
@@ -1154,11 +1157,13 @@ func _check_ruin(built: BuildingState) -> void:
 
 
 func _resolve_building_passives() -> void:
+	var building_logs: PackedStringArray = []
 	for tile in state.board:
 		for built in tile.buildings:
 			if built.is_ruined:
 				continue
 			var data := built.data
+			var snapshot := _action_state_snapshot()
 			_add_food(data.food_gain)
 			_add_water(data.water_gain)
 			_add_wood(data.wood_gain)
@@ -1166,11 +1171,24 @@ func _resolve_building_passives() -> void:
 			_apply_stat_deltas(
 				data.health_delta, data.hunger_delta, data.thirst_delta, data.warmth_delta
 			)
+			var summary := _action_delta_summary(snapshot)
+			if summary != "":
+				building_logs.append("%s %s" % [data.display_name, summary])
 			# Workshop crafting: turns a spare log into a material each day.
 			if data.special == "unlock_crafting" and state.wood > 0:
+				snapshot = _action_state_snapshot()
 				state.wood -= 1
 				_add_materials(1)
-				log_message.emit("%s przerabia drewno na kamień." % data.display_name)
+				summary = _action_delta_summary(snapshot)
+				if summary != "":
+					building_logs.append("%s przerabia drewno na kamień (%s)" % [
+						data.display_name,
+						summary,
+					])
+				else:
+					building_logs.append("%s próbuje przerobić drewno na kamień, ale magazyn jest pełny" % data.display_name)
+	if not building_logs.is_empty():
+		log_message.emit("Budynki nocą: %s." % "; ".join(building_logs))
 
 
 ## Counts standing (non-ruined) buildings with a given special.
@@ -1298,7 +1316,7 @@ func _resolve_needs() -> void:
 		var hunger_dmg := _deprivation_damage(STARVATION_DAMAGE)
 		state.health = maxi(state.health - hunger_dmg, 0)
 		_record_damage(hunger_dmg, "Głód")
-		log_message.emit("Głodujesz! -%d zdrowia." % hunger_dmg)
+		log_message.emit("Sytość spadła do 0: tracisz zdrowie z głodu (-%d zdrowia)." % hunger_dmg)
 
 	# Thirst: decay, then drink from stock. Summer makes water pressure harsher.
 	var thirst_decay := DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta \
@@ -1318,7 +1336,7 @@ func _resolve_needs() -> void:
 		var thirst_dmg := _deprivation_damage(DEHYDRATION_DAMAGE)
 		state.health = maxi(state.health - thirst_dmg, 0)
 		_record_damage(thirst_dmg, "Odwodnienie")
-		log_message.emit("Odwodnienie! -%d zdrowia." % thirst_dmg)
+		log_message.emit("Nawodnienie spadło do 0: tracisz zdrowie z odwodnienia (-%d zdrowia)." % thirst_dmg)
 
 	# Warmth: nights are cold; campfires (passives, applied above) offset it.
 	var warmth_decay := DAILY_WARMTH_DECAY + state.character_class.warmth_rate_delta \
@@ -1332,7 +1350,7 @@ func _resolve_needs() -> void:
 		var warmth_dmg := _deprivation_damage(FREEZING_DAMAGE)
 		state.health = maxi(state.health - warmth_dmg, 0)
 		_record_damage(warmth_dmg, "Mróz")
-		log_message.emit("Zamarzasz! -%d zdrowia." % warmth_dmg)
+		log_message.emit("Ciepło spadło do 0: tracisz zdrowie z zimna (-%d zdrowia)." % warmth_dmg)
 
 	if food_eaten > 0 or water_drunk > 0:
 		needs_consumed.emit(food_eaten, water_drunk)

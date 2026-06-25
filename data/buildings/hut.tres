@@ -11,4 +11,4 @@ special = "night_protection"
 required_biome_ids = PackedStringArray()
 id = "building_hut"
 display_name = "Szałas"
-description = "Dach nad głową na niespokojne noce."
+description = "Nocą chroni przed częścią strat zdrowia lub ciepła."

@@ -5,11 +5,11 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 1
-wood_cost = 2
+wood_cost = 3
 max_hp = 5
 defense = 1
 food_gain = 1
 required_biome_ids = PackedStringArray()
 id = "building_traps"
 display_name = "Pułapki"
-description = "Sidła rozstawione wokół osady."
+description = "Co noc dają 1 jedzenie z upolowanej zwierzyny."
