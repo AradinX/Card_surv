@@ -118,6 +118,7 @@ theme_override_styles/normal = SubResource("StyleBoxEmpty_log")
 scroll_following = true
 
 [node name="ForecastLabel" type="Label" parent="Scroll/Margin/Layout/MidRow/LogPanel"]
+visible = false
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0

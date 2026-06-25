@@ -176,6 +176,7 @@ func _ready() -> void:
 	_main_scroll.horizontal_scroll_mode = 0
 	_main_scroll.vertical_scroll_mode = 0
 	_build_scroll.horizontal_scroll_mode = 2
+	_forecast_label.visible = false
 	_card_choices.custom_minimum_size = Vector2(0, 232)
 	_top_status_bar.setup_max_values()
 	_apply_button_skin()
@@ -411,8 +412,15 @@ func _update_forecast() -> void:
 	var f := _survival.end_of_day_forecast()
 	var warmth_net: int = f["warmth_net"]
 	var warmth_txt := ("%+d" % warmth_net) if warmth_net != 0 else "0"
-	_forecast_label.text = "Noc: sytość -%d, nawodnienie -%d, ciepło %s · zapasy: %d jedzenia, %d wody" % [
-		f["hunger_decay"], f["thirst_decay"], warmth_txt, f["food"], f["water"]
+	_forecast_label.text = ""
+	_end_day_button.tooltip_text = "Po nocy:\nSytość -%d\nNawodnienie -%d\nCiepło %s (noc -%d, budynki +%d)\nZapasy: %d jedzenia, %d wody" % [
+		f["hunger_decay"],
+		f["thirst_decay"],
+		warmth_txt,
+		f["warmth_decay"],
+		f["passive_warmth"],
+		f["food"],
+		f["water"],
 	]
 
 

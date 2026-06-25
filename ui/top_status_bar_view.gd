@@ -61,7 +61,7 @@ func _apply_season_style(season: int) -> void:
 	_season_label.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
-func set_state(state: RunState, xp_to_next: int, resource_caps := {}) -> void:
+func set_state(state: RunState, xp_to_next: int, resource_caps: Dictionary = {}) -> void:
 	_level_label.text = "Poziom %d  XP %d/%d" % [state.level, state.xp, xp_to_next]
 	_xp_bar.max_value = xp_to_next
 	_xp_bar.value = state.xp

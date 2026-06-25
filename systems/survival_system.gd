@@ -282,8 +282,7 @@ func play_gather(card: ActionCardData) -> void:
 		log_message.emit(block_reason)
 		return
 	_used_gathers[_gather_key(card)] = true
-	log_message.emit("Korzystasz z okolicy: %s." % card.display_name)
-	_resolve_action(card)
+	_resolve_action(card, "Korzystasz z okolicy")
 	_grant_xp(XP_PER_CARD)
 	if _check_death():
 		return
@@ -409,8 +408,7 @@ func play_card(index: int) -> void:
 	hand.remove_at(index)
 	if card is ActionCardData:
 		_day_deck.discard(card)
-		log_message.emit("Zagrywasz: %s." % card.display_name)
-		_resolve_action(card as ActionCardData)
+		_resolve_action(card as ActionCardData, "Zagrywasz")
 		_grant_xp(XP_PER_CARD)
 	elif card is BuildingCardData:
 		_build(card as BuildingCardData)
@@ -791,7 +789,8 @@ func _season_description(season: int) -> String:
 # --- Card resolution ---
 
 
-func _resolve_action(card: ActionCardData) -> void:
+func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> void:
+	var snapshot: Dictionary = _action_state_snapshot()
 	state.energy -= card.energy_cost
 	state.food -= card.food_cost
 	state.wood -= card.wood_cost
@@ -814,14 +813,14 @@ func _resolve_action(card: ActionCardData) -> void:
 	# Winter: nature gives less — every gathered resource yields one fewer.
 	var materials_gain := card.materials_gain
 	if state.season == RunState.Season.WINTER:
-		var before := food_gain + wood_gain + materials_gain
+		var winter_before := food_gain + wood_gain + materials_gain
 		if food_gain > 0:
 			food_gain = maxi(food_gain - WINTER_GATHER_PENALTY, 0)
 		if wood_gain > 0:
 			wood_gain = maxi(wood_gain - WINTER_GATHER_PENALTY, 0)
 		if materials_gain > 0:
 			materials_gain = maxi(materials_gain - WINTER_GATHER_PENALTY, 0)
-		if before > food_gain + wood_gain + materials_gain:
+		if winter_before > food_gain + wood_gain + materials_gain:
 			log_message.emit("Zima skąpi plonów — mniejszy zbiór.")
 	_add_food(food_gain)
 	_add_water(card.water_gain)
@@ -846,6 +845,47 @@ func _resolve_action(card: ActionCardData) -> void:
 			log_message.emit("Dobierasz 2 karty.")
 		"scout_reveal":
 			_scout_reveal()
+	var summary: String = _action_delta_summary(snapshot)
+	var suffix: String = "."
+	if summary != "":
+		suffix = ": %s." % summary
+	log_message.emit("%s: %s%s" % [log_prefix, card.display_name, suffix])
+
+
+func _action_state_snapshot() -> Dictionary:
+	return {
+		"health": state.health,
+		"hunger": state.hunger,
+		"thirst": state.thirst,
+		"warmth": state.warmth,
+		"energy": state.energy,
+		"food": state.food,
+		"water": state.water,
+		"wood": state.wood,
+		"materials": state.materials,
+		"has_tools": state.has_tools,
+	}
+
+
+func _action_delta_summary(before: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	_append_delta_part(parts, state.health - int(before["health"]), "zdrowia")
+	_append_delta_part(parts, state.hunger - int(before["hunger"]), "sytości")
+	_append_delta_part(parts, state.thirst - int(before["thirst"]), "nawodnienia")
+	_append_delta_part(parts, state.warmth - int(before["warmth"]), "ciepła")
+	_append_delta_part(parts, state.energy - int(before["energy"]), "energii")
+	_append_delta_part(parts, state.food - int(before["food"]), "jedzenia")
+	_append_delta_part(parts, state.water - int(before["water"]), "wody")
+	_append_delta_part(parts, state.wood - int(before["wood"]), "drewna")
+	_append_delta_part(parts, state.materials - int(before["materials"]), "kamienia")
+	if not bool(before["has_tools"]) and state.has_tools:
+		parts.append("narzędzia: tak")
+	return ", ".join(parts)
+
+
+func _append_delta_part(parts: PackedStringArray, delta: int, label: String) -> void:
+	if delta != 0:
+		parts.append("%+d %s" % [delta, label])
 
 
 ## Scout an adjacent UNDISCOVERED tile without moving there: reveals its biome
