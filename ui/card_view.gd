@@ -4,6 +4,9 @@ extends Button
 ## action). Dumb view: shows data, disables itself when the card can't be
 ## played. Clicks are handled via the inherited "pressed" signal.
 
+signal card_drag_started(payload: Dictionary)
+signal card_drag_finished
+
 
 @onready var _name_label: Label = $NameLabel
 @onready var _cost_label: Label = $CostLabel
@@ -50,6 +53,9 @@ const MONSTER_ART_ALIASES := {
 	"rat_swarm": "monster_rat_swarm",
 }
 
+var _drag_payload: Dictionary = {}
+var _drag_tween: Tween
+
 
 ## `cost_override` lets the caller show a context-dependent cost (e.g. the
 ## effective build cost incl. class discount + post-BUM surcharge) instead of the
@@ -73,6 +79,67 @@ func setup(card: CardData, block_reason: String, cost_override: String = "") -> 
 	_apply_text_layout(card)
 	_fit_all_text()
 	call_deferred("_fit_all_text")
+
+
+func set_drag_payload(payload: Dictionary) -> void:
+	_drag_payload = payload
+
+
+func _get_drag_data(_at_position: Vector2) -> Variant:
+	if disabled or _drag_payload.is_empty():
+		return null
+	_play_pickup_animation()
+	var preview_size := size
+	if preview_size.x <= 1.0 or preview_size.y <= 1.0:
+		preview_size = custom_minimum_size
+	var holder := Control.new()
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.custom_minimum_size = Vector2.ONE
+	var preview := duplicate() as CardView
+	preview.disabled = true
+	preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	preview.size = preview_size
+	preview.custom_minimum_size = preview_size
+	preview.pivot_offset = preview_size * 0.5
+	preview.position = -preview_size * 0.54
+	preview.modulate = Color(1.06, 1.06, 1.0, 0.92)
+	preview.scale = Vector2(1.08, 1.08)
+	preview.rotation_degrees = -2.0
+	holder.add_child(preview)
+	set_drag_preview(holder)
+	card_drag_started.emit(_drag_payload)
+	return _drag_payload
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END:
+		_restore_after_drag()
+		card_drag_finished.emit()
+
+
+func _play_pickup_animation() -> void:
+	if _drag_tween != null:
+		_drag_tween.kill()
+	pivot_offset = size * 0.5
+	z_index = 20
+	_drag_tween = create_tween().set_parallel(true)
+	_drag_tween.tween_property(self, "scale", Vector2(0.96, 0.96), 0.10) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_drag_tween.tween_property(self, "modulate:a", 0.55, 0.10) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
+
+func _restore_after_drag() -> void:
+	if _drag_tween != null:
+		_drag_tween.kill()
+	_drag_tween = create_tween().set_parallel(true)
+	_drag_tween.tween_property(self, "scale", Vector2.ONE, 0.12) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_drag_tween.tween_property(self, "modulate:a", 1.0, 0.12) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_drag_tween.finished.connect(func() -> void:
+		z_index = 0
+	)
 
 
 func _apply_art(card: CardData) -> void:

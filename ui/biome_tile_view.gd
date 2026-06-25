@@ -5,6 +5,7 @@ extends Button
 ## "you are here" marker and a row of building slots (empty / occupied by a
 ## built building, with its HP), all driven from the tile state.
 signal buildings_pressed
+signal card_dropped(payload: Dictionary)
 
 const NORMAL_BG_DIR := "res://assets/art/biomes/backgrounds/normal"
 const CORRUPTED_BG_DIR := "res://assets/art/biomes/backgrounds/corrupted"
@@ -101,6 +102,8 @@ const SLOT_STAGGER := [16, 0, 9]
 var _reveal_tween: Tween
 var _reveal_layers: Dictionary = {}
 var _slot_tweens: Array[Tween] = []
+var _accept_card_drops := false
+var _drop_highlight := false
 static var _dissolve_shader: Shader
 
 
@@ -109,6 +112,35 @@ func _ready() -> void:
 	_buildings_button.pressed.connect(func() -> void:
 		buildings_pressed.emit()
 	)
+
+
+func set_accept_card_drops(enabled: bool) -> void:
+	_accept_card_drops = enabled
+
+
+func set_drop_highlight(enabled: bool) -> void:
+	_drop_highlight = enabled
+	if enabled:
+		_state_overlay.color = Color(0.45, 0.72, 0.24, 0.24)
+	elif is_node_ready():
+		_state_overlay.color = Color.TRANSPARENT
+
+
+func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
+	return _accept_card_drops and _is_card_payload(data)
+
+
+func _drop_data(_at_position: Vector2, data: Variant) -> void:
+	if not _is_card_payload(data):
+		return
+	card_dropped.emit(data as Dictionary)
+
+
+func _is_card_payload(data: Variant) -> bool:
+	if typeof(data) != TYPE_DICTIONARY:
+		return false
+	var payload := data as Dictionary
+	return payload.get("type", "") == "play_card" and payload.has("source")
 
 
 func play_discovery_fx() -> void:
@@ -213,6 +245,8 @@ func setup(
 	# (so you can construct even on an empty tile); elsewhere only if built.
 	_buildings_button.visible = is_current or not tile.buildings.is_empty()
 	_state_overlay.color = _overlay_color(is_current, block_reason, tile.is_corrupted)
+	if _drop_highlight:
+		_state_overlay.color = Color(0.45, 0.72, 0.24, 0.24)
 	_refresh_slots(tile, building_tooltips)
 
 
@@ -244,6 +278,8 @@ func _setup_unknown_tile(
 		else Control.MOUSE_FILTER_IGNORE
 	_buildings_button.visible = false
 	_state_overlay.color = _unknown_overlay_color(block_reason, tile.is_corrupted)
+	if _drop_highlight:
+		_state_overlay.color = Color(0.45, 0.72, 0.24, 0.24)
 	_clear_slots()
 
 

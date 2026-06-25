@@ -6,6 +6,7 @@ extends Control
 const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 const NIGHT_CARD_VIEW_SCENE := preload("res://ui/night_card_view.tscn")
 const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
+const CARD_DROP_ZONE_SCRIPT := preload("res://ui/card_drop_zone.gd")
 const MAX_GATHER_CARD_VIEWS := 3
 const LOG_PANEL_ACT2 := "res://assets/art/ui/panels/log_panel_act2.png"
 const LOG_PANEL_ACT1 := "res://assets/art/ui/panels/log_panel_act1.png"
@@ -105,6 +106,7 @@ const PAUSE_PANEL_BASE := Vector2(460, 430)
 @onready var _main_margin: MarginContainer = $Scroll/Margin
 @onready var _top_status_bar: TopStatusBarView = $Scroll/Margin/Layout/TopStatusBar
 @onready var _board_grid: GridContainer = $Scroll/Margin/Layout/MidRow/Board
+@onready var _log_panel: Control = $Scroll/Margin/Layout/MidRow/LogPanel
 @onready var _log_panel_art: TextureRect = $Scroll/Margin/Layout/MidRow/LogPanel/LogPanelArt
 @onready var _log: RichTextLabel = $Scroll/Margin/Layout/MidRow/LogPanel/Log
 @onready var _gather_bar: HBoxContainer = $Scroll/Margin/Layout/CardsRow/GatherBar
@@ -155,12 +157,14 @@ var _action_confirm: ConfirmationDialog
 var _pending_confirm_action := Callable()
 var _deck_button: Button
 var _deck_dialog: AcceptDialog
+var _log_drop_zone
 var _night_fx: Array[Node] = []
 var _night_tween: Tween
 var _weather_overlay: TextureRect
 var _frost_overlay: TextureRect
 var _low_hp_overlay: TextureRect
 var _low_hp_tween: Tween
+var _dragging_play_card := false
 ## Active Act II palette (set when BUM strikes; drives _apply_act2_look and the
 ## per-disaster tint of the corruption FX layers).
 var _act2_look := ACT2_LOOK["plague"]
@@ -217,6 +221,7 @@ func _ready() -> void:
 	_build_toggle_button.pressed.connect(_on_build_toggle_pressed)
 	_setup_build_confirm()
 	_setup_action_confirm()
+	_setup_card_drop_targets()
 	_building_close_button.pressed.connect(_hide_building_popup)
 	_building_label.text = "Naprawa / rozbiórka"
 	_energy_button.pressed.connect(_on_reward_energy)
@@ -334,6 +339,7 @@ func _create_tile_buttons() -> void:
 		var button := BIOME_TILE_VIEW_SCENE.instantiate() as BiomeTileView
 		button.pressed.connect(_on_tile_pressed.bind(i))
 		button.buildings_pressed.connect(_on_buildings_pressed.bind(i))
+		button.card_dropped.connect(_on_card_dropped.bind("tile", i))
 		_board_grid.add_child(button)
 		_tile_buttons.append(button)
 
@@ -455,6 +461,7 @@ func _refresh_tiles(state: RunState) -> void:
 		for built in tile.buildings:
 			building_tooltips.append(_building_tooltip(built))
 		button.setup(tile, i == state.current_tile, block_reason, tooltip, building_tooltips)
+		button.set_accept_card_drops(i == state.current_tile)
 	_refresh_building_actions()
 
 
@@ -674,6 +681,18 @@ func _setup_action_confirm() -> void:
 	add_child(_action_confirm)
 
 
+func _setup_card_drop_targets() -> void:
+	_log_drop_zone = Control.new()
+	_log_drop_zone.set_script(CARD_DROP_ZONE_SCRIPT)
+	_log_drop_zone.name = "CardDropZone"
+	_log_drop_zone.anchor_right = 1.0
+	_log_drop_zone.anchor_bottom = 1.0
+	_log_drop_zone.offset_right = 0.0
+	_log_drop_zone.offset_bottom = 0.0
+	_log_drop_zone.card_dropped.connect(_on_card_dropped.bind("log", -1))
+	_log_panel.add_child(_log_drop_zone)
+
+
 func _setup_deck_dialog() -> void:
 	_deck_button = Button.new()
 	_deck_button.custom_minimum_size = Vector2(220, 44)
@@ -770,7 +789,7 @@ func _refresh_build_cards() -> void:
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		_build_cards.add_child(view)
 		view.setup(building, _survival.can_build(building), _build_cost_summary(building))
-		view.pressed.connect(_on_build_card_pressed.bind(building))
+		_setup_draggable_card(view, building, "build", -1, "Przeciągnij budowlę na aktualny biom albo kartkę logów.")
 
 
 ## Update greying of existing build cards without rebuilding the row (cheaper on
@@ -779,9 +798,17 @@ func _refresh_build_playability() -> void:
 	var catalog := _survival.available_buildings()
 	var views := _build_cards.get_children()
 	for i in mini(views.size(), catalog.size()):
-		(views[i] as CardView).setup(
-			catalog[i], _survival.can_build(catalog[i]), _build_cost_summary(catalog[i])
-		)
+		var view := views[i] as CardView
+		view.setup(catalog[i], _survival.can_build(catalog[i]), _build_cost_summary(catalog[i]))
+		view.set_drag_payload({
+			"type": "play_card",
+			"source": "build",
+			"index": -1,
+			"card": catalog[i],
+			"card_id": catalog[i].id,
+		})
+		if not view.disabled:
+			view.tooltip_text = "Przeciągnij budowlę na aktualny biom albo kartkę logów."
 
 
 func _on_build_card_pressed(building: BuildingCardData) -> void:
@@ -1082,6 +1109,10 @@ func _spawn_claw_flash() -> void:
 
 ## Pops a heal/resource sparkle over a just-played card.
 func _card_feedback_fx(card: CardData, view: Control) -> void:
+	_card_feedback_fx_at(card, view.global_position + view.size * 0.5)
+
+
+func _card_feedback_fx_at(card: CardData, center: Vector2) -> void:
 	if not (card is ActionCardData):
 		return
 	var action := card as ActionCardData
@@ -1093,7 +1124,7 @@ func _card_feedback_fx(card: CardData, view: Control) -> void:
 		path = RESOURCE_FX
 	if path == "" or not ResourceLoader.exists(path):
 		return
-	_spawn_world_fx(path, view.global_position + view.size * 0.5, Vector2(150, 150))
+	_spawn_world_fx(path, center, Vector2(150, 150))
 
 
 ## Overnight the survivor auto-ate/drank from stock — a small feedback glow over
@@ -1586,7 +1617,7 @@ func _clear_night_card() -> void:
 func _on_hand_changed(hand: Array[CardData]) -> void:
 	_rebuild_cards(_hand_container, hand, func(i: int, _card: CardData) -> void:
 		_survival.play_card(i)
-	, true)
+	, "hand")
 	_refresh_playability()
 
 
@@ -1598,12 +1629,12 @@ func _on_gather_actions_changed(_actions: Array[ActionCardData]) -> void:
 		cards.append(action)
 	_rebuild_cards(_gather_container, cards, func(_i: int, card: CardData) -> void:
 		_survival.play_gather(card as ActionCardData)
-	, true)
+	, "gather")
 	_refresh_playability()
 
 
 func _rebuild_cards(
-	container: HBoxContainer, cards: Array[CardData], on_pressed: Callable, confirm_cards := false
+	container: HBoxContainer, cards: Array[CardData], on_pressed: Callable, source: String = ""
 ) -> void:
 	for child in container.get_children():
 		container.remove_child(child)
@@ -1614,24 +1645,158 @@ func _rebuild_cards(
 		view.setup(cards[i], "")
 		var card := cards[i]
 		var index := i
-		view.pressed.connect(func() -> void:
-			if confirm_cards:
-				_confirm_action(
-					"Zagrać kartę?",
-					"%s\n%s\nKoszt: %s" % [
-						card.display_name,
-						card.description,
-						_card_cost_summary(card),
-					],
-					"Zagraj",
-					func() -> void:
-						if is_instance_valid(view):
-							_card_feedback_fx(card, view)
-						on_pressed.call(index, card)
-				)
-			else:
+		if source != "":
+			_setup_draggable_card(
+				view, card, source, index,
+				"Przeciągnij kartę na aktualny biom albo kartkę logów."
+			)
+		else:
+			view.pressed.connect(func() -> void:
 				_card_feedback_fx(card, view)
 				on_pressed.call(index, card))
+
+
+func _setup_draggable_card(
+	view: CardView, card: CardData, source: String, index: int, hint: String
+) -> void:
+	view.set_drag_payload({
+		"type": "play_card",
+		"source": source,
+		"index": index,
+		"card": card,
+		"card_id": card.id,
+	})
+	view.card_drag_started.connect(_on_card_drag_started)
+	view.card_drag_finished.connect(_on_card_drag_finished)
+	if not view.disabled:
+		view.tooltip_text = hint
+
+
+func _on_card_drag_started(_payload: Dictionary) -> void:
+	_dragging_play_card = true
+	_set_card_drop_targets_active(true)
+
+
+func _on_card_drag_finished() -> void:
+	_dragging_play_card = false
+	_set_card_drop_targets_active(false)
+
+
+func _set_card_drop_targets_active(active: bool) -> void:
+	if _log_drop_zone != null:
+		_log_drop_zone.drop_enabled = active
+	_log_panel_art.modulate = Color(1.12, 1.18, 0.92, 1.0) if active else Color.WHITE
+	if _survival == null or _survival.state == null:
+		return
+	for i in _tile_buttons.size():
+		_tile_buttons[i].set_drop_highlight(active and i == _survival.state.current_tile)
+	if not active:
+		_refresh_tiles(_survival.state)
+
+
+func _on_card_dropped(payload: Dictionary, target: String, tile_index: int) -> void:
+	_dragging_play_card = false
+	_set_card_drop_targets_active(false)
+	if target == "tile" and tile_index != _survival.state.current_tile:
+		_on_log_message("Kartę możesz zagrać na aktualnym biomie.")
+		return
+	var drop_position := _drop_feedback_position(target, tile_index)
+	_play_dragged_card(payload, drop_position)
+
+
+func _drop_feedback_position(target: String, tile_index: int) -> Vector2:
+	if target == "tile" and tile_index >= 0 and tile_index < _tile_buttons.size():
+		return _tile_buttons[tile_index].get_global_rect().get_center()
+	return _log_panel.get_global_rect().get_center()
+
+
+func _play_dragged_card(payload: Dictionary, feedback_position: Vector2) -> void:
+	var source := str(payload.get("source", ""))
+	if _build_mode and source != "build":
+		_on_log_message("Najpierw zamknij tryb budowania, żeby zagrać kartę.")
+		return
+	match source:
+		"hand":
+			_play_dragged_hand_card(payload, feedback_position)
+		"gather":
+			_play_dragged_gather_card(payload, feedback_position)
+		"build":
+			_play_dragged_building_card(payload, feedback_position)
+		_:
+			_on_log_message("Nie rozpoznano przeciągniętej karty.")
+
+
+func _play_dragged_hand_card(payload: Dictionary, feedback_position: Vector2) -> void:
+	var index := _resolve_hand_card_index(payload)
+	if index < 0:
+		_on_log_message("Tej karty nie ma już w ręce.")
+		return
+	var card := _survival.hand[index]
+	var block := _survival.can_play(card)
+	if block != "":
+		_on_log_message(block)
+		return
+	_card_feedback_fx_at(card, feedback_position)
+	_survival.play_card(index)
+
+
+func _play_dragged_gather_card(payload: Dictionary, feedback_position: Vector2) -> void:
+	var action := _resolve_gather_card(payload)
+	if action == null:
+		_on_log_message("Ta akcja biomu nie jest już dostępna.")
+		return
+	var block := _survival.can_play_gather(action)
+	if block != "":
+		_on_log_message(block)
+		return
+	_card_feedback_fx_at(action, feedback_position)
+	_survival.play_gather(action)
+
+
+func _play_dragged_building_card(payload: Dictionary, _feedback_position: Vector2) -> void:
+	var building := _resolve_building_card(payload)
+	if building == null:
+		_on_log_message("Ta budowla nie jest już dostępna.")
+		return
+	var block := _survival.can_build(building)
+	if block != "":
+		_on_log_message(block)
+		return
+	_survival.build(building)
+	AudioManager.play_sfx("build")
+	_spawn_tile_fx(BUILD_PLACE_FX, false)
+	if _build_mode:
+		_refresh_build_cards()
+
+
+func _resolve_hand_card_index(payload: Dictionary) -> int:
+	var index := int(payload.get("index", -1))
+	var card_id := str(payload.get("card_id", ""))
+	if index >= 0 and index < _survival.hand.size():
+		var indexed_card := _survival.hand[index]
+		if indexed_card != null and indexed_card.id == card_id:
+			return index
+	for i in _survival.hand.size():
+		var card := _survival.hand[i]
+		if card != null and card.id == card_id:
+			return i
+	return -1
+
+
+func _resolve_gather_card(payload: Dictionary) -> ActionCardData:
+	var card_id := str(payload.get("card_id", ""))
+	for action in _survival.available_gather_actions():
+		if action != null and action.id == card_id:
+			return action
+	return null
+
+
+func _resolve_building_card(payload: Dictionary) -> BuildingCardData:
+	var card_id := str(payload.get("card_id", ""))
+	for building in _survival.available_buildings():
+		if building != null and building.id == card_id:
+			return building
+	return null
 
 
 func _card_cost_summary(card: CardData) -> String:
