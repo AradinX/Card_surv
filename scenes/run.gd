@@ -509,6 +509,8 @@ func _refresh_building_actions() -> void:
 		label.tooltip_text = _building_tooltip(built)
 		label.mouse_filter = Control.MOUSE_FILTER_STOP
 		row.add_child(label)
+		if not built.is_ruined:
+			_add_building_interaction(row, i)
 
 		if built.is_ruined:
 			label.text = "%s\nRUINA" % built.data.display_name
@@ -609,6 +611,26 @@ func _confirm_demolish(building_index: int) -> void:
 	)
 
 
+func _add_building_interaction(row: HBoxContainer, building_index: int) -> void:
+	var action := _survival.building_action(building_index)
+	if action.is_empty():
+		return
+	var block := str(action.get("block", ""))
+	var title := str(action.get("title", "Akcja"))
+	var summary := str(action.get("summary", ""))
+	var tooltip := block if block != "" else "%s\n%s" % [title, summary]
+	var action_idx := building_index
+	row.add_child(_make_text_action_button(
+		title,
+		tooltip,
+		block != "",
+		func() -> void:
+			_survival.use_building(action_idx)
+			AudioManager.play_sfx("card_play")
+			_refresh_building_actions()
+	))
+
+
 func _demolish_refund_summary(built) -> String:
 	var divisor := SurvivalSystem.DEMOLISH_REFUND_DIVISOR if built.is_ruined \
 		else SurvivalSystem.DEMOLISH_STANDING_REFUND_DIVISOR
@@ -628,7 +650,27 @@ func _building_tooltip(built) -> String:
 		parts.append("Efekty: %s" % ", ".join(production))
 	if data.special != "":
 		parts.append("Specjalne: %s" % _building_special_description(data.special))
+	var action := _building_action_for_tooltip(built)
+	if action != "":
+		parts.append("Akcja: %s" % action)
 	return "\n".join(parts)
+
+
+func _building_action_for_tooltip(built) -> String:
+	if built.is_ruined:
+		return ""
+	var buildings := _survival.current_tile().buildings
+	var idx := buildings.find(built)
+	if idx < 0:
+		return ""
+	var action := _survival.building_action(idx)
+	if action.is_empty():
+		return ""
+	var text := "%s (%s)" % [str(action.get("title", "Akcja")), str(action.get("summary", ""))]
+	var block := str(action.get("block", ""))
+	if block != "":
+		text += "\n%s" % block
+	return text
 
 
 func _building_effect_parts(data: BuildingCardData) -> PackedStringArray:
@@ -881,6 +923,24 @@ func _make_icon_action_button(
 	button.disabled = is_disabled
 	button.tooltip_text = button_tooltip
 	button.pressed.connect(on_pressed)
+	return button
+
+
+func _make_text_action_button(
+	text: String,
+	button_tooltip: String,
+	is_disabled: bool,
+	on_pressed: Callable
+) -> Button:
+	var button := Button.new()
+	button.custom_minimum_size = Vector2(124, 52)
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	button.text = text
+	button.clip_text = true
+	button.disabled = is_disabled
+	button.tooltip_text = button_tooltip
+	button.pressed.connect(on_pressed)
+	ButtonSkin.apply_primary(button, _button_act)
 	return button
 
 ## BUM: the board background flips to its corrupted Act II face and the

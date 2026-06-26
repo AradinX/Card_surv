@@ -124,6 +124,8 @@ var _ended := false
 var _resumed := false
 ## "<tile index>:<card id>" entries for gather actions already used today.
 var _used_gathers: Dictionary = {}
+## "<tile index>:<building index>:<action id>" entries for active buildings used today.
+var _used_building_actions: Dictionary = {}
 
 
 func start(
@@ -368,6 +370,90 @@ func demolish(building_index: int) -> void:
 	])
 	stats_changed.emit(state)
 	board_changed.emit(state)
+
+
+## Active, once-per-day interactions on selected standing buildings. Buildings
+## without an action are still passive: their effects resolve at night.
+func building_action(building_index: int) -> Dictionary:
+	var buildings := current_tile().buildings
+	if building_index < 0 or building_index >= buildings.size():
+		return {}
+	var built := buildings[building_index]
+	if built.is_ruined:
+		return {}
+	var action := _building_action_definition(built.data)
+	if action.is_empty():
+		return {}
+	action["block"] = can_use_building(building_index)
+	action["summary"] = _building_action_summary(action)
+	return action
+
+
+func can_use_building(building_index: int) -> String:
+	if not _day_active:
+		return "Dzień dobiegł końca."
+	var buildings := current_tile().buildings
+	if building_index < 0 or building_index >= buildings.size():
+		return "Nie ma takiego budynku."
+	var built := buildings[building_index]
+	if built.is_ruined:
+		return "Ruina nie ma aktywnej akcji."
+	var action := _building_action_definition(built.data)
+	if action.is_empty():
+		return "Ten budynek działa pasywnie."
+	var key := _building_action_key(building_index, action)
+	if _used_building_actions.has(key):
+		return "Ta akcja budynku była już użyta dzisiaj."
+	var cost_block := _cost_block_reason(
+		int(action.get("cost_energy", 0)),
+		int(action.get("cost_food", 0)),
+		int(action.get("cost_wood", 0)),
+		int(action.get("cost_materials", 0))
+	)
+	if cost_block != "":
+		return cost_block
+	return _building_action_capacity_block(action)
+
+
+func use_building(building_index: int) -> void:
+	var block_reason := can_use_building(building_index)
+	if block_reason != "":
+		log_message.emit(block_reason)
+		return
+	var built := current_tile().buildings[building_index]
+	var action := _building_action_definition(built.data)
+	var snapshot := _action_state_snapshot()
+	state.energy -= int(action.get("cost_energy", 0))
+	state.food -= int(action.get("cost_food", 0))
+	state.wood -= int(action.get("cost_wood", 0))
+	state.materials -= int(action.get("cost_materials", 0))
+	_apply_stat_deltas(
+		int(action.get("health", 0)),
+		int(action.get("hunger", 0)),
+		int(action.get("thirst", 0)),
+		int(action.get("warmth", 0))
+	)
+	_add_food(int(action.get("food", 0)))
+	_add_water(int(action.get("water", 0)))
+	_add_wood(int(action.get("wood", 0)))
+	_add_materials(int(action.get("materials", 0)))
+	var drawn := 0
+	if int(action.get("draw_cards", 0)) > 0:
+		var before_hand := hand.size()
+		_draw_cards(int(action.get("draw_cards", 0)))
+		drawn = hand.size() - before_hand
+	_used_building_actions[_building_action_key(building_index, action)] = true
+	var summary := _action_delta_summary(snapshot)
+	if drawn > 0:
+		summary += (", " if summary != "" else "") + "+%d karta do ręki" % drawn
+	log_message.emit("Budynek: %s - %s%s" % [
+		built.data.display_name,
+		str(action.get("title", "Akcja")),
+		": %s." % summary if summary != "" else ".",
+	])
+	stats_changed.emit(state)
+	if drawn > 0:
+		hand_changed.emit(hand)
 
 
 # --- Hand cards (actions and buildings) ---
@@ -688,6 +774,7 @@ func _grant_xp(amount: int) -> void:
 func _start_day() -> void:
 	_day_active = true
 	_used_gathers.clear()
+	_used_building_actions.clear()
 	_health_history.append(state.health)
 	_update_season_for_day()
 
@@ -894,6 +981,92 @@ func _append_delta_part(parts: PackedStringArray, delta: int, label: String) -> 
 
 ## Scout an adjacent UNDISCOVERED tile without moving there: reveals its biome
 ## (and arms its hazards in the night pool — info vs risk). Picks one at random.
+func _building_action_definition(building: BuildingCardData) -> Dictionary:
+	match building.id:
+		"building_campfire":
+			return {"id": "warm_up", "title": "Ogrzej się", "cost_energy": 1, "warmth": 3}
+		"building_well":
+			return {"id": "draw_water", "title": "Nabierz wody", "cost_energy": 1, "water": 2}
+		"building_cistern":
+			return {"id": "draw_water", "title": "Nabierz wody", "cost_energy": 1, "water": 3}
+		"building_water_filter":
+			return {"id": "filter_water", "title": "Przefiltruj wodę", "cost_energy": 1, "water": 2}
+		"building_pantry":
+			return {"id": "eat_ration", "title": "Zjedz zapas", "cost_energy": 1, "cost_food": 1, "hunger": 3}
+		"building_workshop":
+			return {"id": "craft_stone", "title": "Obrób kamień", "cost_energy": 1, "cost_wood": 1, "materials": 1}
+		"building_herbalist":
+			return {"id": "brew_medicine", "title": "Użyj ziół", "cost_energy": 1, "health": 2}
+		"building_field_infirmary":
+			return {"id": "field_treatment", "title": "Opatrz rany", "cost_energy": 1, "health": 3}
+		"building_watchtower":
+			return {"id": "lookout", "title": "Wypatruj zagrożeń", "cost_energy": 1, "draw_cards": 1}
+		"building_farm":
+			return {"id": "harvest", "title": "Zbierz plon", "cost_energy": 1, "food": 1}
+		"building_traps":
+			return {"id": "check_traps", "title": "Sprawdź sidła", "cost_energy": 1, "food": 1}
+		"building_fishing_dock":
+			return {"id": "fish", "title": "Zarzuć sieci", "cost_energy": 1, "food": 1}
+		"building_logging_camp":
+			return {"id": "chop_wood", "title": "Rąb drewno", "cost_energy": 1, "wood": 1}
+		"building_wood_storage":
+			return {"id": "take_dry_wood", "title": "Weź suche drewno", "cost_energy": 1, "wood": 1}
+		"building_quarry":
+			return {"id": "mine_stone", "title": "Wydobądź kamień", "cost_energy": 1, "materials": 1}
+		_:
+			return {}
+
+
+func _building_action_summary(action: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	_append_cost_part(parts, int(action.get("cost_energy", 0)), "energii")
+	_append_cost_part(parts, int(action.get("cost_food", 0)), "jedzenia")
+	_append_cost_part(parts, int(action.get("cost_wood", 0)), "drewna")
+	_append_cost_part(parts, int(action.get("cost_materials", 0)), "kamienia")
+	_append_delta_part(parts, int(action.get("health", 0)), "zdrowia")
+	_append_delta_part(parts, int(action.get("hunger", 0)), "sytości")
+	_append_delta_part(parts, int(action.get("thirst", 0)), "nawodnienia")
+	_append_delta_part(parts, int(action.get("warmth", 0)), "ciepła")
+	_append_delta_part(parts, int(action.get("food", 0)), "jedzenia")
+	_append_delta_part(parts, int(action.get("water", 0)), "wody")
+	_append_delta_part(parts, int(action.get("wood", 0)), "drewna")
+	_append_delta_part(parts, int(action.get("materials", 0)), "kamienia")
+	if int(action.get("draw_cards", 0)) > 0:
+		parts.append("+%d karta do ręki" % int(action.get("draw_cards", 0)))
+	return ", ".join(parts)
+
+
+func _append_cost_part(parts: PackedStringArray, amount: int, label: String) -> void:
+	if amount > 0:
+		parts.append("-%d %s" % [amount, label])
+
+
+func _building_action_capacity_block(action: Dictionary) -> String:
+	if int(action.get("health", 0)) > 0 and state.health >= state.max_health:
+		return "Zdrowie jest już pełne."
+	if int(action.get("hunger", 0)) > 0 and state.hunger >= RunState.MAX_HUNGER:
+		return "Sytość jest już pełna."
+	if int(action.get("thirst", 0)) > 0 and state.thirst >= RunState.MAX_THIRST:
+		return "Nawodnienie jest już pełne."
+	if int(action.get("warmth", 0)) > 0 and state.warmth >= RunState.MAX_WARMTH:
+		return "Ciepło jest już pełne."
+	if int(action.get("food", 0)) > 0 and state.food >= food_cap():
+		return "Limit jedzenia jest pełny."
+	if int(action.get("water", 0)) > 0 and state.water >= water_cap():
+		return "Limit wody jest pełny."
+	if int(action.get("wood", 0)) > 0 and state.wood >= wood_cap():
+		return "Limit drewna jest pełny."
+	if int(action.get("materials", 0)) > 0 and state.materials >= materials_cap():
+		return "Limit kamienia jest pełny."
+	if int(action.get("draw_cards", 0)) > 0 and hand.size() >= HAND_SIZE:
+		return "Masz pełną rękę."
+	return ""
+
+
+func _building_action_key(building_index: int, action: Dictionary) -> String:
+	return "%d:%d:%s" % [state.current_tile, building_index, str(action.get("id", ""))]
+
+
 func _scout_reveal() -> void:
 	var hidden: Array[int] = []
 	for i in state.board.size():
