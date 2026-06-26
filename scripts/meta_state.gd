@@ -6,7 +6,7 @@ extends Resource
 
 const SAVE_PATH := "user://meta_state.tres"
 ## Cost of one roulette spin (in gold coins).
-const SPIN_COST := 3
+const SPIN_COST := 1
 ## The class everyone starts with — always unlocked.
 const STARTING_CLASS_ID := "scout"
 

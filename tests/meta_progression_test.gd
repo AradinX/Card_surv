@@ -24,8 +24,8 @@ func _init() -> void:
 	manager.meta_state = meta
 	manager.class_catalog = catalog
 
-	if MetaState.SPIN_COST != 3:
-		push_error("roulette should cost 3 coins, got %d" % MetaState.SPIN_COST)
+	if MetaState.SPIN_COST != 1:
+		push_error("roulette should cost 1 coin, got %d" % MetaState.SPIN_COST)
 		failures += 1
 	if meta.can_spin(catalog.size()):
 		push_error("fresh meta-state must not afford a roulette spin")
@@ -38,11 +38,11 @@ func _init() -> void:
 	var unlocked_before := meta.unlocked_class_ids.size()
 	var won: CharacterClassData = manager.spin_roulette(SAVE_PATH)
 	if won == null:
-		push_error("roulette should unlock a class when exactly 3 coins are available")
+		push_error("roulette should unlock a class when exactly 1 coin is available")
 		failures += 1
 	else:
 		if meta.gold_coins != 0:
-			push_error("roulette should spend exactly 3 coins")
+			push_error("roulette should spend exactly 1 coin")
 			failures += 1
 		if meta.unlocked_class_ids.size() != unlocked_before + 1:
 			push_error("roulette should unlock exactly one new class")
@@ -76,7 +76,7 @@ func _init() -> void:
 	_cleanup()
 
 	if failures == 0:
-		print("Meta progression test OK: cost 3, unlock, spend and save/load verified")
+		print("Meta progression test OK: cost 1, unlock, spend and save/load verified")
 	quit(0 if failures == 0 else 1)
 
 

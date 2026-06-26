@@ -559,6 +559,7 @@ func _building_info_data(building_index: int) -> Dictionary:
 		effect_parts.append(_building_special_description(data.special))
 	var action := _survival.building_action(building_index)
 	var block := str(action.get("block", "")) if not action.is_empty() else ""
+	var action_used := block.contains("użyta dzisiaj")
 	var summary := str(action.get("summary", "")) if not action.is_empty() else ""
 	var action_text := ""
 	if built.is_ruined:
@@ -604,14 +605,14 @@ func _building_info_data(building_index: int) -> Dictionary:
 		"building_data": data,
 		"act2": _survival.state.bum_happened,
 		"hp_text": "HP %d/%d%s" % [built.hp, max_hp, "  |  RUINA" if built.is_ruined else ""],
-		"status_text": block,
+		"status_text": "",
 		"effects_text": "Efekty pasywne: %s" % (
 			", ".join(effect_parts) if not effect_parts.is_empty() else "brak"
 		),
 		"action_text": action_text,
 		"use_visible": not built.is_ruined and not action.is_empty(),
 		"use_disabled": block != "" or action.is_empty(),
-		"use_text": str(action.get("title", "Użyj")) if not action.is_empty() else "Użyj",
+		"use_text": "Użyto" if action_used else (str(action.get("title", "Użyj")) if not action.is_empty() else "Użyj"),
 		"use_tooltip": block if block != "" else summary,
 		"repair_text": repair_text,
 		"repair_disabled": repair_disabled,
@@ -620,6 +621,7 @@ func _building_info_data(building_index: int) -> Dictionary:
 		"demolish_disabled": demolish_block != "",
 		"demolish_tooltip": demolish_block if demolish_block != "" else demolish_text,
 	}
+
 
 func _hide_building_info_popup() -> void:
 	if _building_info_popup != null:

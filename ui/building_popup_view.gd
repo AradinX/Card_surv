@@ -72,7 +72,8 @@ func set_content(data: Dictionary) -> void:
 
 	_title_label.text = building_data.display_name if building_data != null else ""
 	_hp_label.text = str(data.get("hp_text", ""))
-	_status_label.text = str(data.get("status_text", ""))
+	_status_label.text = ""
+	_status_label.visible = false
 	_effects_label.text = str(data.get("effects_text", ""))
 	_action_label.text = str(data.get("action_text", ""))
 	_repair_label.text = str(data.get("repair_text", ""))

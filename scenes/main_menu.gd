@@ -1,6 +1,6 @@
 extends Control
 ## Main menu: pick an unlocked character, start a run, or spend gold coins on the
-## character roulette (3 coins -> unlock a random new class).
+## character roulette (1 coin -> unlock a random new class).
 
 @onready var _coins_label: Label = $Center/VBox/CoinsLabel
 @onready var _class_selector: OptionButton = $Center/VBox/ClassRow/ClassSelector
@@ -129,7 +129,8 @@ func _refresh_meta_ui() -> void:
 	if GameManager.meta_state.unlocked_class_ids.size() >= GameManager.class_count():
 		_roulette_button.text = "Wszystkie postacie odblokowane"
 	else:
-		_roulette_button.text = "Ruletka postaci (%d monety)" % MetaState.SPIN_COST
+		var coin_label := "moneta" if MetaState.SPIN_COST == 1 else "monety"
+		_roulette_button.text = "Ruletka postaci (%d %s)" % [MetaState.SPIN_COST, coin_label]
 
 
 func _populate_class_selector() -> void:

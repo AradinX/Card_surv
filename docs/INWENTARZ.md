@@ -39,7 +39,7 @@
 odpowiednich taliach startowych.
 
 ✅ Skaut jest zawsze odblokowany. Wygrany run daje 1 monetę, ruletka kosztuje
-3 monety i losuje jedną z zablokowanych klas.
+1 monetę i losuje jedną z zablokowanych klas.
 
 🟡 Aktualny sygnał balansowy z 30 runów bota na klasę:
 

@@ -24,7 +24,7 @@ do dnia 50.
 - ważona pula nocnych zdarzeń z cooldownami, limitami i omenami;
 - XP oraz wybór nagrody przy awansie: energia, zdrowie albo nowa karta;
 - **9 klas**, każda z własną talią i kartą sygnaturową;
-- meta-progresja: moneta za wygrany run i ruletka klasy za 3 monety;
+- meta-progresja: moneta za wygrany run i ruletka klasy za 1 monetę;
 - autozapis na początku dnia oraz opcja „Kontynuuj”;
 - samouczek, ustawienia obrazu i dźwięku, muzyka, ambient, SFX i rozbudowane FX.
 
@@ -64,7 +64,7 @@ potwory, cięższa ekonomia i odbudowa po zniszczeniach.
 Klasą startową jest **Skaut**. Pozostałe klasy odblokowuje ruletka:
 
 - wygrany run daje 1 złotą monetę;
-- losowanie kosztuje 3 monety;
+- losowanie kosztuje 1 monetę;
 - ruletka wybiera jedną z jeszcze zablokowanych klas;
 - monety i odblokowania zapisują się w `user://meta_state.tres`.
 

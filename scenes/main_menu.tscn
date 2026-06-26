@@ -112,7 +112,7 @@ custom_minimum_size = Vector2(360, 56)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 18
-text = "Ruletka postaci (3 monety)"
+text = "Ruletka postaci (1 moneta)"
 
 [node name="CharactersButton" type="Button" parent="Center/VBox"]
 custom_minimum_size = Vector2(360, 56)
