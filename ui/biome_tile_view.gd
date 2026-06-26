@@ -5,6 +5,7 @@ extends Button
 ## "you are here" marker and a row of building slots (empty / occupied by a
 ## built building, with its HP), all driven from the tile state.
 signal buildings_pressed
+signal building_pressed(building_index: int, anchor_rect: Rect2)
 signal card_dropped(payload: Dictionary)
 
 const NORMAL_BG_DIR := "res://assets/art/biomes/backgrounds/normal"
@@ -109,9 +110,7 @@ static var _dissolve_shader: Shader
 
 func _ready() -> void:
 	_slots_row.mouse_filter = Control.MOUSE_FILTER_PASS
-	_buildings_button.pressed.connect(func() -> void:
-		buildings_pressed.emit()
-	)
+	_buildings_button.visible = false
 
 
 func set_accept_card_drops(enabled: bool) -> void:
@@ -241,9 +240,7 @@ func setup(
 	_player_marker.tooltip_text = _marker_tooltip if is_current else ""
 	_player_marker.mouse_filter = Control.MOUSE_FILTER_PASS if is_current \
 		else Control.MOUSE_FILTER_IGNORE
-	# On the current tile the medallion always opens the build/manage panel
-	# (so you can construct even on an empty tile); elsewhere only if built.
-	_buildings_button.visible = is_current or not tile.buildings.is_empty()
+	_buildings_button.visible = false
 	_state_overlay.color = _overlay_color(is_current, block_reason, tile.is_corrupted)
 	if _drop_highlight:
 		_state_overlay.color = Color(0.45, 0.72, 0.24, 0.24)
@@ -383,15 +380,25 @@ func _refresh_slots(tile: TileState, building_tooltips: Array[String] = []) -> v
 	for i in count:
 		var slot := _make_slot()
 		var tip := ""
+		var occupied := i < tile.buildings.size()
 		if i < tile.buildings.size():
 			tip = building_tooltips[i] if i < building_tooltips.size() else ""
 			_fill_occupied_slot(slot, tile.buildings[i], tip)
 		# Wrap each slot so a per-slot top margin can stagger the row.
 		var wrap := MarginContainer.new()
-		wrap.mouse_filter = Control.MOUSE_FILTER_PASS if tip != "" else Control.MOUSE_FILTER_IGNORE
+		wrap.mouse_filter = Control.MOUSE_FILTER_STOP if occupied else Control.MOUSE_FILTER_IGNORE
 		wrap.tooltip_text = tip
 		wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		wrap.add_theme_constant_override("margin_top", SLOT_STAGGER[i % SLOT_STAGGER.size()])
+		if occupied:
+			var building_index := i
+			wrap.gui_input.connect(func(event: InputEvent) -> void:
+				if event is InputEventMouseButton \
+						and event.button_index == MOUSE_BUTTON_LEFT \
+						and event.pressed:
+					building_pressed.emit(building_index, wrap.get_global_rect())
+					accept_event()
+			)
 		wrap.add_child(slot)
 		_slots_row.add_child(wrap)
 
