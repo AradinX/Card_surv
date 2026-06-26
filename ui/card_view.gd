@@ -297,6 +297,14 @@ func _effects_summary(card: CardData) -> String:
 		var sp := _building_special_text(b.special)
 		if sp != "":
 			p.append(sp)
+	elif card is MonsterCardData:
+		var m := card as MonsterCardData
+		if m.damage_to_player > 0:
+			p.append("-%d zdrowia gracza" % m.damage_to_player)
+		if m.damage_to_buildings > 0:
+			p.append("-%d HP budynku" % m.damage_to_buildings)
+		if p.is_empty():
+			p.append("atak bez obrażeń")
 	if p.is_empty():
 		return ""
 	return "  ·  ".join(p)

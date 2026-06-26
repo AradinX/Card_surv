@@ -663,7 +663,7 @@ func apply_night_choice(choice_index: int) -> String:
 	if event.choices.is_empty():
 		return ""
 	_night_choice_done = true
-	_resolve_building_passives()
+	_resolve_building_passives(false)
 	return _resolve_event_choice(event, choice_index)
 
 
@@ -677,7 +677,7 @@ func resolve_night(choice_index: int = 0) -> void:
 	# Skip card resolution if a choice (and passives) were already applied via
 	# apply_night_choice — just settle needs and advance.
 	if not _night_choice_done:
-		_resolve_building_passives()
+		_resolve_building_passives(false)
 		if night_card is MonsterCardData:
 			_resolve_monster_attack(night_card as MonsterCardData)
 		elif night_card is EventCardData:
@@ -1329,7 +1329,7 @@ func _check_ruin(built: BuildingState) -> void:
 # --- End of day ---
 
 
-func _resolve_building_passives() -> void:
+func _resolve_building_passives(apply_stat_passives: bool = true) -> void:
 	var building_logs: PackedStringArray = []
 	for tile in state.board:
 		for built in tile.buildings:
@@ -1341,9 +1341,10 @@ func _resolve_building_passives() -> void:
 			_add_water(data.water_gain)
 			_add_wood(data.wood_gain)
 			_add_materials(data.materials_gain)
-			_apply_stat_deltas(
-				data.health_delta, data.hunger_delta, data.thirst_delta, data.warmth_delta
-			)
+			if apply_stat_passives:
+				_apply_stat_deltas(
+					data.health_delta, data.hunger_delta, data.thirst_delta, data.warmth_delta
+				)
 			var summary := _action_delta_summary(snapshot)
 			if summary != "":
 				building_logs.append("%s %s" % [data.display_name, summary])
@@ -1362,6 +1363,33 @@ func _resolve_building_passives() -> void:
 					building_logs.append("%s próbuje przerobić drewno na kamień, ale magazyn jest pełny" % data.display_name)
 	if not building_logs.is_empty():
 		log_message.emit("Budynki nocą: %s." % "; ".join(building_logs))
+
+
+func _standing_building_stat_passives() -> Dictionary:
+	var totals := {
+		"health": 0,
+		"hunger": 0,
+		"thirst": 0,
+		"warmth": 0,
+	}
+	for tile in state.board:
+		for built in tile.buildings:
+			if built.is_ruined:
+				continue
+			totals["health"] += built.data.health_delta
+			totals["hunger"] += built.data.hunger_delta
+			totals["thirst"] += built.data.thirst_delta
+			totals["warmth"] += built.data.warmth_delta
+	return totals
+
+
+func _stat_passive_summary(passives: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	_append_delta_part(parts, int(passives.get("health", 0)), "zdrowia")
+	_append_delta_part(parts, int(passives.get("hunger", 0)), "sytości")
+	_append_delta_part(parts, int(passives.get("thirst", 0)), "nawodnienia")
+	_append_delta_part(parts, int(passives.get("warmth", 0)), "ciepła")
+	return ", ".join(parts)
 
 
 ## Counts standing (non-ruined) buildings with a given special.
@@ -1474,11 +1502,26 @@ func _has_night_protection() -> bool:
 func _resolve_needs() -> void:
 	# Spoilage first, so spoiled food can't be eaten tonight.
 	_resolve_spoilage()
-	# Hunger: decay, then eat from stock (class can change food efficiency).
+	var needs_snapshot := _action_state_snapshot()
+	var stat_passives := _standing_building_stat_passives()
+	var passive_summary := _stat_passive_summary(stat_passives)
+	if passive_summary != "":
+		log_message.emit("Budynki wspierają potrzeby nocą: %s." % passive_summary)
+
+	var health_passive := int(stat_passives.get("health", 0))
+	if health_passive != 0:
+		state.health = clampi(state.health + health_passive, 0, state.max_health)
+
+	# Hunger: building passives and decay resolve as one nightly balance, then
+	# food is eaten from stock (class can change food efficiency).
 	var hunger_decay := DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta \
 		+ _act2_rule("act2_hunger_decay_delta")
 	var food_value := int(round(FOOD_HUNGER_VALUE * state.character_class.food_hunger_multiplier))
-	state.hunger = clampi(state.hunger - hunger_decay, 0, RunState.MAX_HUNGER)
+	state.hunger = clampi(
+		state.hunger + int(stat_passives.get("hunger", 0)) - hunger_decay,
+		0,
+		RunState.MAX_HUNGER
+	)
 	var food_eaten := 0
 	while state.food > 0 and state.hunger <= RunState.MAX_HUNGER - food_value:
 		state.food -= 1
@@ -1491,14 +1534,19 @@ func _resolve_needs() -> void:
 		_record_damage(hunger_dmg, "Głód")
 		log_message.emit("Sytość spadła do 0: tracisz zdrowie z głodu (-%d zdrowia)." % hunger_dmg)
 
-	# Thirst: decay, then drink from stock. Summer makes water pressure harsher.
+	# Thirst: building passives and decay resolve together, then drink from
+	# stock. Summer makes water pressure harsher.
 	var thirst_decay := DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta \
 		+ _act2_rule("act2_thirst_decay_delta")
 	if state.season == RunState.Season.SUMMER:
 		thirst_decay += SUMMER_EXTRA_THIRST_DECAY
 		log_message.emit("Letni upał wysusza cię szybciej. -%d nawodnienia." %
 			SUMMER_EXTRA_THIRST_DECAY)
-	state.thirst = clampi(state.thirst - thirst_decay, 0, RunState.MAX_THIRST)
+	state.thirst = clampi(
+		state.thirst + int(stat_passives.get("thirst", 0)) - thirst_decay,
+		0,
+		RunState.MAX_THIRST
+	)
 	var water_drunk := 0
 	while state.water > 0 and state.thirst <= RunState.MAX_THIRST - WATER_THIRST_VALUE:
 		state.water -= 1
@@ -1511,14 +1559,19 @@ func _resolve_needs() -> void:
 		_record_damage(thirst_dmg, "Odwodnienie")
 		log_message.emit("Nawodnienie spadło do 0: tracisz zdrowie z odwodnienia (-%d zdrowia)." % thirst_dmg)
 
-	# Warmth: nights are cold; campfires (passives, applied above) offset it.
+	# Warmth: nights are cold; campfires and other passives offset decay before
+	# the max cap is applied, so +10 warmth and -3 night becomes a real +7.
 	var warmth_decay := DAILY_WARMTH_DECAY + state.character_class.warmth_rate_delta \
 		+ _act2_rule("act2_warmth_decay_delta")
 	if state.season == RunState.Season.WINTER:
 		warmth_decay += WINTER_EXTRA_WARMTH_DECAY
 		log_message.emit("Zimowa noc odbiera dodatkowe ciepło. -%d ciepła." %
 			WINTER_EXTRA_WARMTH_DECAY)
-	state.warmth = clampi(state.warmth - warmth_decay, 0, RunState.MAX_WARMTH)
+	state.warmth = clampi(
+		state.warmth + int(stat_passives.get("warmth", 0)) - warmth_decay,
+		0,
+		RunState.MAX_WARMTH
+	)
 	if state.warmth <= 0:
 		var warmth_dmg := _deprivation_damage(FREEZING_DAMAGE)
 		state.health = maxi(state.health - warmth_dmg, 0)
@@ -1527,12 +1580,15 @@ func _resolve_needs() -> void:
 
 	if food_eaten > 0 or water_drunk > 0:
 		needs_consumed.emit(food_eaten, water_drunk)
+	var needs_summary := _action_delta_summary(needs_snapshot)
+	if needs_summary != "":
+		log_message.emit("Bilans potrzeb po nocy: %s." % needs_summary)
 
 
-## Hunger/thirst/cold bite far harder after the cataclysm: Act I deals one LESS
-## point (gentle early game), Act II one MORE (running a stat dry is punishing).
+## Hunger/thirst/cold must be a visible threat: before BUM each empty need deals
+## its full damage, and after BUM it bites harder.
 func _deprivation_damage(full_damage: int) -> int:
-	return full_damage + 1 if state.bum_happened else maxi(full_damage - 1, 0)
+	return full_damage + 1 if state.bum_happened else full_damage
 
 
 ## Accumulate HP loss + remember the most recent cause (for the end screen).

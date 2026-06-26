@@ -87,11 +87,24 @@ const RESOURCE_FX := "res://assets/art/fx/cards/fx_resource_gain.png"
 const EAT_DRINK_FX := "res://assets/art/fx/cards/fx_eat_drink_feedback.png"
 ## Pre-wired (assets not yet generated — guarded by ResourceLoader.exists).
 const LOW_HP_FX := "res://assets/art/fx/ui/fx_low_hp_vignette.png"
+const LOW_HUNGER_FX := "res://assets/art/fx/ui/fx_low_hunger_vignette.png"
+const LOW_THIRST_FX := "res://assets/art/fx/ui/fx_low_thirst_vignette.png"
 const BUILD_PLACE_FX := "res://assets/art/fx/buildings/fx_build_place.png"
 const REPAIR_FX := "res://assets/art/fx/buildings/fx_repair_sparkle.png"
 const COLLAPSE_FX := "res://assets/art/fx/buildings/fx_ruin_collapse.png"
 ## Low-HP danger vignette shows at or below this fraction of max health.
 const LOW_HP_FRACTION := 0.3
+const NEED_WARNING_FRACTION := 0.3
+const NEED_WARNING_COLORS := {
+	"hunger": Color(1.0, 0.55, 0.18, 1.0),
+	"thirst": Color(0.22, 0.62, 1.0, 1.0),
+	"warmth": Color(0.78, 0.95, 1.0, 1.0),
+}
+const NEED_WARNING_FX := {
+	"hunger": LOW_HUNGER_FX,
+	"thirst": LOW_THIRST_FX,
+	"warmth": WEATHER_FROST,
+}
 const DESIGN_VIEWPORT := Vector2(1280, 720)
 const OVERLAY_PADDING := Vector2(32, 32)
 const LEVEL_PANEL_BASE := Vector2(900, 470)
@@ -164,6 +177,8 @@ var _weather_overlay: TextureRect
 var _frost_overlay: TextureRect
 var _low_hp_overlay: TextureRect
 var _low_hp_tween: Tween
+var _need_warning_overlays: Dictionary = {}
+var _need_warning_tweens: Dictionary = {}
 var _dragging_play_card := false
 ## Active Act II palette (set when BUM strikes; drives _apply_act2_look and the
 ## per-disaster tint of the corruption FX layers).
@@ -186,6 +201,7 @@ func _ready() -> void:
 	_apply_button_skin()
 	_create_weather_overlay()
 	_create_low_hp_overlay()
+	_create_need_warning_overlays()
 	_setup_deck_dialog()
 
 	# Current-tile marker = the played character's medallion (fallback inside).
@@ -407,6 +423,7 @@ func _on_stats_changed(state: RunState) -> void:
 	_refresh_playability()
 	_refresh_tiles(state)
 	_update_low_hp_vignette(state)
+	_update_need_warning_vignettes(state)
 	_update_forecast()
 	if _build_mode:
 		_refresh_build_playability()
@@ -621,7 +638,7 @@ func _add_building_interaction(row: HBoxContainer, building_index: int) -> void:
 	var tooltip := block if block != "" else "%s\n%s" % [title, summary]
 	var action_idx := building_index
 	row.add_child(_make_text_action_button(
-		title,
+		"Użyj",
 		tooltip,
 		block != "",
 		func() -> void:
@@ -933,14 +950,18 @@ func _make_text_action_button(
 	on_pressed: Callable
 ) -> Button:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(124, 52)
+	button.custom_minimum_size = Vector2(74, 42)
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	button.text = text
 	button.clip_text = true
 	button.disabled = is_disabled
 	button.tooltip_text = button_tooltip
 	button.pressed.connect(on_pressed)
-	ButtonSkin.apply_primary(button, _button_act)
+	ButtonSkin.apply_minimal(button)
+	button.add_theme_font_size_override("font_size", 13)
+	button.add_theme_color_override("font_color", Color(0.96, 0.88, 0.68, 1.0))
+	button.add_theme_color_override("font_hover_color", Color(1.0, 0.96, 0.78, 1.0))
+	button.add_theme_color_override("font_disabled_color", Color(0.52, 0.46, 0.34, 0.85))
 	return button
 
 ## BUM: the board background flips to its corrupted Act II face and the
@@ -970,6 +991,7 @@ func _apply_act2_look() -> void:
 		_log_panel_art.texture = load(LOG_PANEL_ACT2)
 		_night_note_art.texture = load(LOG_PANEL_ACT2)
 	_log.add_theme_color_override("default_color", _act2_look["log_text"])
+	_night_summary.add_theme_color_override("font_color", _act2_look["log_text"])
 	_background.color = _act2_look["scrim"]
 
 
@@ -1275,6 +1297,62 @@ func _update_low_hp_vignette(state: RunState) -> void:
 		_low_hp_overlay.modulate.a = 0.0
 
 
+func _create_need_warning_overlays() -> void:
+	for id in NEED_WARNING_COLORS.keys():
+		var texture_path := str(NEED_WARNING_FX.get(id, ""))
+		if not ResourceLoader.exists(texture_path):
+			texture_path = LOW_HP_FX
+		if not ResourceLoader.exists(texture_path):
+			continue
+		var overlay := TextureRect.new()
+		overlay.texture = load(texture_path)
+		overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var color: Color = NEED_WARNING_COLORS[id]
+		color.a = 0.0
+		overlay.modulate = color
+		overlay.visible = false
+		add_child(overlay)
+		overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_need_warning_overlays[id] = overlay
+
+
+func _update_need_warning_vignettes(state: RunState) -> void:
+	_update_need_warning_vignette("hunger", state.hunger, RunState.MAX_HUNGER, 0.42, 0.16)
+	_update_need_warning_vignette("thirst", state.thirst, RunState.MAX_THIRST, 0.46, 0.18)
+	_update_need_warning_vignette("warmth", state.warmth, RunState.MAX_WARMTH, 0.44, 0.16)
+
+
+func _update_need_warning_vignette(
+	id: String, current: int, maximum: int, high_alpha: float, low_alpha: float
+) -> void:
+	var overlay := _need_warning_overlays.get(id) as TextureRect
+	if overlay == null:
+		return
+	var critical := current <= int(ceil(maximum * NEED_WARNING_FRACTION))
+	if critical and not overlay.visible:
+		overlay.visible = true
+		var color: Color = NEED_WARNING_COLORS[id]
+		color.a = low_alpha
+		overlay.modulate = color
+		var peak_alpha := high_alpha + 0.12 if current <= 0 else high_alpha
+		var base_alpha := low_alpha + 0.06 if current <= 0 else low_alpha
+		var tween := create_tween().set_loops()
+		tween.tween_property(overlay, "modulate:a", peak_alpha, 0.65) \
+			.set_trans(Tween.TRANS_SINE)
+		tween.tween_property(overlay, "modulate:a", base_alpha, 0.65) \
+			.set_trans(Tween.TRANS_SINE)
+		_need_warning_tweens[id] = tween
+	elif not critical and overlay.visible:
+		var tween := _need_warning_tweens.get(id) as Tween
+		if tween != null:
+			tween.kill()
+			_need_warning_tweens[id] = null
+		overlay.visible = false
+		overlay.modulate.a = 0.0
+
+
 func _apply_button_skin() -> void:
 	var buttons := [
 		_energy_button,
@@ -1486,6 +1564,10 @@ func _night_needs_summary() -> String:
 	var hunger_decay := SurvivalSystem.DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta
 	var thirst_decay := SurvivalSystem.DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta
 	var warmth_decay := SurvivalSystem.DAILY_WARMTH_DECAY + state.character_class.warmth_rate_delta
+	if state.bum_happened and state.disaster != null:
+		hunger_decay += int(state.disaster.get("act2_hunger_decay_delta"))
+		thirst_decay += int(state.disaster.get("act2_thirst_decay_delta"))
+		warmth_decay += int(state.disaster.get("act2_warmth_decay_delta"))
 	if state.season == RunState.Season.SUMMER:
 		thirst_decay += SurvivalSystem.SUMMER_EXTRA_THIRST_DECAY
 	if state.season == RunState.Season.WINTER:
