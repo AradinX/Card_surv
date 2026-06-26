@@ -86,14 +86,17 @@ func _on_node_added(node: Node) -> void:
 	call_deferred("_wire_button", node)
 
 
-func _wire_button(node: Node) -> void:
-	if not is_instance_valid(node) or not (node is BaseButton):
+func _wire_button(node: Variant) -> void:
+	if typeof(node) != TYPE_OBJECT or not is_instance_valid(node):
 		return
-	if node.has_meta(BUTTON_AUDIO_META):
+	var button := node as BaseButton
+	if button == null:
 		return
-	node.set_meta(BUTTON_AUDIO_META, true)
-	var sound_key := "card_play" if node is CardView else "button"
-	(node as BaseButton).pressed.connect(play_sfx.bind(sound_key))
+	if button.has_meta(BUTTON_AUDIO_META):
+		return
+	button.set_meta(BUTTON_AUDIO_META, true)
+	var sound_key := "card_play" if button is CardView else "button"
+	button.pressed.connect(play_sfx.bind(sound_key))
 
 
 ## First existing file for a key's path, trying .ogg/.wav/.mp3 ("" if none).

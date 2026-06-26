@@ -1,0 +1,309 @@
+[gd_scene load_steps=6 format=3 uid="uid://b7rqa2wjlq1a6"]
+
+[ext_resource type="Script" uid="uid://cmkd6unwfl10c" path="res://ui/building_popup_view.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bq2ejcm1ovfk4" path="res://assets/art/ui/panels/building_popup_panel_act1.png" id="2_panel_act1"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_panel"]
+
+[sub_resource type="Shader" id="Shader_chroma"]
+code = "shader_type canvas_item;
+uniform vec3 outside_key = vec3(1.0, 0.0, 1.0);
+uniform vec3 art_key = vec3(0.0, 0.31, 1.0);
+uniform float tolerance = 0.18;
+void fragment() {
+	vec4 col = texture(TEXTURE, UV);
+	float outside_dist = distance(col.rgb, outside_key);
+	float art_dist = distance(col.rgb, art_key);
+	if (col.a < 0.01 || outside_dist < tolerance || art_dist < tolerance) {
+		col.a = 0.0;
+	} else {
+		col.a = 1.0;
+	}
+	COLOR = col;
+}"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_panel"]
+shader = SubResource("Shader_chroma")
+shader_parameter/outside_key = Vector3(1, 0, 1)
+shader_parameter/art_key = Vector3(0, 0.31, 1)
+shader_parameter/tolerance = 0.18
+
+[node name="BuildingPopupView" type="PopupPanel"]
+oversampling_override = 1.0
+size = Vector2i(648, 488)
+visible = true
+theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
+script = ExtResource("1_script")
+
+[node name="Root" type="Control" parent="."]
+custom_minimum_size = Vector2(640, 480)
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BuildingArt" type="TextureRect" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.134375
+anchor_top = 0.239583
+anchor_right = 0.501563
+anchor_bottom = 0.616667
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PanelArt" type="TextureRect" parent="Root"]
+material = SubResource("ShaderMaterial_panel")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_panel_act1")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="TitleLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.257812
+anchor_top = 0.129167
+anchor_right = 0.726562
+anchor_bottom = 0.216667
+offset_right = 15.000305
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.13, 0.08, 0.035, 1)
+theme_override_colors/font_shadow_color = Color(0.98, 0.78, 0.36, 0.35)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 20
+text = "Nazwa budynku"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="HPLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.549
+anchor_top = 0.241667
+anchor_right = 0.887
+anchor_bottom = 0.294
+offset_left = 70.247986
+offset_top = 0.06650543
+offset_right = -89.90097
+offset_bottom = -0.03883362
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.13, 0.08, 0.035, 1)
+theme_override_colors/font_shadow_color = Color(0.98, 0.78, 0.36, 0.35)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+text = "HP 0/0"
+vertical_alignment = 1
+clip_text = true
+
+[node name="StatusLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.55
+anchor_top = 0.295833
+anchor_right = 0.909375
+anchor_bottom = 0.366667
+offset_left = 75.0
+offset_top = -5.999832
+offset_right = -105.0
+offset_bottom = -12.000168
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.34, 0.13, 0.06, 1)
+theme_override_colors/font_shadow_color = Color(0.98, 0.78, 0.36, 0.35)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+text = "Status"
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="EffectsLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.546875
+anchor_top = 0.402083
+anchor_right = 0.909375
+anchor_bottom = 0.59375
+offset_right = -19.0
+offset_bottom = -1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.15, 0.09, 0.04, 1)
+theme_override_colors/font_shadow_color = Color(0.98, 0.78, 0.36, 0.35)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 12
+text = "Efekty pasywne"
+autowrap_mode = 2
+clip_text = true
+
+[node name="ActionLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.16700001
+anchor_top = 0.645833
+anchor_right = 0.358
+anchor_bottom = 0.721
+offset_left = -0.21600342
+offset_top = 0.8334961
+offset_right = 0.06600952
+offset_bottom = -0.11453247
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.15, 0.09, 0.04, 1)
+theme_override_colors/font_shadow_color = Color(0.98, 0.78, 0.36, 0.35)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "Akcja"
+autowrap_mode = 2
+clip_text = true
+
+[node name="RepairLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.42000002
+anchor_top = 0.645833
+anchor_right = 0.611
+anchor_bottom = 0.721
+offset_left = -0.16000366
+offset_top = 0.8334961
+offset_right = 0.12194824
+offset_bottom = -0.11453247
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.15, 0.09, 0.04, 1)
+theme_override_colors/font_shadow_color = Color(0.98, 0.78, 0.36, 0.35)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "Naprawa"
+autowrap_mode = 2
+clip_text = true
+
+[node name="DemolishLabel" type="Label" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.679
+anchor_top = 0.645833
+anchor_right = 0.87000006
+anchor_bottom = 0.721
+offset_left = 0.0079956055
+offset_top = 0.8334961
+offset_right = 0.28997803
+offset_bottom = -0.11453247
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.15, 0.09, 0.04, 1)
+theme_override_colors/font_shadow_color = Color(0.98, 0.78, 0.36, 0.35)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "Rozbiórka"
+autowrap_mode = 2
+clip_text = true
+
+[node name="CloseButton" type="Button" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.87500006
+anchor_top = 0.109000005
+anchor_right = 0.92200005
+anchor_bottom = 0.18800001
+offset_left = -12.000061
+offset_top = -10.3200035
+offset_right = 11.919983
+offset_bottom = 9.7599945
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.7372549, 0.05882353, 0, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.03, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.62, 0.12, 0.06, 1)
+theme_override_font_sizes/font_size = 20
+text = "X"
+flat = true
+
+[node name="UseButton" type="Button" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.15100001
+anchor_top = 0.79600006
+anchor_right = 0.36
+anchor_bottom = 0.89800006
+offset_left = 0.25199127
+offset_top = -0.23135376
+offset_right = -0.3050232
+offset_bottom = 0.12597656
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.13, 0.08, 0.035, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.05, 0.025, 1)
+theme_override_colors/font_hover_color = Color(0.29, 0.14, 0.05, 1)
+theme_override_colors/font_disabled_color = Color(0.3, 0.25, 0.18, 0.62)
+theme_override_font_sizes/font_size = 18
+text = "Użyj"
+flat = true
+clip_text = true
+
+[node name="RepairButton" type="Button" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.40100002
+anchor_top = 0.79600006
+anchor_right = 0.61
+anchor_bottom = 0.89800006
+offset_left = 0.25195313
+offset_top = -0.23135376
+offset_right = -0.30499268
+offset_bottom = 0.12597656
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.13, 0.08, 0.035, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.05, 0.025, 1)
+theme_override_colors/font_hover_color = Color(0.29, 0.14, 0.05, 1)
+theme_override_colors/font_disabled_color = Color(0.3, 0.25, 0.18, 0.62)
+theme_override_font_sizes/font_size = 18
+text = "Napraw"
+flat = true
+clip_text = true
+
+[node name="DemolishButton" type="Button" parent="Root"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.6375
+anchor_top = 0.79600006
+anchor_right = 0.871875
+anchor_bottom = 0.89800006
+offset_left = 9.0
+offset_top = -0.23135376
+offset_right = -8.0
+offset_bottom = 0.12597656
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.13, 0.08, 0.035, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.05, 0.025, 1)
+theme_override_colors/font_hover_color = Color(0.29, 0.14, 0.05, 1)
+theme_override_colors/font_disabled_color = Color(0.3, 0.25, 0.18, 0.62)
+theme_override_font_sizes/font_size = 18
+text = "Rozbierz"
+flat = true
+clip_text = true

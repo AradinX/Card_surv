@@ -4,7 +4,6 @@ extends Button
 ## chroma-keyed frame (corruption frame after BUM), a centered nameplate, a
 ## "you are here" marker and a row of building slots (empty / occupied by a
 ## built building, with its HP), all driven from the tile state.
-signal buildings_pressed
 signal building_pressed(building_index: int, anchor_rect: Rect2)
 signal card_dropped(payload: Dictionary)
 
@@ -385,22 +384,22 @@ func _refresh_slots(tile: TileState, building_tooltips: Array[String] = []) -> v
 			tip = building_tooltips[i] if i < building_tooltips.size() else ""
 			_fill_occupied_slot(slot, tile.buildings[i], tip)
 		# Wrap each slot so a per-slot top margin can stagger the row.
-		var wrap := MarginContainer.new()
-		wrap.mouse_filter = Control.MOUSE_FILTER_STOP if occupied else Control.MOUSE_FILTER_IGNORE
-		wrap.tooltip_text = tip
-		wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-		wrap.add_theme_constant_override("margin_top", SLOT_STAGGER[i % SLOT_STAGGER.size()])
+		var slot_wrap := MarginContainer.new()
+		slot_wrap.mouse_filter = Control.MOUSE_FILTER_STOP if occupied else Control.MOUSE_FILTER_IGNORE
+		slot_wrap.tooltip_text = tip
+		slot_wrap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		slot_wrap.add_theme_constant_override("margin_top", SLOT_STAGGER[i % SLOT_STAGGER.size()])
 		if occupied:
 			var building_index := i
-			wrap.gui_input.connect(func(event: InputEvent) -> void:
+			slot_wrap.gui_input.connect(func(event: InputEvent) -> void:
 				if event is InputEventMouseButton \
 						and event.button_index == MOUSE_BUTTON_LEFT \
 						and event.pressed:
-					building_pressed.emit(building_index, wrap.get_global_rect())
+					building_pressed.emit(building_index, slot_wrap.get_global_rect())
 					accept_event()
 			)
-		wrap.add_child(slot)
-		_slots_row.add_child(wrap)
+		slot_wrap.add_child(slot)
+		_slots_row.add_child(slot_wrap)
 
 
 func _clear_slots() -> void:

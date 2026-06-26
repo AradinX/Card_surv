@@ -242,9 +242,9 @@ func _label_text_fits(label: Label, box_size: Vector2, font_size: int, max_lines
 	return measured.x <= box_size.x + 1.0 and measured.y <= box_size.y + 1.0
 
 
-func _estimate_text_fits(text: String, box_size: Vector2, font_size: int, max_lines: int) -> bool:
+func _estimate_text_fits(sample_text: String, box_size: Vector2, font_size: int, max_lines: int) -> bool:
 	var chars_per_line := maxi(floori(box_size.x / maxf(font_size * 0.55, 1.0)), 1)
-	var lines := ceili(float(text.length()) / chars_per_line)
+	var lines := ceili(float(sample_text.length()) / chars_per_line)
 	var line_height := font_size * 1.2
 	return lines <= max_lines and lines * line_height <= box_size.y
 
@@ -310,9 +310,9 @@ func _effects_summary(card: CardData) -> String:
 	return "  ·  ".join(p)
 
 
-func _push_delta(parts: PackedStringArray, value: int, name: String) -> void:
+func _push_delta(parts: PackedStringArray, value: int, stat_name: String) -> void:
 	if value != 0:
-		parts.append("%+d %s" % [value, name])
+		parts.append("%+d %s" % [value, stat_name])
 
 
 func _action_special_text(special: String) -> String:

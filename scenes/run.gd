@@ -6,6 +6,7 @@ extends Control
 const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 const NIGHT_CARD_VIEW_SCENE := preload("res://ui/night_card_view.tscn")
 const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
+const BUILDING_POPUP_VIEW_SCENE := preload("res://ui/building_popup_view.tscn")
 const CARD_DROP_ZONE_SCRIPT := preload("res://ui/card_drop_zone.gd")
 const MAX_GATHER_CARD_VIEWS := 3
 const LOG_PANEL_ACT2 := "res://assets/art/ui/panels/log_panel_act2.png"
@@ -168,18 +169,7 @@ var _build_confirm: ConfirmationDialog
 var _pending_build: BuildingCardData
 var _action_confirm: ConfirmationDialog
 var _pending_confirm_action := Callable()
-var _building_info_popup: PopupPanel
-var _building_info_title: Label
-var _building_info_hp: Label
-var _building_info_effects: Label
-var _building_info_action: Label
-var _building_info_repair: Label
-var _building_info_demolish: Label
-var _building_info_status: Label
-var _building_info_use_button: Button
-var _building_info_repair_button: Button
-var _building_info_demolish_button: Button
-var _selected_building_index := -1
+var _building_info_popup
 var _deck_button: Button
 var _deck_dialog: AcceptDialog
 var _log_drop_zone
@@ -204,9 +194,9 @@ func _ready() -> void:
 		GameManager.return_to_menu()
 		return
 
-	_main_scroll.horizontal_scroll_mode = 0
-	_main_scroll.vertical_scroll_mode = 0
-	_build_scroll.horizontal_scroll_mode = 2
+	_main_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_main_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_build_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
 	_forecast_label.visible = false
 	_card_choices.custom_minimum_size = Vector2(0, 232)
 	_top_status_bar.setup_max_values()
@@ -378,10 +368,6 @@ func _on_tile_pressed(tile_index: int) -> void:
 		_request_move(tile_index)
 
 
-func _on_buildings_pressed(tile_index: int) -> void:
-	_hide_building_popup()
-
-
 func _on_building_slot_pressed(building_index: int, anchor_rect: Rect2, tile_index: int) -> void:
 	if tile_index != _survival.state.current_tile:
 		_request_move(tile_index, func() -> void:
@@ -545,151 +531,124 @@ func _confirm_demolish(building_index: int) -> void:
 
 
 func _show_building_info(building_index: int, anchor: Rect2 = Rect2()) -> void:
-	var buildings := _survival.current_tile().buildings
-	if building_index < 0 or building_index >= buildings.size():
+	var popup_data := _building_info_data(building_index)
+	if popup_data.is_empty():
 		return
-	_selected_building_index = building_index
-	_refresh_building_info_popup()
-	if _building_info_popup == null or not _building_info_popup.visible:
-		var popup_size := Vector2(380, 320)
-		var viewport_size := get_viewport_rect().size
-		popup_size.x = minf(popup_size.x, maxf(viewport_size.x - 32.0, 280.0))
-		popup_size.y = minf(popup_size.y, maxf(viewport_size.y - 32.0, 260.0))
-		var pos := _building_info_position(anchor, popup_size)
-		_building_info_popup.popup(Rect2i(
-			Vector2i(roundi(pos.x), roundi(pos.y)),
-			Vector2i(roundi(popup_size.x), roundi(popup_size.y))
-		))
-
-
-func _building_info_position(anchor: Rect2, popup_size: Vector2) -> Vector2:
-	var viewport_size := get_viewport_rect().size
-	var pos := Vector2(
-		viewport_size.x - popup_size.x - 28.0,
-		viewport_size.y - popup_size.y - 112.0
-	)
-	if anchor.size.x > 0.0 and anchor.size.y > 0.0:
-		pos = anchor.position + Vector2(anchor.size.x + 12.0, 0.0)
-		if pos.x + popup_size.x > viewport_size.x - 16.0:
-			pos.x = anchor.position.x - popup_size.x - 12.0
-		pos.y = anchor.position.y
-	return Vector2(
-		clampf(pos.x, 16.0, maxf(viewport_size.x - popup_size.x - 16.0, 16.0)),
-		clampf(pos.y, 16.0, maxf(viewport_size.y - popup_size.y - 16.0, 16.0))
-	)
+	_building_info_popup.popup_for(popup_data, anchor, get_viewport_rect().size)
 
 
 func _refresh_building_info_popup() -> void:
-	if _building_info_popup == null:
+	if _building_info_popup == null or not _building_info_popup.visible:
 		return
-	var buildings := _survival.current_tile().buildings
-	if _selected_building_index < 0 or _selected_building_index >= buildings.size():
+	var popup_data := _building_info_data(_building_info_popup.selected_building_index())
+	if popup_data.is_empty():
 		_hide_building_info_popup()
 		return
-	var built = buildings[_selected_building_index]
+	_building_info_popup.set_content(popup_data)
+
+
+func _building_info_data(building_index: int) -> Dictionary:
+	var buildings := _survival.current_tile().buildings
+	if building_index < 0 or building_index >= buildings.size():
+		return {}
+	var built = buildings[building_index]
 	var data: BuildingCardData = built.data
 	var max_hp := _survival.building_max_hp(data)
-	_building_info_title.text = data.display_name
-	_building_info_hp.text = "HP %d/%d%s" % [
-		built.hp,
-		max_hp,
-		"  |  RUINA" if built.is_ruined else "",
-	]
-
 	var effect_parts := _building_effect_parts(data)
 	if data.special != "":
 		effect_parts.append(_building_special_description(data.special))
-	_building_info_effects.text = "Efekty pasywne: %s" % (
-		", ".join(effect_parts) if not effect_parts.is_empty() else "brak"
-	)
-	_refresh_building_info_action(built)
-	_refresh_building_info_repair(built)
-	_refresh_building_info_demolish(built)
-
-
-func _refresh_building_info_action(built) -> void:
-	var action := _survival.building_action(_selected_building_index)
+	var action := _survival.building_action(building_index)
 	var block := str(action.get("block", "")) if not action.is_empty() else ""
 	var summary := str(action.get("summary", "")) if not action.is_empty() else ""
+	var action_text := ""
 	if built.is_ruined:
-		_building_info_action.text = "Akcja: ruina nie ma aktywnej akcji."
+		action_text = "Akcja: ruina nie ma aktywnej akcji."
 	elif action.is_empty():
-		_building_info_action.text = "Akcja: ten budynek działa pasywnie."
+		action_text = "Akcja: ten budynek działa pasywnie."
 	else:
-		_building_info_action.text = "Akcja: %s%s" % [
+		action_text = "Akcja: %s%s" % [
 			str(action.get("title", "Użyj")),
 			" (%s)" % summary if summary != "" else "",
 		]
-	_building_info_use_button.visible = not built.is_ruined and not action.is_empty()
-	_building_info_use_button.disabled = block != "" or action.is_empty()
-	_building_info_use_button.text = str(action.get("title", "Użyj")) if not action.is_empty() else "Użyj"
-	_building_info_use_button.tooltip_text = block if block != "" else summary
-	_building_info_status.text = block
 
-
-func _refresh_building_info_repair(built) -> void:
+	var repair_text := ""
+	var repair_disabled := false
+	var repair_tooltip := ""
 	if built.is_ruined:
-		_building_info_repair.text = "Naprawa: niedostępna dla ruin."
-		_building_info_repair_button.disabled = true
-		_building_info_repair_button.tooltip_text = "Ruiny można tylko rozebrać."
-		return
-	if built.hp >= _survival.building_max_hp(built.data):
-		_building_info_repair.text = "Naprawa: budynek jest cały."
-		_building_info_repair_button.disabled = true
-		_building_info_repair_button.tooltip_text = "Budynek ma pełne HP."
-		return
-	var repair_block := _survival.can_repair(_selected_building_index)
-	var wood_cost := _survival.repair_wood_cost(built)
-	_building_info_repair.text = "Naprawa: %d energii, %d drewna" % [
-		SurvivalSystem.REPAIR_ENERGY_COST,
-		wood_cost,
-	]
-	_building_info_repair_button.disabled = repair_block != ""
-	_building_info_repair_button.tooltip_text = repair_block if repair_block != "" \
-		else "Naprawa do pełnego HP."
+		repair_text = "Naprawa: niedostępna dla ruin."
+		repair_disabled = true
+		repair_tooltip = "Ruiny można tylko rozebrać."
+	elif built.hp >= max_hp:
+		repair_text = "Naprawa: budynek jest cały."
+		repair_disabled = true
+		repair_tooltip = "Budynek ma pełne HP."
+	else:
+		var repair_block := _survival.can_repair(building_index)
+		var wood_cost := _survival.repair_wood_cost(built)
+		repair_text = "Naprawa: %d energii, %d drewna" % [
+			SurvivalSystem.REPAIR_ENERGY_COST,
+			wood_cost,
+		]
+		repair_disabled = repair_block != ""
+		repair_tooltip = repair_block if repair_block != "" else "Naprawa do pełnego HP."
 
-
-func _refresh_building_info_demolish(built) -> void:
 	var refund := _demolish_refund_summary(built)
-	var block := _survival.can_demolish(_selected_building_index)
-	_building_info_demolish.text = "Rozbiórka: %d energii, zwrot %s%s" % [
+	var demolish_block := _survival.can_demolish(building_index)
+	var demolish_text := "Rozbiórka: %d energii, zwrot %s%s" % [
 		SurvivalSystem.DEMOLISH_ENERGY_COST,
 		refund,
 		"" if built.is_ruined else " (mniejszy niż z ruin)",
 	]
-	_building_info_demolish_button.disabled = block != ""
-	_building_info_demolish_button.tooltip_text = block if block != "" else _building_info_demolish.text
-
+	return {
+		"index": building_index,
+		"building_data": data,
+		"act2": _survival.state.bum_happened,
+		"hp_text": "HP %d/%d%s" % [built.hp, max_hp, "  |  RUINA" if built.is_ruined else ""],
+		"status_text": block,
+		"effects_text": "Efekty pasywne: %s" % (
+			", ".join(effect_parts) if not effect_parts.is_empty() else "brak"
+		),
+		"action_text": action_text,
+		"use_visible": not built.is_ruined and not action.is_empty(),
+		"use_disabled": block != "" or action.is_empty(),
+		"use_text": str(action.get("title", "Użyj")) if not action.is_empty() else "Użyj",
+		"use_tooltip": block if block != "" else summary,
+		"repair_text": repair_text,
+		"repair_disabled": repair_disabled,
+		"repair_tooltip": repair_tooltip,
+		"demolish_text": demolish_text,
+		"demolish_disabled": demolish_block != "",
+		"demolish_tooltip": demolish_block if demolish_block != "" else demolish_text,
+	}
 
 func _hide_building_info_popup() -> void:
-	_selected_building_index = -1
 	if _building_info_popup != null:
 		_building_info_popup.hide()
 
 
-func _on_building_info_use_pressed() -> void:
-	if _selected_building_index < 0:
+func _on_building_info_use_pressed(building_index: int) -> void:
+	if building_index < 0:
 		return
-	_survival.use_building(_selected_building_index)
+	_survival.use_building(building_index)
 	AudioManager.play_sfx("card_play")
 	_refresh_building_actions()
 	_refresh_building_info_popup()
 
 
-func _on_building_info_repair_pressed() -> void:
-	if _selected_building_index < 0:
+func _on_building_info_repair_pressed(building_index: int) -> void:
+	if building_index < 0:
 		return
-	_survival.repair(_selected_building_index)
+	_survival.repair(building_index)
 	AudioManager.play_sfx("repair")
 	_spawn_tile_fx(REPAIR_FX, true)
 	_refresh_building_actions()
 	_refresh_building_info_popup()
 
 
-func _on_building_info_demolish_pressed() -> void:
-	if _selected_building_index < 0:
+func _on_building_info_demolish_pressed(building_index: int) -> void:
+	if building_index < 0:
 		return
-	_confirm_demolish(_selected_building_index)
+	_confirm_demolish(building_index)
 
 
 func _add_building_interaction(row: HBoxContainer, building_index: int) -> void:
@@ -805,97 +764,12 @@ func _setup_action_confirm() -> void:
 
 
 func _setup_building_info_popup() -> void:
-	_building_info_popup = PopupPanel.new()
-	_building_info_popup.name = "BuildingInfoPopup"
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color(0.035, 0.055, 0.038, 0.96)
-	panel_style.border_color = Color(0.72, 0.55, 0.22, 0.95)
-	panel_style.set_border_width_all(2)
-	panel_style.set_corner_radius_all(6)
-	panel_style.content_margin_left = 0
-	panel_style.content_margin_top = 0
-	panel_style.content_margin_right = 0
-	panel_style.content_margin_bottom = 0
-	_building_info_popup.add_theme_stylebox_override("panel", panel_style)
+	_building_info_popup = BUILDING_POPUP_VIEW_SCENE.instantiate()
+	_building_info_popup.hide()
 	add_child(_building_info_popup)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 14)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_bottom", 12)
-	_building_info_popup.add_child(margin)
-
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
-	margin.add_child(box)
-
-	var header := HBoxContainer.new()
-	header.add_theme_constant_override("separation", 8)
-	box.add_child(header)
-
-	_building_info_title = _make_building_info_label(18, Color(1.0, 0.90, 0.66, 1.0), true)
-	_building_info_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(_building_info_title)
-
-	var close := Button.new()
-	close.text = "X"
-	close.custom_minimum_size = Vector2(44, 40)
-	close.pressed.connect(_hide_building_info_popup)
-	ButtonSkin.apply_minimal(close)
-	header.add_child(close)
-
-	_building_info_hp = _make_building_info_label(13, Color(0.90, 0.82, 0.62, 1.0))
-	_building_info_effects = _make_building_info_label(13, Color(0.86, 0.80, 0.62, 1.0))
-	_building_info_action = _make_building_info_label(13, Color(0.86, 0.80, 0.62, 1.0))
-	_building_info_repair = _make_building_info_label(13, Color(0.82, 0.76, 0.60, 1.0))
-	_building_info_demolish = _make_building_info_label(13, Color(0.82, 0.76, 0.60, 1.0))
-	_building_info_status = _make_building_info_label(12, Color(1.0, 0.66, 0.48, 1.0))
-	for label in [
-		_building_info_hp,
-		_building_info_effects,
-		_building_info_action,
-		_building_info_repair,
-		_building_info_demolish,
-		_building_info_status,
-	]:
-		box.add_child(label)
-
-	var actions := HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 8)
-	box.add_child(actions)
-
-	_building_info_use_button = _make_popup_action_button("Użyj", _on_building_info_use_pressed)
-	_building_info_repair_button = _make_popup_action_button("Napraw", _on_building_info_repair_pressed)
-	_building_info_demolish_button = _make_popup_action_button("Rozbierz", _on_building_info_demolish_pressed)
-	actions.add_child(_building_info_use_button)
-	actions.add_child(_building_info_repair_button)
-	actions.add_child(_building_info_demolish_button)
-
-
-func _make_building_info_label(font_size: int, color: Color, title: bool = false) -> Label:
-	var label := Label.new()
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
-	label.add_theme_color_override("font_shadow_color", Color(0.02, 0.015, 0.01, 1.0))
-	label.add_theme_constant_override("shadow_offset_x", 1)
-	label.add_theme_constant_override("shadow_offset_y", 1)
-	if title:
-		label.clip_text = true
-	return label
-
-
-func _make_popup_action_button(text: String, on_pressed: Callable) -> Button:
-	var button := Button.new()
-	button.text = text
-	button.clip_text = true
-	button.custom_minimum_size = Vector2(108, 44)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.pressed.connect(on_pressed)
-	ButtonSkin.apply_minimal(button)
-	button.add_theme_font_size_override("font_size", 13)
-	return button
+	_building_info_popup.use_pressed.connect(_on_building_info_use_pressed)
+	_building_info_popup.repair_pressed.connect(_on_building_info_repair_pressed)
+	_building_info_popup.demolish_pressed.connect(_on_building_info_demolish_pressed)
 
 
 func _setup_card_drop_targets() -> void:
@@ -1658,12 +1532,12 @@ func _night_summary_text(card: CardData) -> String:
 func _night_card_effect_summary(card: CardData) -> String:
 	if card is MonsterCardData:
 		var monster := card as MonsterCardData
-		var parts: PackedStringArray = []
+		var monster_parts: PackedStringArray = []
 		if monster.damage_to_player > 0:
-			parts.append("-%d zdrowia" % monster.damage_to_player)
+			monster_parts.append("-%d zdrowia" % monster.damage_to_player)
 		if monster.damage_to_buildings > 0:
-			parts.append("-%d HP budynku" % monster.damage_to_buildings)
-		return ", ".join(parts) if not parts.is_empty() else "atak bez obrażeń"
+			monster_parts.append("-%d HP budynku" % monster.damage_to_buildings)
+		return ", ".join(monster_parts) if not monster_parts.is_empty() else "atak bez obrażeń"
 	if not (card is EventCardData):
 		return ""
 	var event := card as EventCardData
@@ -1674,12 +1548,12 @@ func _night_card_effect_summary(card: CardData) -> String:
 	if event.shelter_protects and _has_standing_special("night_protection"):
 		health_delta = maxi(health_delta, mini(health_delta + SurvivalSystem.NIGHT_PROTECTION_VALUE, 0))
 		warmth_delta = maxi(warmth_delta, mini(warmth_delta + SurvivalSystem.NIGHT_PROTECTION_VALUE, 0))
-	var parts := _stat_delta_parts(
+	var event_parts := _stat_delta_parts(
 		health_delta, event.hunger_delta, event.thirst_delta, warmth_delta,
 		event.food_delta, event.water_delta, event.wood_delta, event.materials_delta,
 		event.next_day_energy_delta
 	)
-	return ", ".join(parts) if not parts.is_empty() else "brak zmian"
+	return ", ".join(event_parts) if not event_parts.is_empty() else "brak zmian"
 
 
 func _night_building_passive_summary() -> String:
@@ -2178,13 +2052,13 @@ func _on_reward_card() -> void:
 	_clear_card_choices()
 	_level_title.text = "Wybierz kartę do talii (obecnie: %d kart)" % _survival.state.deck.size()
 	for card in rewards:
-		var wrap := VBoxContainer.new()
-		wrap.custom_minimum_size = Vector2(132, 228)
-		wrap.add_theme_constant_override("separation", 4)
-		_card_choices.add_child(wrap)
+		var choice_wrap := VBoxContainer.new()
+		choice_wrap.custom_minimum_size = Vector2(132, 228)
+		choice_wrap.add_theme_constant_override("separation", 4)
+		_card_choices.add_child(choice_wrap)
 
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
-		wrap.add_child(view)
+		choice_wrap.add_child(view)
 		view.setup(card, "")
 		view.tooltip_text = "Masz w talii: %d" % _deck_count_for(card)
 		view.pressed.connect(_on_reward_card_chosen.bind(card))
@@ -2194,7 +2068,7 @@ func _on_reward_card() -> void:
 		count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		count_label.add_theme_font_size_override("font_size", 12)
 		count_label.add_theme_color_override("font_color", Color(0.93, 0.87, 0.66, 1.0))
-		wrap.add_child(count_label)
+		choice_wrap.add_child(count_label)
 	_card_choices.visible = true
 
 
