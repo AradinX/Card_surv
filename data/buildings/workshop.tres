@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_cost = 2
+energy_cost = 3
 wood_cost = 3
-materials_cost = 3
+materials_cost = 4
 materials_cap_bonus = 6
 materials_gain = 0
 special = "unlock_crafting"

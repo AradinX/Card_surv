@@ -1267,6 +1267,42 @@ Poprzedni chat cofnął te zmiany — odtworzone, plus nowy format opisu:
 - `tools/dump_cards.gd`: kolumny „Opis (fabularny)" + „Co robi". Smoke ~33→**28/50**.
   Cała ósemka zielona.
 
+### Feedback z dema — runda 2: zacisk ekonomii + biomowość (2026-06-27)
+
+Skarga graczy: „ekonomia za mocna, w dniu ~10 cała baza zbudowana, pasywy
+pokrywają potrzeby → nudne dojechanie do BUM" + „jagody/znaleziska lecą na
+każdym biomie, mało kart skażonych". Diagnoza botem (baseline smoke): bot NIE
+przegrywa przez mocną ekonomię — ginie w 100% w Akcie II (Akt I 0 zgonów). Czyli
+„za mocna ekonomia" to problem TEMPA Aktu I (brak decyzji po dniu 10), nie
+wygrywania. Cel: rozciągnąć rozbudowę do BUM, utrzymując regułę „Akt I ~0 zgonów".
+
+- **Droższe budynki (zwł. materiały — najrzadszy zasób).** Podbite koszty 11
+  budynków „dywanujących planszę": Farma, Zielarnia, Kamieniołom, Warsztat,
+  Drwalnia, Magazyn drewna, Filtr wodny, Port rybacki, Wieża, Pułapki (+1 mat),
+  Magazyn (+materiały). **Świadomie tanie zostają** wczesne przetrwanie: Ognisko
+  (1e/3w), Szałas (2e/3w), Spiżarnia (1e/2w/2m), Studnia (3e/2w/2m), Palisada —
+  żeby nie głodzić early game. Pierwsza, agresywniejsza wersja (Spiżarnia/Studnia
+  też drogie) dała 5 zgonów Akt I → cofnięte do tanich; finalnie 2/50 (bot kempi,
+  człowiek odkrywa biomy ≈ 0).
+- **Biomowość eventów.** 5 generycznych „znalezisk" przeniesionych z bazowej puli
+  (`data/cards/events/`) do `events/biome/` i wpiętych w pasujące biomy (pula
+  bazowa = tylko top-level, podkatalog aktywny po odkryciu biomu): jagody
+  (`berry_patch`→Łąki, `small_find`+`strange_berries`→Las) i znaleziska złomu
+  (`lucky_find`→Pustkowie, `buried_cache`→Pustkowie+Jaskinie). Koniec jagód na
+  Pustkowiu; eksploracja realnie zmienia pulę nocy (pula bazowa 39→34).
+- **Skażone zbieranie Aktu II** (było tylko 2 karty): +`rotten_forage` (Zgniłe
+  jagody, +2 jedz./−1 zdr.) i +`salvage_scrap` (Skażony złom, +1 mat./−1 zdr.).
+  Wpięte w `corrupted_gather_cards`: rotten→Las/Łąki, salvage→Pustkowie/Jaskinie/
+  Wybrzeże. Każdy skażony biom ma teraz 3 opcje zbierania zamiast 2.
+- ZNANE/do następnej rundy: zbieranie wciąż się powtarza (forage/find_water/
+  scavenge w wielu biomach) — głębszy dedup gather-kart to osobny pass; szersze
+  cięcie faucetów zbierania WSTRZYMANE (bot pokazuje, że gra jest już po
+  trudniejszej stronie — najpierw playtest człowieka). Win-rate Aktu II (bot 0%)
+  to osobna oś, nietknięta.
+- Testy: cała dziesiątka zielona (load/smoke/night_pool/board/ui_layout/fog/
+  season/save_load/meta). Smoke 0/50 głównego runu (jak baseline — ściana Aktu II),
+  Akt I zgony 2, śr. 18.6 dnia.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

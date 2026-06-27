@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomeData" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="BiomeData" load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/fishing.tres" id="2_fishing"]
@@ -7,6 +7,7 @@
 [ext_resource type="Resource" path="res://data/cards/events/biome/coast_high_tide.tres" id="5_tide"]
 [ext_resource type="Resource" path="res://data/cards/actions/corrupted/tainted_hunt.tres" id="6_tainted"]
 [ext_resource type="Resource" path="res://data/cards/events/sickness.tres" id="7_sick"]
+[ext_resource type="Resource" path="res://data/cards/actions/corrupted/salvage_scrap.tres" id="8_salvage"]
 
 [resource]
 script = ExtResource("1_script")
@@ -18,5 +19,5 @@ gather_cards = [ExtResource("2_fishing"), ExtResource("3_scav")]
 extra_event_cards = [ExtResource("4_storm"), ExtResource("5_tide")]
 corrupted_display_name = "Martwe Wybrzeże"
 corrupted_description = "Morze wyrzuca na brzeg zgniłe ryby, a fale niosą tłustą, czarną pianę."
-corrupted_gather_cards = [ExtResource("3_scav"), ExtResource("6_tainted")]
+corrupted_gather_cards = [ExtResource("3_scav"), ExtResource("6_tainted"), ExtResource("8_salvage")]
 corrupted_extra_event_cards = [ExtResource("7_sick")]

@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_cost = 3
+energy_cost = 4
 wood_cost = 3
-materials_cost = 2
+materials_cost = 3
 materials_gain = 1
 required_biome_ids = PackedStringArray("mountains", "caves")
 id = "building_quarry"
