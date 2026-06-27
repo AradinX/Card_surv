@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomeData" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="BiomeData" load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="2_water"]
@@ -8,6 +8,13 @@
 [ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="6_scav"]
 [ext_resource type="Resource" path="res://data/cards/actions/corrupted/murky_water.tres" id="7_murky"]
 [ext_resource type="Resource" path="res://data/cards/events/sickness.tres" id="8_sick"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_corrupt_deadwater.tres" id="9_deadwater"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_atmo_fish.tres" id="10_fish"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_atmo_current.tres" id="11_current"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_atmo_kingfisher.tres" id="12_kingfisher"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_atmo_coolwater.tres" id="13_coolwater"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_corrupt_bloat.tres" id="14_bloat"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/river_corrupt_surge.tres" id="15_surge"]
 
 [resource]
 script = ExtResource("1_script")
@@ -16,8 +23,8 @@ display_name = "Rzeka"
 description = "Bystry nurt pełen ryb i świeżej wody. Czasem wzbiera i zalewa brzegi."
 building_slots = 3
 gather_cards = [ExtResource("2_water"), ExtResource("3_fishing")]
-extra_event_cards = [ExtResource("4_flood"), ExtResource("5_mist")]
+extra_event_cards = [ExtResource("4_flood"), ExtResource("5_mist"), ExtResource("10_fish"), ExtResource("11_current"), ExtResource("12_kingfisher"), ExtResource("13_coolwater")]
 corrupted_display_name = "Czarna Rzeka"
 corrupted_description = "Woda płynie gęsta i ciemna, niosąc trupi odór z górnego biegu."
 corrupted_gather_cards = [ExtResource("6_scav"), ExtResource("7_murky")]
-corrupted_extra_event_cards = [ExtResource("8_sick")]
+corrupted_extra_event_cards = [ExtResource("8_sick"), ExtResource("9_deadwater"), ExtResource("14_bloat"), ExtResource("15_surge")]

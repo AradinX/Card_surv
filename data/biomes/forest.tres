@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomeData" load_steps=16 format=3]
+[gd_resource type="Resource" script_class="BiomeData" load_steps=23 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/gather_wood.tres" id="2_wood"]
@@ -15,6 +15,13 @@
 [ext_resource type="Resource" path="res://data/cards/events/biome/small_find.tres" id="13_smallfind"]
 [ext_resource type="Resource" path="res://data/cards/events/biome/strange_berries.tres" id="14_strangeberries"]
 [ext_resource type="Resource" path="res://data/cards/actions/corrupted/rotten_forage.tres" id="15_rotten"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/forest_corrupt_whispers.tres" id="16_whispers"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/forest_atmo_birdsong.tres" id="17_birdsong"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/forest_atmo_mist.tres" id="18_mist"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/forest_atmo_deer.tres" id="19_deer"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/forest_atmo_resin.tres" id="20_resin"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/forest_corrupt_roots.tres" id="21_roots"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/forest_corrupt_mold.tres" id="22_mold"]
 
 [resource]
 script = ExtResource("1_script")
@@ -23,8 +30,8 @@ display_name = "Las"
 description = "Gęsty las pełen drewna i zwierzyny. Nocą słychać wilki."
 building_slots = 2
 gather_cards = [ExtResource("2_wood"), ExtResource("4_hunt")]
-extra_event_cards = [ExtResource("5_wolves"), ExtResource("11_boar"), ExtResource("12_lost"), ExtResource("13_smallfind"), ExtResource("14_strangeberries")]
+extra_event_cards = [ExtResource("5_wolves"), ExtResource("11_boar"), ExtResource("12_lost"), ExtResource("13_smallfind"), ExtResource("14_strangeberries"), ExtResource("17_birdsong"), ExtResource("18_mist"), ExtResource("19_deer"), ExtResource("20_resin")]
 corrupted_display_name = "Martwy Las"
 corrupted_description = "Drzewa stoją czarne i nagie. Coś porusza się między pniami."
 corrupted_gather_cards = [ExtResource("2_wood"), ExtResource("6_scav"), ExtResource("9_tainted"), ExtResource("10_murky"), ExtResource("15_rotten")]
-corrupted_extra_event_cards = [ExtResource("7_sick")]
+corrupted_extra_event_cards = [ExtResource("7_sick"), ExtResource("16_whispers"), ExtResource("21_roots"), ExtResource("22_mold")]

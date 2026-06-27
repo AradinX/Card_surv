@@ -1303,6 +1303,27 @@ wygrywania. Cel: rozciągnąć rozbudowę do BUM, utrzymując regułę „Akt I 
   season/save_load/meta). Smoke 0/50 głównego runu (jak baseline — ściana Aktu II),
   Akt I zgony 2, śr. 18.6 dnia.
 
+### Feedback z dema — runda 2b: skażone karty biomowe Aktu II (2026-06-27)
+
+Skarga: po BUM każdy skażony biom recyklingował JEDNĄ kartę `Choroba` — mało
+klimatu i mało realnej trudności. Dodano **8 unikalnych skażonych eventów
+biomowych** (`data/cards/events/biome/<biom>_corrupt_*.tres`, category `biome`,
+więc w fazie ACT2 mnożnik 1.0 — odpalają się normalnie po BUM), każdy z innym
+wektorem nacisku, żeby Akt II bił w różne staty zależnie od tego, gdzie stoisz:
+- Las „Szept z czerni" (−1 zdr./−2 energii jutro, schronienie chroni),
+  Łąki „Rojowisko much" (−2 jedz./−1 zdr.), Góry „Wycie w szczelinach"
+  (−2 ciepła/−1 zdr., schronienie), Bagno „Trupi wyziew" (−2 zdr./−1 nawod., major),
+  Rzeka „Trupia woda" (−2 nawod./−1 zdr., major), Pustkowie „Spiekota popiołów"
+  (−2 nawod./−1 zdr.), Jaskinie „Pełzająca ciemność" (−1 zdr./−2 energii jutro),
+  Wybrzeże „Czarna piana" (−1 ciepła/−1 nawod./−1 zdr., schronienie).
+- Wpięte do `corrupted_extra_event_cards` OBOK istniejącej `Choroby`/`Szczurów`/
+  `Mgły` — każdy skażony biom ma teraz 2 nocne eventy zamiast 1. Karty są
+  biome-gated (podkatalog, nieaktywne w puli bazowej) i odpalają się tylko gdy
+  biom jest odkryty I skażony → eksploracja realnie zwiększa pulę ryzyka Aktu II.
+- ZERO ryzyka dla Aktu I (to wyłącznie skażone rewersy). Smoke: Akt I zgony 1
+  (szum), Akt II 49, śr. 19.8 dnia — Akt II celowo twardszy, zgodnie z prośbą
+  „karty po BUM mają realnie utrudnić". Cała dziesiątka testów zielona.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

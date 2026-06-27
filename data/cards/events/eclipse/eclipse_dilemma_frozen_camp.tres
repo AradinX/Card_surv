@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="safe"]
+script = ExtResource("2_choice")
+label = "Zbierz co na wierzchu"
+result_text = "Wyłuskujesz z lodu to, co łatwo dostępne."
+wood_gain = 1
+
+[sub_resource type="Resource" id="risk"]
+script = ExtResource("2_choice")
+label = "Rozłup lód po zapasy (ryzyko)"
+result_text = "Kujesz w czarny lód, aż pękają palce z zimna."
+wood_gain = 2
+materials_gain = 1
+risk_chance = 35
+risk_health = 2
+
+[resource]
+script = ExtResource("1_script")
+id = "eclipse_dilemma_frozen_camp"
+display_name = "Zamarznięty obóz"
+description = "Cudzy obóz wmarzł w lód w połowie ruchu. Zapasy widać pod taflą szronu."
+weight = 6
+cooldown_days = 4
+max_per_run = 2
+category = "disaster"
+severity = "medium"
+choices = [SubResource("safe"), SubResource("risk")]

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="safe"]
+script = ExtResource("2_choice")
+label = "Zostań w obozie"
+result_text = "Nie kusisz losu. Czekasz świtu, którego może nie być."
+
+[sub_resource type="Resource" id="risk"]
+script = ExtResource("2_choice")
+label = "Przejdź w ciemności (ryzyko)"
+result_text = "Idziesz po omacku ku magazynom, których nie widać."
+materials_gain = 2
+risk_chance = 40
+risk_health = 2
+
+[resource]
+script = ExtResource("1_script")
+id = "eclipse_dilemma_dark_path"
+display_name = "Ścieżka w mroku"
+description = "Za ścianą ciemności leżą nietknięte zapasy. Tylko jak trafić tam i wrócić?"
+weight = 6
+cooldown_days = 4
+max_per_run = 2
+category = "disaster"
+severity = "medium"
+choices = [SubResource("safe"), SubResource("risk")]

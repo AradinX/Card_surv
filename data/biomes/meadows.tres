@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomeData" load_steps=12 format=3]
+[gd_resource type="Resource" script_class="BiomeData" load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/forage.tres" id="2_forage"]
@@ -11,6 +11,13 @@
 [ext_resource type="Resource" path="res://data/cards/events/biome/open_sky_chill.tres" id="9_chill"]
 [ext_resource type="Resource" path="res://data/cards/events/biome/berry_patch.tres" id="10_berry"]
 [ext_resource type="Resource" path="res://data/cards/actions/corrupted/rotten_forage.tres" id="11_rotten"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/meadows_corrupt_flies.tres" id="12_flies"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/meadows_atmo_breeze.tres" id="13_breeze"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/meadows_atmo_fireflies.tres" id="14_fireflies"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/meadows_atmo_larks.tres" id="15_larks"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/meadows_atmo_dew.tres" id="16_dew"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/meadows_corrupt_rot.tres" id="17_rot"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/meadows_corrupt_mosquito.tres" id="18_mosquito"]
 
 [resource]
 script = ExtResource("1_script")
@@ -19,8 +26,8 @@ display_name = "Łąki"
 description = "Otwarta, żyzna przestrzeń. Najlepsze miejsce pod osadę."
 building_slots = 2
 gather_cards = [ExtResource("2_forage"), ExtResource("3_snare")]
-extra_event_cards = [ExtResource("4_sunny"), ExtResource("8_pollen"), ExtResource("9_chill"), ExtResource("10_berry")]
+extra_event_cards = [ExtResource("4_sunny"), ExtResource("8_pollen"), ExtResource("9_chill"), ExtResource("10_berry"), ExtResource("13_breeze"), ExtResource("14_fireflies"), ExtResource("15_larks"), ExtResource("16_dew")]
 corrupted_display_name = "Zgniłe Łąki"
 corrupted_description = "Trawa gnije na stojąco, a ziemia mlaszcze pod stopami."
 corrupted_gather_cards = [ExtResource("5_scav"), ExtResource("7_tainted"), ExtResource("11_rotten")]
-corrupted_extra_event_cards = [ExtResource("6_rats")]
+corrupted_extra_event_cards = [ExtResource("6_rats"), ExtResource("12_flies"), ExtResource("17_rot"), ExtResource("18_mosquito")]

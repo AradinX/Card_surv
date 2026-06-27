@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "rift_choking_dust"
+display_name = "Pył w gardle"
+description = "Z rozpadlin bucha gryzący pył, który zatyka usta i wysusza gardło. -2 nawodnienia, -1 energii następnego dnia."
+thirst_delta = -2
+next_day_energy_delta = -1
+weight = 7
+cooldown_days = 3
+max_per_run = 3
+category = "disaster"
+severity = "medium"

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "river_atmo_fish"
+display_name = "Rybie żerowisko"
+description = "O zmierzchu ryby biją w taflę. Zarzucasz sieć i masz łup. +1 jedzenia."
+food_delta = 1
+weight = 8
+cooldown_days = 4
+category = "biome"
+severity = "minor"
+tags = PackedStringArray("river", "atmo")

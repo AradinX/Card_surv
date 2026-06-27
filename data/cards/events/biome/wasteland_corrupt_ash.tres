@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "wasteland_corrupt_ash"
+display_name = "Spiekota popiołów"
+description = "Gorący, trujący pył wciska się w gardło i wysusza usta. -2 nawodnienia, -1 zdrowia."
+thirst_delta = -2
+health_delta = -1
+weight = 8
+cooldown_days = 3
+max_per_run = 3
+category = "biome"
+severity = "medium"
+tags = PackedStringArray("wasteland", "corrupted")

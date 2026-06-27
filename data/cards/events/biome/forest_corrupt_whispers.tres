@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "forest_corrupt_whispers"
+display_name = "Szept z czerni"
+description = "Spomiędzy czarnych pni sączą się głosy. Nie śpisz całą noc. -1 zdrowia, -2 energii następnego dnia."
+health_delta = -1
+next_day_energy_delta = -2
+shelter_protects = true
+weight = 8
+cooldown_days = 3
+max_per_run = 3
+category = "biome"
+severity = "medium"
+tags = PackedStringArray("forest", "corrupted")

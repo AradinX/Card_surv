@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="safe"]
+script = ExtResource("2_choice")
+label = "Trzymaj się z dala"
+result_text = "Budynek skrzypi groźnie. Odpuszczasz."
+
+[sub_resource type="Resource" id="risk"]
+script = ExtResource("2_choice")
+label = "Wbiegnij po zapasy (ryzyko)"
+result_text = "Wpadasz do środka, gdy ściany jęczą nad głową."
+materials_gain = 2
+food_gain = 1
+risk_chance = 40
+risk_health = 3
+
+[resource]
+script = ExtResource("1_script")
+id = "rift_dilemma_unstable_ruin"
+display_name = "Chwiejące się ruiny"
+description = "Przechylony dom pełen zapasów stoi nad świeżą szczeliną. Lada wstrząs i runie."
+weight = 6
+cooldown_days = 4
+max_per_run = 2
+category = "disaster"
+severity = "medium"
+choices = [SubResource("safe"), SubResource("risk")]

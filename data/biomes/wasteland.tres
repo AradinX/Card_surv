@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomeData" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="BiomeData" load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="2_scav"]
@@ -10,6 +10,13 @@
 [ext_resource type="Resource" path="res://data/cards/events/biome/lucky_find.tres" id="8_lucky"]
 [ext_resource type="Resource" path="res://data/cards/events/biome/buried_cache.tres" id="9_cache"]
 [ext_resource type="Resource" path="res://data/cards/actions/corrupted/salvage_scrap.tres" id="10_salvage"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/wasteland_corrupt_ash.tres" id="11_ash"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/wasteland_atmo_mirage.tres" id="12_mirage"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/wasteland_atmo_bones.tres" id="13_bones"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/wasteland_atmo_scrapglint.tres" id="14_scrapglint"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/wasteland_atmo_heat.tres" id="15_heat"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/wasteland_corrupt_glass.tres" id="16_glass"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/wasteland_corrupt_specter.tres" id="17_specter"]
 
 [resource]
 script = ExtResource("1_script")
@@ -18,8 +25,8 @@ display_name = "Pustkowie"
 description = "Spalona, jałowa ziemia usiana gruzem. Kamienia w bród, jedzenia jak na lekarstwo."
 building_slots = 3
 gather_cards = [ExtResource("2_scav"), ExtResource("3_forage")]
-extra_event_cards = [ExtResource("4_dust"), ExtResource("5_scarcity"), ExtResource("8_lucky"), ExtResource("9_cache")]
+extra_event_cards = [ExtResource("4_dust"), ExtResource("5_scarcity"), ExtResource("8_lucky"), ExtResource("9_cache"), ExtResource("12_mirage"), ExtResource("13_bones"), ExtResource("14_scrapglint"), ExtResource("15_heat")]
 corrupted_display_name = "Spopielone Pustkowie"
 corrupted_description = "Ziemia spieczona na popiół, a w powietrzu wisi gryzący, trujący pył."
 corrupted_gather_cards = [ExtResource("2_scav"), ExtResource("6_murky"), ExtResource("10_salvage")]
-corrupted_extra_event_cards = [ExtResource("7_sick")]
+corrupted_extra_event_cards = [ExtResource("7_sick"), ExtResource("11_ash"), ExtResource("16_glass"), ExtResource("17_specter")]

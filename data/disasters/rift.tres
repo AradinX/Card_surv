@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DisasterData" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="DisasterData" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/disaster_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/monsters/stone_golem.tres" id="2_golem"]
@@ -7,6 +7,11 @@
 [ext_resource type="Resource" path="res://data/cards/events/rift/rift_aftershock.tres" id="5_after"]
 [ext_resource type="Resource" path="res://data/cards/events/rift/rift_dust.tres" id="6_dust"]
 [ext_resource type="Resource" path="res://data/cards/events/rift/rift_chasm.tres" id="7_chasm"]
+[ext_resource type="Resource" path="res://data/cards/events/rift/rift_tremor.tres" id="8_tremor"]
+[ext_resource type="Resource" path="res://data/cards/events/rift/rift_choking_dust.tres" id="9_chokingdust"]
+[ext_resource type="Resource" path="res://data/cards/events/rift/rift_venting.tres" id="10_venting"]
+[ext_resource type="Resource" path="res://data/cards/events/rift/rift_dilemma_chasm_loot.tres" id="11_chasmloot"]
+[ext_resource type="Resource" path="res://data/cards/events/rift/rift_dilemma_unstable_ruin.tres" id="12_unstableruin"]
 
 [resource]
 script = ExtResource("1_script")
@@ -14,7 +19,7 @@ id = "rift"
 display_name = "Pęknięcie"
 description = "Ziemia pęka z hukiem. Z rozpadlin bucha pył i wypełzają istoty z głębi."
 monsters = [ExtResource("2_golem"), ExtResource("3_swarm"), ExtResource("4_crawler")]
-extra_event_cards = [ExtResource("5_after"), ExtResource("6_dust"), ExtResource("7_chasm")]
+extra_event_cards = [ExtResource("5_after"), ExtResource("6_dust"), ExtResource("7_chasm"), ExtResource("8_tremor"), ExtResource("9_chokingdust"), ExtResource("10_venting"), ExtResource("11_chasmloot"), ExtResource("12_unstableruin")]
 act2_thirst_decay_delta = 1
 act2_energy_penalty = 2
 act2_rule_text = "Pęknięcie: wstrząsy i pył — sprzątanie rumowiska wyczerpuje (-2 energii, większe pragnienie)."

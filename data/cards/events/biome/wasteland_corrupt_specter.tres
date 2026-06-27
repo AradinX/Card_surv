@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "wasteland_corrupt_specter"
+display_name = "Rozpalone widmo"
+description = "W rozedrganym powietrzu majaczy postać z ognia i popiołu. Idzie za tobą. -1 zdrowia, -1 energii następnego dnia."
+health_delta = -1
+next_day_energy_delta = -1
+weight = 7
+cooldown_days = 3
+max_per_run = 3
+category = "biome"
+severity = "medium"
+tags = PackedStringArray("wasteland", "corrupted")

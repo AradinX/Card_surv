@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "eclipse_long_night"
+display_name = "Przeciągająca się noc"
+description = "Świt nie nadchodzi. Mróz wgryza się głębiej, a ty marniejesz w ciemności. -2 ciepła, -1 energii następnego dnia."
+warmth_delta = -2
+next_day_energy_delta = -1
+shelter_protects = true
+weight = 7
+cooldown_days = 3
+max_per_run = 3
+category = "disaster"
+severity = "medium"

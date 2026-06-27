@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "forest_atmo_mist"
+display_name = "Mgła wśród pni"
+description = "Mleczna mgła snuje się nisko między drzewami. Świat cichnie. Spokojna noc."
+weight = 9
+cooldown_days = 3
+category = "biome"
+severity = "minor"
+tags = PackedStringArray("forest", "atmo")

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "wasteland_corrupt_glass"
+display_name = "Spiekłe szkło"
+description = "Ziemia spieczona katastrofą pęka w ostre szklane igły, raniąc stopy i niszcząc sprzęt. -1 zdrowia, -1 kamienia."
+health_delta = -1
+materials_delta = -1
+weight = 8
+cooldown_days = 3
+max_per_run = 3
+category = "biome"
+severity = "medium"
+tags = PackedStringArray("wasteland", "corrupted")

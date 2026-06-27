@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "flood_rising_water"
+display_name = "Podchodząca woda"
+description = "Lodowata woda sięga obozu i zalewa składowany budulec. -2 ciepła, -1 kamienia."
+warmth_delta = -2
+materials_delta = -1
+shelter_protects = true
+weight = 7
+cooldown_days = 3
+max_per_run = 3
+category = "disaster"
+severity = "medium"

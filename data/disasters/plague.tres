@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DisasterData" load_steps=12 format=3]
+[gd_resource type="Resource" script_class="DisasterData" load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/disaster_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/monsters/plague_zombie.tres" id="2_zombie"]
@@ -11,6 +11,11 @@
 [ext_resource type="Resource" path="res://data/cards/events/plague/plague_infected_well.tres" id="9_well"]
 [ext_resource type="Resource" path="res://data/cards/events/plague/plague_larvae.tres" id="10_larvae"]
 [ext_resource type="Resource" path="res://data/cards/events/plague/plague_fever.tres" id="11_fever"]
+[ext_resource type="Resource" path="res://data/cards/events/plague/plague_carrion_birds.tres" id="12_carrion"]
+[ext_resource type="Resource" path="res://data/cards/events/plague/plague_open_sores.tres" id="13_sores"]
+[ext_resource type="Resource" path="res://data/cards/events/plague/plague_dilemma_corpse_cache.tres" id="14_corpsecache"]
+[ext_resource type="Resource" path="res://data/cards/events/plague/plague_dilemma_sick_survivor.tres" id="15_sicksurvivor"]
+[ext_resource type="Resource" path="res://data/cards/events/plague/plague_dilemma_tainted_meat.tres" id="16_taintedmeat"]
 
 [resource]
 script = ExtResource("1_script")
@@ -18,7 +23,7 @@ id = "plague"
 display_name = "Plaga"
 description = "Niebo pęka zielonym błyskiem. Ziemia gnije, a umarli nie chcą leżeć."
 monsters = [ExtResource("2_zombie"), ExtResource("3_wolf"), ExtResource("4_crows"), ExtResource("5_rats")]
-extra_event_cards = [ExtResource("6_rot"), ExtResource("7_dreams"), ExtResource("8_spores"), ExtResource("9_well"), ExtResource("10_larvae"), ExtResource("11_fever")]
+extra_event_cards = [ExtResource("6_rot"), ExtResource("7_dreams"), ExtResource("8_spores"), ExtResource("9_well"), ExtResource("10_larvae"), ExtResource("11_fever"), ExtResource("12_carrion"), ExtResource("13_sores"), ExtResource("14_corpsecache"), ExtResource("15_sicksurvivor"), ExtResource("16_taintedmeat")]
 act2_hunger_decay_delta = 2
 act2_food_spoilage_delta = 2
 act2_rule_text = "Plaga: zapasy gniją szybciej, a choroba wyniszcza ciało (mocno większy głód)."

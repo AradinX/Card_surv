@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="BiomeData" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="BiomeData" load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/fishing.tres" id="2_fishing"]
@@ -8,6 +8,13 @@
 [ext_resource type="Resource" path="res://data/cards/actions/corrupted/tainted_hunt.tres" id="6_tainted"]
 [ext_resource type="Resource" path="res://data/cards/events/sickness.tres" id="7_sick"]
 [ext_resource type="Resource" path="res://data/cards/actions/corrupted/salvage_scrap.tres" id="8_salvage"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/coast_corrupt_foam.tres" id="9_foam"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/coast_atmo_waves.tres" id="10_waves"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/coast_atmo_gulls.tres" id="11_gulls"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/coast_atmo_driftwood.tres" id="12_driftwood"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/coast_atmo_tidepool.tres" id="13_tidepool"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/coast_corrupt_redtide.tres" id="14_redtide"]
+[ext_resource type="Resource" path="res://data/cards/events/biome/coast_corrupt_saltwind.tres" id="15_saltwind"]
 
 [resource]
 script = ExtResource("1_script")
@@ -16,8 +23,8 @@ display_name = "Wybrzeże"
 description = "Skalisty brzeg morza: ryby w wodzie i złom z rozbitych łodzi. Sztormy bywają groźne."
 building_slots = 3
 gather_cards = [ExtResource("2_fishing"), ExtResource("3_scav")]
-extra_event_cards = [ExtResource("4_storm"), ExtResource("5_tide")]
+extra_event_cards = [ExtResource("4_storm"), ExtResource("5_tide"), ExtResource("10_waves"), ExtResource("11_gulls"), ExtResource("12_driftwood"), ExtResource("13_tidepool")]
 corrupted_display_name = "Martwe Wybrzeże"
 corrupted_description = "Morze wyrzuca na brzeg zgniłe ryby, a fale niosą tłustą, czarną pianę."
 corrupted_gather_cards = [ExtResource("3_scav"), ExtResource("6_tainted"), ExtResource("8_salvage")]
-corrupted_extra_event_cards = [ExtResource("7_sick")]
+corrupted_extra_event_cards = [ExtResource("7_sick"), ExtResource("9_foam"), ExtResource("14_redtide"), ExtResource("15_saltwind")]

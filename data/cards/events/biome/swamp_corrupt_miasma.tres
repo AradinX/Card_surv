@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "swamp_corrupt_miasma"
+display_name = "Trupi wyziew"
+description = "Spod czarnego mułu bucha duszący odór rozkładu. -2 zdrowia, -1 nawodnienia."
+health_delta = -2
+thirst_delta = -1
+weight = 7
+cooldown_days = 4
+max_per_run = 2
+category = "biome"
+severity = "major"
+tags = PackedStringArray("swamp", "corrupted", "disease")

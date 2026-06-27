@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="safe"]
+script = ExtResource("2_choice")
+label = "Przyciągnij kijem"
+result_text = "Cierpliwie podciągasz skrzynię do brzegu."
+food_gain = 1
+
+[sub_resource type="Resource" id="risk"]
+script = ExtResource("2_choice")
+label = "Wpław po nią (ryzyko)"
+result_text = "Rzucasz się w lodowaty, mętny nurt."
+food_gain = 2
+materials_gain = 1
+risk_chance = 40
+risk_health = 2
+
+[resource]
+script = ExtResource("1_script")
+id = "flood_dilemma_floating_crate"
+display_name = "Dryfująca skrzynia"
+description = "Na środku rozlewiska kołysze się szczelnie zamknięta skrzynia. Prąd znosi ją dalej."
+weight = 6
+cooldown_days = 4
+max_per_run = 2
+category = "disaster"
+severity = "medium"
+choices = [SubResource("safe"), SubResource("risk")]

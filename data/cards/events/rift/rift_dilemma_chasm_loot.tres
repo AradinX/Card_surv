@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="safe"]
+script = ExtResource("2_choice")
+label = "Sięgnij z brzegu"
+result_text = "Wyciągasz, co da się dosięgnąć bez schodzenia."
+materials_gain = 1
+
+[sub_resource type="Resource" id="risk"]
+script = ExtResource("2_choice")
+label = "Zejdź głębiej (ryzyko)"
+result_text = "Schodzisz po kruszącej się ścianie ku kuszącemu łupowi."
+materials_gain = 3
+wood_gain = 1
+risk_chance = 45
+risk_health = 3
+
+[resource]
+script = ExtResource("1_script")
+id = "rift_dilemma_chasm_loot"
+display_name = "Łup w rozpadlinie"
+description = "Na półce skalnej w głębi szczeliny leżą czyjeś zapasy. Kuszące — i wysoko nad pustką."
+weight = 6
+cooldown_days = 4
+max_per_run = 2
+category = "disaster"
+severity = "medium"
+choices = [SubResource("safe"), SubResource("risk")]

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "river_corrupt_deadwater"
+display_name = "Trupia woda"
+description = "Czarny nurt zatruwa zapas wody w obozie. -2 nawodnienia, -1 zdrowia."
+water_delta = -2
+health_delta = -1
+weight = 7
+cooldown_days = 4
+max_per_run = 2
+category = "biome"
+severity = "major"
+tags = PackedStringArray("river", "corrupted")

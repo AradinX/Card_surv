@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "meadows_corrupt_mosquito"
+display_name = "Chmara komarów"
+description = "Z gnijących kałuż wzbija się tnąca chmara owadów. Nie dają zmrużyć oka. -1 zdrowia, -1 energii następnego dnia."
+health_delta = -1
+next_day_energy_delta = -1
+shelter_protects = true
+weight = 8
+cooldown_days = 3
+max_per_run = 3
+category = "biome"
+severity = "medium"
+tags = PackedStringArray("meadows", "corrupted")

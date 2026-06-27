@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="warm"]
+script = ExtResource("2_choice")
+label = "Tylko się ogrzej"
+result_text = "Grzejesz dłonie przy gasnącym żarze i ruszasz dalej."
+warmth_delta = 3
+
+[sub_resource type="Resource" id="take"]
+script = ExtResource("2_choice")
+label = "Zabierz żar i drewno (ryzyko)"
+result_text = "Obrabowujesz cudze ognisko — ale w mroku ktoś mógł czuwać."
+warmth_delta = 2
+wood_gain = 2
+risk_chance = 30
+risk_health = 2
+
+[resource]
+script = ExtResource("1_script")
+id = "eclipse_dilemma_pale_fire"
+display_name = "Blade ognisko"
+description = "W oddali dogasa czyjeś ognisko. Nie widać, czy ktoś jeszcze przy nim siedzi."
+weight = 6
+cooldown_days = 4
+max_per_run = 2
+category = "disaster"
+severity = "medium"
+choices = [SubResource("warm"), SubResource("take")]

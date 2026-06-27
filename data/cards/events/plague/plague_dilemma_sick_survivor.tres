@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+[ext_resource type="Script" path="res://scripts/resources/event_choice_data.gd" id="2_choice"]
+
+[sub_resource type="Resource" id="help"]
+script = ExtResource("2_choice")
+label = "Podziel się jedzeniem"
+result_text = "Dzielisz się ostatkami. W zamian zdradza ci swoją kryjówkę zapasów."
+food_gain = -1
+grant_random_card = true
+
+[sub_resource type="Resource" id="shoo"]
+script = ExtResource("2_choice")
+label = "Odpędź go"
+result_text = "Pokazujesz nóż. Człowiek znika w mroku."
+
+[sub_resource type="Resource" id="rob"]
+script = ExtResource("2_choice")
+label = "Okradnij go (ryzyko)"
+result_text = "Rzucasz się na jego tobołek — ale chory broni się zaciekle."
+food_gain = 2
+risk_chance = 35
+risk_health = 2
+
+[resource]
+script = ExtResource("1_script")
+id = "plague_dilemma_sick_survivor"
+display_name = "Chory ocalały"
+description = "Z cienia wychodzi wychudzony człowiek o gorączkowych oczach. Wyciąga rękę."
+weight = 6
+cooldown_days = 4
+max_per_run = 2
+category = "disaster"
+severity = "medium"
+choices = [SubResource("help"), SubResource("shoo"), SubResource("rob")]

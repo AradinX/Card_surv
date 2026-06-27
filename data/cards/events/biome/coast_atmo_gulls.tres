@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "coast_atmo_gulls"
+display_name = "Krzyk mew"
+description = "Mewy kołują z wrzaskiem nad brzegiem, walcząc o resztki. Życie trwa. Spokojna noc."
+weight = 9
+cooldown_days = 3
+category = "biome"
+severity = "minor"
+tags = PackedStringArray("coast", "atmo")

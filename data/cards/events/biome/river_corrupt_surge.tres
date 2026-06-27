@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EventCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/event_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = "river_corrupt_surge"
+display_name = "Czarny przybór"
+description = "Rzeka wzbiera lepką, lodowatą falą i zalewa obóz. -1 ciepła, -1 nawodnienia, -1 zdrowia."
+warmth_delta = -1
+water_delta = -1
+health_delta = -1
+shelter_protects = true
+weight = 7
+cooldown_days = 3
+max_per_run = 3
+category = "biome"
+severity = "medium"
+tags = PackedStringArray("river", "corrupted")
