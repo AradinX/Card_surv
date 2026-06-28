@@ -6,9 +6,11 @@
 script = ExtResource("1_script")
 id = "meadows_atmo_fireflies"
 display_name = "Tańczące świetliki"
-description = "Tysiące świetlików migoce nad trawą jak żywe gwiazdy. Patrzysz w ciszy. Spokojna noc."
-weight = 9
+description = "Tysiące świetlików migoce nad trawą jak żywe gwiazdy. Śpisz spokojniej niż zwykle. +1 energii następnego dnia."
+next_day_energy_delta = 1
+weight = 6
 cooldown_days = 3
+max_per_run = 2
 category = "biome"
 severity = "minor"
 tags = PackedStringArray("meadows", "atmo")

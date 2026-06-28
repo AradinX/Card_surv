@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+energy_cost = 1
+thirst_delta = -1
+wood_gain = 1
+id = "wasteland_scrapwood"
+display_name = "Suchy chrust"
+description = "Zbierasz wyschnięte korzenie i połamane deski w spalonej ziemi. +1 drewna, -1 nawodnienia."

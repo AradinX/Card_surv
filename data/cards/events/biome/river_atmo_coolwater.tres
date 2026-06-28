@@ -6,10 +6,11 @@
 script = ExtResource("1_script")
 id = "river_atmo_coolwater"
 display_name = "Chłodna woda"
-description = "Czerpiesz garściami zimną, czystą wodę prosto z nurtu. +1 nawodnienia."
+description = "Czerpiesz garściami zimną, czystą wodę prosto z nurtu. +1 wody."
 water_delta = 1
-weight = 9
+weight = 6
 cooldown_days = 3
+max_per_run = 2
 category = "biome"
 severity = "minor"
 tags = PackedStringArray("river", "atmo")

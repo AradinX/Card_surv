@@ -6,9 +6,11 @@
 script = ExtResource("1_script")
 id = "wasteland_atmo_mirage"
 display_name = "Miraż"
-description = "Na horyzoncie drży obraz miasta, którego już nie ma. Mrugasz i znika. Spokojna noc."
-weight = 8
+description = "Na horyzoncie drży obraz miasta, którego już nie ma. Idziesz za mirażem za daleko. -1 nawodnienia."
+thirst_delta = -1
+weight = 6
 cooldown_days = 4
+max_per_run = 2
 category = "biome"
 severity = "minor"
 tags = PackedStringArray("wasteland", "atmo")

@@ -6,10 +6,11 @@
 script = ExtResource("1_script")
 id = "caves_atmo_drip"
 display_name = "Kapiąca woda"
-description = "Ze stropu sączy się czysta woda — podstawiasz naczynia. +1 nawodnienia."
+description = "Ze stropu sączy się czysta woda — podstawiasz naczynia. +1 wody."
 water_delta = 1
-weight = 9
+weight = 7
 cooldown_days = 3
+max_per_run = 2
 category = "biome"
 severity = "minor"
 tags = PackedStringArray("caves", "atmo")

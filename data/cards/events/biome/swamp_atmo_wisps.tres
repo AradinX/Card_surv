@@ -6,9 +6,11 @@
 script = ExtResource("1_script")
 id = "swamp_atmo_wisps"
 display_name = "Błędne ogniki"
-description = "Blade ogniki dryfują nad taflą wody, wabiąc w głąb mokradeł. Nie idziesz za nimi. Spokojna noc."
-weight = 8
+description = "Blade ogniki dryfują nad taflą wody. Pilnujesz się, żeby za nimi nie pójść, ale sen ucieka. -1 energii następnego dnia."
+next_day_energy_delta = -1
+weight = 6
 cooldown_days = 4
+max_per_run = 2
 category = "biome"
 severity = "minor"
 tags = PackedStringArray("swamp", "atmo")

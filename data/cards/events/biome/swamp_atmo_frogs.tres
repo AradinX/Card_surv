@@ -6,9 +6,11 @@
 script = ExtResource("1_script")
 id = "swamp_atmo_frogs"
 display_name = "Rechot żab"
-description = "Mokradło gra tysiącem żabich gardeł. Monotonny chór usypia czujność. Spokojna noc."
-weight = 9
+description = "Mokradło gra tysiącem żabich gardeł. Monotonny chór w końcu kołysze cię do snu. +1 energii następnego dnia."
+next_day_energy_delta = 1
+weight = 6
 cooldown_days = 3
+max_per_run = 2
 category = "biome"
 severity = "minor"
 tags = PackedStringArray("swamp", "atmo")

@@ -6,9 +6,12 @@
 script = ExtResource("1_script")
 id = "forest_atmo_mist"
 display_name = "Mgła wśród pni"
-description = "Mleczna mgła snuje się nisko między drzewami. Świat cichnie. Spokojna noc."
-weight = 9
+description = "Mleczna mgła snuje się nisko między drzewami. Wilgoć wpełza pod ubranie. -1 ciepła."
+warmth_delta = -1
+shelter_protects = true
+weight = 6
 cooldown_days = 3
+max_per_run = 2
 category = "biome"
 severity = "minor"
 tags = PackedStringArray("forest", "atmo")
