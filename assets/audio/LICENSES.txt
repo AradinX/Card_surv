@@ -29,12 +29,15 @@ Muzyka jest przechowywana jako OGG Vorbis. AudioManager ustawia zapętlenie
 w runtime, więc import nie wymaga ręcznego zaznaczania opcji „Loop”.
 
 
-LICENCJE — stan na 2026-06-22
+LICENCJE — stan na 2026-06-28
 ------------------------------------------------------
 Całość audio wygenerowana w **Suno (plan Pro)** z promptów projektowych.
 Plan Pro Suno przyznaje użytkownikowi prawa do komercyjnego wykorzystania
 wygenerowanego outputu (zgodnie z regulaminem Suno). Zachowaj dowód subskrypcji.
 (To nie jest porada prawna — zweryfikuj aktualny regulamin przed wydaniem.)
+
+Skrót tych informacji widnieje też w grze: Menu główne -> „Twórcy"
+(ekran creditsów, ui/credits_overlay). Pełny manifest pozostaje tutaj.
 
 Format: <plik> | <źródło> | <licencja> | <data>
 

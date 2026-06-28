@@ -22,6 +22,8 @@ extends Control
 @onready var _characters_close: Button = $CharactersOverlay/Panel/PanelMargin/VBox/CloseButton
 @onready var _help_button: Button = $Center/VBox/HelpButton
 @onready var _help_overlay: HelpOverlayView = $HelpOverlay
+@onready var _credits_button: Button = $Center/VBox/CreditsButton
+@onready var _credits_overlay: CreditsOverlayView = $CreditsOverlay
 
 const MARKER_DIR := "res://assets/art/characters"
 
@@ -33,7 +35,7 @@ var _spin_tween: Tween
 func _ready() -> void:
 	ButtonSkin.apply_minimal_many([
 		_continue_button, _start_button, _tutorial_button, _roulette_button, _characters_button,
-		_settings_button, _help_button, _quit_button, _roulette_close, _characters_close
+		_settings_button, _help_button, _credits_button, _quit_button, _roulette_close, _characters_close
 	])
 	_continue_button.disabled = not GameManager.has_saved_run()
 	_continue_button.pressed.connect(GameManager.continue_run)
@@ -47,6 +49,7 @@ func _ready() -> void:
 	_characters_button.pressed.connect(_open_characters)
 	_characters_close.pressed.connect(func() -> void: _characters_overlay.visible = false)
 	_help_button.pressed.connect(_help_overlay.open)
+	_credits_button.pressed.connect(_credits_overlay.open)
 	AudioManager.play_music("menu")
 	AudioManager.stop_ambience()
 	_refresh_meta_ui()
