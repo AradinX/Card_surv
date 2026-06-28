@@ -143,6 +143,7 @@ var _night_choice_done := false
 var _ended := false
 ## True when this system was created via resume() rather than start().
 var _resumed := false
+var _tutorial_mode := false
 ## "<tile index>:<card id>" entries for gather actions already used today.
 var _used_gathers: Dictionary = {}
 ## "<tile index>:<building index>:<action id>" entries for active buildings used today.
@@ -191,6 +192,40 @@ func start(
 		state.disaster = disaster_pool[_rng.randi_range(0, disaster_pool.size() - 1)]
 		state.bum_day = _rng.randi_range(BUM_DAY_MIN, BUM_DAY_MAX)
 
+	_rebuild_event_deck()
+
+
+## Marks this as a guided onboarding run. GameManager calls this after start()
+## has loaded the same cards, buildings and biomes used by normal runs.
+func configure_tutorial_run() -> void:
+	_tutorial_mode = true
+	state.day = 1
+	state.health = state.max_health
+	state.hunger = 8
+	state.thirst = 8
+	state.warmth = 8
+	state.energy = state.max_energy
+	state.food = 3
+	state.water = 3
+	state.wood = 4
+	state.materials = 2
+	state.has_tools = false
+	state.next_day_energy_delta = 0
+	state.bum_day = maxi(state.bum_day, BUM_DAY_MAX)
+	state.bum_happened = false
+
+	for i in state.board.size():
+		state.board[i].is_discovered = false
+		if state.board[i].biome != null and state.board[i].biome.id == "forest":
+			state.current_tile = i
+	current_tile().is_discovered = true
+
+	var tutorial_deck := _cards_by_ids([
+		"find_water", "forage", "gather_wood", "rest",
+		"survey", "craft_tools", "bandage", "dried_meat",
+	])
+	if not tutorial_deck.is_empty():
+		state.deck = tutorial_deck
 	_rebuild_event_deck()
 
 
@@ -835,11 +870,25 @@ func _start_day() -> void:
 	var deck_cards: Array[CardData] = []
 	for card in state.deck:
 		deck_cards.append(card)
-	_day_deck = Deck.new(deck_cards, _rng)
+	var opening_ids := _tutorial_opening_hand_ids()
 	hand.clear()
-	_draw_cards(HAND_SIZE + maxi(state.character_class.bonus_hand_cards, 0))
+	if opening_ids.is_empty():
+		_day_deck = Deck.new(deck_cards, _rng)
+		_draw_cards(HAND_SIZE + maxi(state.character_class.bonus_hand_cards, 0))
+	else:
+		var remaining := deck_cards.duplicate()
+		for card_id in opening_ids:
+			var idx := _find_card_index_by_id(remaining, card_id)
+			if idx >= 0 and hand.size() < HAND_SIZE:
+				hand.append(remaining.pop_at(idx))
+		_day_deck = Deck.new(remaining, _rng)
+		_draw_cards(HAND_SIZE - hand.size())
 
 	log_message.emit("--- Dzień %d ---" % state.day)
+	if _tutorial_mode:
+		var hint := _tutorial_day_hint()
+		if hint != "":
+			log_message.emit(hint)
 	day_started.emit(state.day)
 	stats_changed.emit(state)
 	hand_changed.emit(hand)
@@ -873,6 +922,56 @@ func _draw_cards(count: int) -> void:
 		var card := _day_deck.draw()
 		if card != null:
 			hand.append(card)
+
+
+func _cards_by_ids(ids: Array[String]) -> Array[CardData]:
+	var result: Array[CardData] = []
+	for card_id in ids:
+		var card := _card_by_id(card_id)
+		if card != null:
+			result.append(card)
+	return result
+
+
+func _card_by_id(card_id: String) -> CardData:
+	for card in _card_pool:
+		if card != null and card.id == card_id:
+			return card
+	for card in state.deck:
+		if card != null and card.id == card_id:
+			return card
+	return null
+
+
+func _tutorial_opening_hand_ids() -> Array[String]:
+	if not _tutorial_mode:
+		return []
+	match state.day:
+		1:
+			return ["find_water", "forage", "gather_wood", "rest"]
+		2:
+			return ["survey", "craft_tools", "bandage", "dried_meat"]
+		_:
+			return []
+
+
+func _find_card_index_by_id(cards: Array[CardData], card_id: String) -> int:
+	for i in cards.size():
+		if cards[i] != null and cards[i].id == card_id:
+			return i
+	return -1
+
+
+func _tutorial_day_hint() -> String:
+	match state.day:
+		1:
+			return "SAMOUCZEK: przeci\u0105gnij kart\u0119 akcji na kartk\u0119 log\u00f3w albo obecny biom. Zdob\u0105d\u017a wod\u0119, jedzenie i drewno, potem otw\u00f3rz Budowanie i postaw pierwszy budynek."
+		2:
+			return "SAMOUCZEK: kliknij zbudowany budynek na biomie, sprawd\u017a jego akcj\u0119 i opis. U\u017cyj budynku, zagraj kart\u0119 rozpoznania albo odkryj s\u0105siedni kafel."
+		3:
+			return "SAMOUCZEK: cz\u0119\u015b\u0107 prowadzona zako\u0144czona. Dalej grasz normalnie: rozwijaj tali\u0119, osad\u0119 i przygotuj si\u0119 na BUM."
+		_:
+			return ""
 
 
 func _update_season_for_day() -> void:
@@ -1729,20 +1828,58 @@ func _record_damage(amount: int, cause: String) -> void:
 func run_summary() -> Dictionary:
 	var standing := 0
 	var ruined := 0
+	var discovered := 0
+	var slots_total := 0
 	for tile in state.board:
+		if tile.is_discovered:
+			discovered += 1
+		slots_total += tile.biome.building_slots
 		for built in tile.buildings:
 			if built.is_ruined:
 				ruined += 1
 			else:
 				standing += 1
+	var total_buildings := standing + ruined
+	var day_deck_count := _day_deck.cards_left() if _day_deck != null else 0
 	return {
 		"cause": _last_cause,
 		"damage_taken": _damage_taken,
 		"seed": _run_seed,
 		"health_history": _health_history.duplicate(),
+		"day": state.day,
+		"class_name": state.character_class.display_name if state.character_class != null else "",
+		"season": RunState.season_name(state.season),
+		"current_biome": _tile_name(current_tile()),
+		"bum_happened": state.bum_happened,
+		"days_after_bum": maxi(state.day - state.bum_day, 0) if state.bum_happened else 0,
 		"buildings_standing": standing,
 		"buildings_ruined": ruined,
+		"buildings_total": total_buildings,
+		"building_slots_total": slots_total,
+		"building_slots_free": maxi(slots_total - total_buildings, 0),
+		"discovered_tiles": discovered,
+		"board_tiles": state.board.size(),
 		"level": state.level,
+		"xp": state.xp,
+		"deck_size": state.deck.size(),
+		"hand_size": hand.size(),
+		"day_deck_count": day_deck_count,
+		"health": state.health,
+		"max_health": state.max_health,
+		"hunger": state.hunger,
+		"thirst": state.thirst,
+		"warmth": state.warmth,
+		"energy": state.energy,
+		"max_energy": state.max_energy,
+		"food": state.food,
+		"food_cap": food_cap(),
+		"water": state.water,
+		"water_cap": water_cap(),
+		"wood": state.wood,
+		"wood_cap": wood_cap(),
+		"materials": state.materials,
+		"materials_cap": materials_cap(),
+		"has_tools": state.has_tools,
 		"bum_day": state.bum_day if state.bum_happened else 0,
 		"disaster": state.disaster.display_name if state.disaster != null else "",
 	}

@@ -6,6 +6,7 @@ extends Control
 @onready var _class_selector: OptionButton = $Center/VBox/ClassRow/ClassSelector
 @onready var _continue_button: Button = $Center/VBox/ContinueButton
 @onready var _start_button: Button = $Center/VBox/StartButton
+@onready var _tutorial_button: Button = $Center/VBox/TutorialButton
 @onready var _roulette_button: Button = $Center/VBox/RouletteButton
 @onready var _quit_button: Button = $Center/VBox/QuitButton
 @onready var _roulette_overlay: ColorRect = $RouletteOverlay
@@ -31,12 +32,13 @@ var _spin_tween: Tween
 
 func _ready() -> void:
 	ButtonSkin.apply_minimal_many([
-		_continue_button, _start_button, _roulette_button, _characters_button,
+		_continue_button, _start_button, _tutorial_button, _roulette_button, _characters_button,
 		_settings_button, _help_button, _quit_button, _roulette_close, _characters_close
 	])
 	_continue_button.disabled = not GameManager.has_saved_run()
 	_continue_button.pressed.connect(GameManager.continue_run)
 	_start_button.pressed.connect(_on_start_pressed)
+	_tutorial_button.pressed.connect(GameManager.start_tutorial_run)
 	_roulette_button.pressed.connect(_on_roulette_pressed)
 	_quit_button.pressed.connect(get_tree().quit)
 	_class_selector.item_selected.connect(_on_class_selected)

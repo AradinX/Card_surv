@@ -26,7 +26,38 @@ const PAGES := [
 	},
 ]
 
-const PANEL_BASE_SIZE := Vector2(720, 520)
+const TUTORIAL_PAGES := [
+	{
+		"title": "Szybki start",
+		"body": "Cel jest prosty: przetrwaj do dnia 50. Każdego dnia wydajesz Energię na karty, akcje biomu, budowę, użycie budynków i ruch.\n\nNajważniejsze paski to Zdrowie, Sytość, Nawodnienie i Ciepło. Jeśli sytość, nawodnienie albo ciepło spadną do 0, zaczniesz realnie tracić zdrowie.",
+	},
+	{
+		"title": "Dzień 1: zapasy",
+		"body": "Na starcie zobacz górny pasek: jedzenie, woda, drewno i kamień mają limity typu 3/8.\n\nNajpierw zagraj kartę lub akcję biomu, która daje brakujący zasób. Przykład: Źródło daje wodę, Szukaj materiałów daje kamień, zbieranie drewna daje drewno. Karty zagrywasz przez przeciągnięcie.",
+	},
+	{
+		"title": "Dzień 1: budowa",
+		"body": "Wejdź w Budowanie i sprawdź, co możesz postawić na aktualnym biomie. Budynki mają koszt, HP i efekt.\n\nPrzykład: Ognisko pomaga z ciepłem nocą, Studnia daje wodę, Spiżarnia pomaga z jedzeniem. Po zbudowaniu kliknij budynek na kaflu, żeby zobaczyć jego opis i akcje.",
+	},
+	{
+		"title": "Akcje budynków",
+		"body": "Niektóre budynki działają pasywnie nocą, a część ma akcję za energię.\n\nPrzykład: przy Ognisku możesz dodatkowo się ogrzać, Warsztat może wykonać narzędzia, Studnia pozwala nabrać wodę. Użycie budynku zużywa jego HP, więc nie klikaj wszystkiego bez potrzeby.",
+	},
+	{
+		"title": "Koniec dnia",
+		"body": "Przed kliknięciem Koniec dnia najedź na przycisk i sprawdź, ile stracisz nocą. W nocy gra pokaże kartę zdarzenia oraz kartkę z bilansem.\n\nPo nocy zapasy jedzenia i wody mogą zostać automatycznie zużyte, żeby podnieść sytość i nawodnienie.",
+	},
+	{
+		"title": "Dzień 2: decyzja",
+		"body": "Drugiego dnia zwykle wybierasz kierunek: budować produkcję, odkrywać kafel albo ratować potrzeby.\n\nOdkrycie nowego biomu daje więcej opcji, ale też dokłada jego nocne zagrożenia. Jeśli masz mało zasobów, czasem lepiej najpierw wzmocnić obecny kafel.",
+	},
+	{
+		"title": "BUM",
+		"body": "Po kilku dniach uderzy katastrofa: kafle się skażą, budynki dostaną obrażenia, a do nocy wejdą potwory.\n\nPo BUM odbudowa jest droższa. Naprawiaj kluczowe budynki, rozbieraj ruiny i pilnuj ciepła, wody oraz jedzenia. Jeśli umierasz, ekran wyniku pokaże raport z ostatnich logów.",
+	},
+]
+
+const PANEL_BASE_SIZE := Vector2(720, 560)
 const PANEL_PADDING := Vector2(32, 32)
 
 @onready var _panel: PanelContainer = $Panel
@@ -73,9 +104,9 @@ func open() -> void:
 
 
 func _show_page(index: int) -> void:
-	_page = clampi(index, 0, PAGES.size() - 1)
-	_title.text = PAGES[_page]["title"]
-	_body.text = PAGES[_page]["body"]
-	_counter.text = "%d / %d" % [_page + 1, PAGES.size()]
+	_page = clampi(index, 0, TUTORIAL_PAGES.size() - 1)
+	_title.text = TUTORIAL_PAGES[_page]["title"]
+	_body.text = TUTORIAL_PAGES[_page]["body"]
+	_counter.text = "%d / %d" % [_page + 1, TUTORIAL_PAGES.size()]
 	_prev.disabled = _page == 0
-	_next.disabled = _page == PAGES.size() - 1
+	_next.disabled = _page == TUTORIAL_PAGES.size() - 1

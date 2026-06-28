@@ -56,7 +56,7 @@ grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="Center"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="Title" type="Label" parent="Center/VBox"]
 layout_mode = 2
@@ -89,54 +89,61 @@ theme_override_font_sizes/font_size = 20
 text = "Postać:"
 
 [node name="ClassSelector" type="OptionButton" parent="Center/VBox/ClassRow"]
-custom_minimum_size = Vector2(280, 56)
+custom_minimum_size = Vector2(280, 48)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 
 [node name="ContinueButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 56)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Kontynuuj"
 
 [node name="StartButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 56)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Nowa gra"
 
+[node name="TutorialButton" type="Button" parent="Center/VBox"]
+custom_minimum_size = Vector2(360, 48)
+layout_mode = 2
+theme = ExtResource("3_button_theme")
+theme_override_font_sizes/font_size = 20
+text = "Samouczek"
+
 [node name="RouletteButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 56)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 18
 text = "Ruletka postaci (1 moneta)"
 
 [node name="CharactersButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 56)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Postacie"
 
 [node name="SettingsButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 56)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Ustawienia"
 
 [node name="HelpButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 56)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20
 text = "Jak grać"
 
 [node name="QuitButton" type="Button" parent="Center/VBox"]
-custom_minimum_size = Vector2(360, 56)
+custom_minimum_size = Vector2(360, 48)
 layout_mode = 2
 theme = ExtResource("3_button_theme")
 theme_override_font_sizes/font_size = 20

@@ -113,6 +113,7 @@ const NIGHT_PANEL_BASE := Vector2(460, 560)
 const NIGHT_NOTE_BASE := Vector2(340, 300)
 const NIGHT_LAYOUT_GAP := 28.0
 const PAUSE_PANEL_BASE := Vector2(460, 430)
+const TUTORIAL_PANEL_BASE := Vector2(390, 156)
 
 @onready var _background: ColorRect = $Background
 @onready var _background_art: TextureRect = $BackgroundArt
@@ -173,6 +174,8 @@ var _building_info_popup
 var _deck_button: Button
 var _deck_dialog: AcceptDialog
 var _log_drop_zone
+var _tutorial_panel: PanelContainer
+var _tutorial_label: Label
 var _night_fx: Array[Node] = []
 var _night_tween: Tween
 var _weather_overlay: TextureRect
@@ -205,6 +208,7 @@ func _ready() -> void:
 	_create_low_hp_overlay()
 	_create_need_warning_overlays()
 	_setup_deck_dialog()
+	_setup_tutorial_panel()
 
 	# Current-tile marker = the played character's medallion (fallback inside).
 	if _survival.state != null and _survival.state.character_class != null:
@@ -279,6 +283,7 @@ func _apply_responsive_layout() -> void:
 	_fit_night_layout(viewport_size)
 	_fit_centered_panel(_pause_panel, PAUSE_PANEL_BASE, viewport_size)
 	_fit_building_popup(viewport_size)
+	_fit_tutorial_panel(viewport_size)
 
 
 func _fit_centered_panel(panel: Control, base_size: Vector2, viewport_size: Vector2) -> void:
@@ -333,6 +338,75 @@ func _fit_building_popup(viewport_size: Vector2) -> void:
 	_building_bar.offset_top = -height - 104.0
 	_building_bar.offset_right = -28.0
 	_building_bar.offset_bottom = -104.0
+
+
+func _fit_tutorial_panel(viewport_size: Vector2) -> void:
+	if _tutorial_panel == null:
+		return
+	var width := minf(TUTORIAL_PANEL_BASE.x, maxf(viewport_size.x - 32.0, 280.0))
+	var height := minf(TUTORIAL_PANEL_BASE.y, maxf(viewport_size.y - 140.0, 120.0))
+	_tutorial_panel.anchor_left = 1.0
+	_tutorial_panel.anchor_top = 0.0
+	_tutorial_panel.anchor_right = 1.0
+	_tutorial_panel.anchor_bottom = 0.0
+	_tutorial_panel.offset_left = -width - 24.0
+	_tutorial_panel.offset_top = 112.0
+	_tutorial_panel.offset_right = -24.0
+	_tutorial_panel.offset_bottom = 112.0 + height
+
+
+func _setup_tutorial_panel() -> void:
+	if not GameManager.tutorial_mode:
+		return
+	_tutorial_panel = PanelContainer.new()
+	_tutorial_panel.name = "TutorialHintPanel"
+	_tutorial_panel.z_index = 30
+	_tutorial_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.045, 0.055, 0.04, 0.92)
+	style.set_border_width_all(2)
+	style.border_color = Color(0.84, 0.68, 0.28, 0.95)
+	style.set_corner_radius_all(6)
+	style.set_content_margin_all(12)
+	_tutorial_panel.add_theme_stylebox_override("panel", style)
+	add_child(_tutorial_panel)
+
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 6)
+	_tutorial_panel.add_child(box)
+
+	var title := Label.new()
+	title.text = "Samouczek"
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title.add_theme_font_size_override("font_size", 20)
+	title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.36))
+	box.add_child(title)
+
+	_tutorial_label = Label.new()
+	_tutorial_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tutorial_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_tutorial_label.add_theme_font_size_override("font_size", 15)
+	_tutorial_label.add_theme_color_override("font_color", Color(0.92, 0.88, 0.74))
+	box.add_child(_tutorial_label)
+	_update_tutorial_panel()
+
+
+func _update_tutorial_panel() -> void:
+	if _tutorial_panel == null or _survival == null or _survival.state == null:
+		return
+	match _survival.state.day:
+		1:
+			_tutorial_label.text = "Dzie\u0144 1: przeci\u0105gnij kart\u0119 akcji na kartk\u0119 log\u00f3w albo obecny biom. Zdob\u0105d\u017a wod\u0119, jedzenie i drewno. Potem otw\u00f3rz Budowanie i postaw pierwszy budynek."
+			_tutorial_panel.visible = true
+		2:
+			_tutorial_label.text = "Dzie\u0144 2: kliknij budynek na biomie, zobacz jego opis i u\u017cyj akcji. Sprawd\u017a te\u017c odkrywanie kafla albo kart\u0119 rozpoznania."
+			_tutorial_panel.visible = true
+		3:
+			_tutorial_label.text = "Cz\u0119\u015b\u0107 prowadzona zako\u0144czona. Dalej grasz normalnie: rozwijaj tali\u0119, buduj osad\u0119 i przygotuj si\u0119 na BUM."
+			_tutorial_panel.visible = true
+		_:
+			_tutorial_panel.visible = false
 
 
 ## Esc toggles the pause menu. If the settings panel is open (from pause), Esc
@@ -422,6 +496,7 @@ func _on_day_started(day: int) -> void:
 	_top_status_bar.set_day(day, SurvivalSystem.WIN_DAY, _survival.state.season)
 	_update_weather()
 	_update_forecast()
+	_update_tutorial_panel()
 
 
 func _on_stats_changed(state: RunState) -> void:

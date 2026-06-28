@@ -16,6 +16,7 @@ const DISASTERS_DIR := "res://data/disasters"
 const CLASSES_DIR := "res://data/classes"
 ## Single autosave slot for an in-progress run (one playthrough at a time).
 const RUN_SAVE_PATH := "user://run_save.tres"
+const RECENT_LOG_LIMIT := 8
 
 ## Meta-progression (coins + unlocked classes), persisted to user://.
 var meta_state: MetaState
@@ -24,6 +25,7 @@ var class_catalog: Dictionary = {}
 ## Which unlocked class the next run will use.
 var selected_class_id := MetaState.STARTING_CLASS_ID
 var survival: SurvivalSystem
+var tutorial_mode := false
 
 var last_run_won := false
 var last_run_days := 0
@@ -32,6 +34,7 @@ var last_run_days := 0
 var last_run_coin_awarded := false
 ## Detailed end-of-run stats for the result screen (see SurvivalSystem.run_summary).
 var last_run_summary: Dictionary = {}
+var _recent_run_logs: Array[String] = []
 
 
 func _ready() -> void:
@@ -84,10 +87,13 @@ func spin_roulette(meta_save_path: String = MetaState.SAVE_PATH) -> CharacterCla
 ## connects to survival's signals and calls survival.begin() — that order
 ## guarantees no signal is lost.
 func start_new_run() -> void:
+	tutorial_mode = false
 	delete_saved_run()
+	_recent_run_logs.clear()
 	survival = SurvivalSystem.new()
 	survival.run_ended.connect(_on_run_ended)
 	survival.day_started.connect(_on_day_started_autosave)
+	survival.log_message.connect(_on_run_log_message)
 
 	var character_class: CharacterClassData = class_catalog.get(
 		selected_class_id, class_catalog.get(MetaState.STARTING_CLASS_ID)
@@ -110,19 +116,50 @@ func start_new_run() -> void:
 	_change_scene(RUN_SCENE)
 
 
+func start_tutorial_run() -> void:
+	tutorial_mode = true
+	delete_saved_run()
+	_recent_run_logs.clear()
+	survival = SurvivalSystem.new()
+	survival.run_ended.connect(_on_run_ended)
+	survival.log_message.connect(_on_run_log_message)
+
+	var character_class: CharacterClassData = class_catalog.get(
+		MetaState.STARTING_CLASS_ID, class_catalog.get(selected_class_id)
+	)
+	var biome_pool := CardLibrary.load_biomes_from_dir(BIOMES_DIR)
+	var event_cards := CardLibrary.load_cards_from_dir(EVENT_CARDS_DIR)
+	var card_pool := CardLibrary.load_cards_from_dir(ACTION_CARDS_DIR)
+	var building_catalog: Array[BuildingCardData] = []
+	for resource in CardLibrary.load_cards_from_dir(BUILDINGS_DIR):
+		if resource is BuildingCardData:
+			building_catalog.append(resource)
+	var disaster_pool: Array[DisasterData] = []
+	for resource in CardLibrary.load_resources_from_dir(DISASTERS_DIR):
+		if resource is DisasterData:
+			disaster_pool.append(resource)
+	survival.start(character_class, biome_pool, event_cards, card_pool, disaster_pool, building_catalog)
+	survival.configure_tutorial_run()
+
+	_change_scene(RUN_SCENE)
+
+
 ## Loads the autosaved run and resumes it. Caller should check has_saved_run().
 func continue_run() -> void:
 	if not has_saved_run():
 		return
+	tutorial_mode = false
 	var loaded: Resource = ResourceLoader.load(
 		RUN_SAVE_PATH, "", ResourceLoader.CACHE_MODE_IGNORE
 	)
 	if not (loaded is RunState):
 		delete_saved_run()
 		return
+	_recent_run_logs.clear()
 	survival = SurvivalSystem.new()
 	survival.run_ended.connect(_on_run_ended)
 	survival.day_started.connect(_on_day_started_autosave)
+	survival.log_message.connect(_on_run_log_message)
 
 	var event_cards := CardLibrary.load_cards_from_dir(EVENT_CARDS_DIR)
 	var card_pool := CardLibrary.load_cards_from_dir(ACTION_CARDS_DIR)
@@ -154,7 +191,16 @@ func _on_day_started_autosave(_day: int) -> void:
 	save_run()
 
 
+func _on_run_log_message(text: String) -> void:
+	if text.strip_edges() == "":
+		return
+	_recent_run_logs.append(text)
+	while _recent_run_logs.size() > RECENT_LOG_LIMIT:
+		_recent_run_logs.pop_front()
+
+
 func return_to_menu() -> void:
+	tutorial_mode = false
 	survival = null
 	_change_scene(MAIN_MENU_SCENE)
 
@@ -163,6 +209,7 @@ func _on_run_ended(won: bool, days_survived: int) -> void:
 	last_run_won = won
 	last_run_days = days_survived
 	last_run_summary = survival.run_summary() if survival != null else {}
+	last_run_summary["recent_logs"] = _recent_run_logs.duplicate()
 	# The run is over — no resume point.
 	delete_saved_run()
 	# One gold coin per won run — currency for the character roulette.
