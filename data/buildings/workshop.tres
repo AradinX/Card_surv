@@ -13,4 +13,4 @@ special = "unlock_crafting"
 required_biome_ids = PackedStringArray()
 id = "building_workshop"
 display_name = "Warsztat"
-description = "Nocą przerabia 1 drewno na 1 kamień, jeśli masz zapas drewna."
+description = "Nocą zużywa 1 drewno, aby naprawić najbardziej uszkodzony działający budynek o 1 HP. Zwiększa limit kamienia."

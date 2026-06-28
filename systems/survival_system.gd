@@ -433,6 +433,8 @@ func can_use_building(building_index: int) -> String:
 	)
 	if cost_block != "":
 		return cost_block
+	if bool(action.get("tools", false)) and state.has_tools:
+		return "Masz już narzędzia."
 	return _building_action_capacity_block(action)
 
 
@@ -463,6 +465,8 @@ func use_building(building_index: int) -> void:
 		var before_hand := hand.size()
 		_draw_cards(int(action.get("draw_cards", 0)))
 		drawn = hand.size() - before_hand
+	if bool(action.get("tools", false)):
+		state.has_tools = true
 	_used_building_actions[_building_action_key(building_index, action)] = true
 	var summary := _action_delta_summary(snapshot)
 	if drawn > 0:
@@ -1024,7 +1028,7 @@ func _building_action_definition(building: BuildingCardData) -> Dictionary:
 		"building_pantry":
 			return {"id": "eat_ration", "title": "Zjedz zapas", "cost_energy": 1, "cost_food": 1, "hunger": 3}
 		"building_workshop":
-			return {"id": "craft_stone", "title": "Obrób kamień", "cost_energy": 1, "cost_wood": 1, "materials": 1}
+			return {"id": "craft_tools", "title": "Wykonaj narzędzia", "cost_energy": 1, "cost_wood": 1, "cost_materials": 1, "tools": true}
 		"building_herbalist":
 			return {"id": "brew_medicine", "title": "Użyj ziół", "cost_energy": 1, "health": 2}
 		"building_field_infirmary":
@@ -1061,6 +1065,8 @@ func _building_action_summary(action: Dictionary) -> String:
 	_append_delta_part(parts, int(action.get("water", 0)), "wody")
 	_append_delta_part(parts, int(action.get("wood", 0)), "drewna")
 	_append_delta_part(parts, int(action.get("materials", 0)), "kamienia")
+	if bool(action.get("tools", false)):
+		parts.append("narzędzia: tak")
 	if int(action.get("draw_cards", 0)) > 0:
 		parts.append("+%d karta do ręki" % int(action.get("draw_cards", 0)))
 	return ", ".join(parts)
@@ -1408,6 +1414,31 @@ func _resolve_stat_passive_building_wear(stat_key: String) -> void:
 		log_message.emit("Praca budynków zużywa: %s." % "; ".join(wear_logs))
 
 
+func _resolve_workshop_maintenance() -> String:
+	if state.wood <= 0:
+		return ""
+	var target: BuildingState = null
+	var target_missing_hp := 0
+	for tile in state.board:
+		for built in tile.buildings:
+			if built.is_ruined:
+				continue
+			var max_hp := building_max_hp(built.data)
+			var missing_hp := max_hp - built.hp
+			if missing_hp > target_missing_hp:
+				target = built
+				target_missing_hp = missing_hp
+	if target == null:
+		return ""
+	state.wood -= 1
+	target.hp = mini(target.hp + 1, building_max_hp(target.data))
+	return "konserwuje %s (-1 drewna, +1 HP; %d/%d HP)" % [
+		target.data.display_name,
+		target.hp,
+		building_max_hp(target.data),
+	]
+
+
 ## Below 50% HP a building collapses into a ruin: passives, defense and
 ## specials stop working; it can only be torn down (README BUM threshold).
 func _check_ruin(built: BuildingState) -> void:
@@ -1445,21 +1476,10 @@ func _resolve_building_passives(apply_stat_passives: bool = true) -> void:
 				if _should_passive_wear(data, apply_stat_passives):
 					_apply_building_wear(built, BUILDING_PASSIVE_WEAR)
 					wear_logs.append("%s -%d HP" % [data.display_name, BUILDING_PASSIVE_WEAR])
-			# Workshop crafting: turns a spare log into a material each day.
-			if data.special == "unlock_crafting" and state.wood > 0:
-				snapshot = _action_state_snapshot()
-				state.wood -= 1
-				_add_materials(1)
-				_apply_building_wear(built, BUILDING_PASSIVE_WEAR)
-				wear_logs.append("%s -%d HP" % [data.display_name, BUILDING_PASSIVE_WEAR])
-				summary = _action_delta_summary(snapshot)
-				if summary != "":
-					building_logs.append("%s przerabia drewno na kamień (%s)" % [
-						data.display_name,
-						summary,
-					])
-				else:
-					building_logs.append("%s próbuje przerobić drewno na kamień, ale magazyn jest pełny" % data.display_name)
+			if data.special == "unlock_crafting":
+				var maintenance_log := _resolve_workshop_maintenance()
+				if maintenance_log != "":
+					building_logs.append("%s %s" % [data.display_name, maintenance_log])
 	if not building_logs.is_empty():
 		log_message.emit("Budynki nocą: %s." % "; ".join(building_logs))
 

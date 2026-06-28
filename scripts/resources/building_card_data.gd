@@ -38,7 +38,7 @@ extends CardData
 ## Special behaviours resolved by systems (extend as buildings get built):
 ## - slow_spoilage: food spoils slower (Spizarnia)
 ## - night_protection: shields the player from night events (Szalas)
-## - unlock_crafting: better cards appear in reward pools (Warsztat)
+## - unlock_crafting: workshop maintenance / crafting interactions
 @export_enum("none", "slow_spoilage", "night_protection", "unlock_crafting")
 var special: String = "none"
 

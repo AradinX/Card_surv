@@ -329,7 +329,7 @@ func _building_special_text(special: String) -> String:
 	match special:
 		"night_protection": return "ochrona nocna"
 		"slow_spoilage": return "wolniejsze psucie jedzenia"
-		"unlock_crafting": return "drewno→kamień nocą"
+		"unlock_crafting": return "konserwuje budynki nocą"
 		_: return ""
 
 
