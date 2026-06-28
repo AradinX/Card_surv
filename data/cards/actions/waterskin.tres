@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 2
-water_gain = 3
+thirst_delta = 1
+water_gain = 2
 id = "waterskin"
 display_name = "Bukłak"
 description = "Napełnij bukłak po brzegi."

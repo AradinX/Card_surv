@@ -14,9 +14,14 @@ const BIOMES_DIR := "res://data/biomes"
 const BUILDINGS_DIR := "res://data/buildings"
 const DISASTERS_DIR := "res://data/disasters"
 const CLASSES_DIR := "res://data/classes"
+const START_TRANSITION_IMAGE := "res://assets/art/backgrounds/run_screen/start_screen.png"
 ## Single autosave slot for an in-progress run (one playthrough at a time).
 const RUN_SAVE_PATH := "user://run_save.tres"
 const RECENT_LOG_LIMIT := 8
+const DREAM_IMAGE_FADE_TIME := 0.65
+const DREAM_IMAGE_HOLD := 0.85
+const DREAM_EYE_TIME := 1.05
+const DREAM_CLOSED_HOLD := 0.28
 
 ## Meta-progression (coins + unlocked classes), persisted to user://.
 var meta_state: MetaState
@@ -35,6 +40,7 @@ var last_run_coin_awarded := false
 ## Detailed end-of-run stats for the result screen (see SurvivalSystem.run_summary).
 var last_run_summary: Dictionary = {}
 var _recent_run_logs: Array[String] = []
+var _scene_transition_active := false
 
 
 func _ready() -> void:
@@ -113,7 +119,7 @@ func start_new_run() -> void:
 			disaster_pool.append(resource)
 	survival.start(character_class, biome_pool, event_cards, card_pool, disaster_pool, building_catalog)
 
-	_change_scene(RUN_SCENE)
+	_change_scene(RUN_SCENE, true)
 
 
 func start_tutorial_run() -> void:
@@ -141,7 +147,7 @@ func start_tutorial_run() -> void:
 	survival.start(character_class, biome_pool, event_cards, card_pool, disaster_pool, building_catalog)
 	survival.configure_tutorial_run()
 
-	_change_scene(RUN_SCENE)
+	_change_scene(RUN_SCENE, true)
 
 
 ## Loads the autosaved run and resumes it. Caller should check has_saved_run().
@@ -169,7 +175,7 @@ func continue_run() -> void:
 			building_catalog.append(resource)
 	survival.resume(loaded as RunState, event_cards, card_pool, building_catalog)
 
-	_change_scene(RUN_SCENE)
+	_change_scene(RUN_SCENE, true)
 
 
 func has_saved_run() -> bool:
@@ -220,6 +226,114 @@ func _on_run_ended(won: bool, days_survived: int) -> void:
 	_change_scene(RESULT_SCENE)
 
 
-func _change_scene(path: String) -> void:
+func _change_scene(path: String, dream_transition: bool = false) -> void:
 	# Deferred: scene changes can be triggered from signal/input callbacks.
+	if dream_transition:
+		_run_dream_transition.call_deferred(path)
+		return
 	get_tree().change_scene_to_file.call_deferred(path)
+
+
+func _run_dream_transition(path: String) -> void:
+	if _scene_transition_active:
+		return
+	_scene_transition_active = true
+	var layer := _make_dream_transition_layer()
+	add_child(layer)
+	await get_tree().process_frame
+
+	var root := layer.get_node("Root") as Control
+	var image := root.get_node("StartImage") as TextureRect
+	var top_lid := root.get_node("TopLid") as ColorRect
+	var bottom_lid := root.get_node("BottomLid") as ColorRect
+	_layout_dream_lids(top_lid, bottom_lid, 0.0)
+
+	var close_tween := create_tween().set_parallel(true)
+	close_tween.tween_property(image, "modulate:a", 1.0, DREAM_IMAGE_FADE_TIME) \
+		.set_trans(Tween.TRANS_SINE)
+	close_tween.tween_property(top_lid, "size:y", _dream_closed_lid_height(), DREAM_EYE_TIME) \
+		.set_delay(DREAM_IMAGE_FADE_TIME + DREAM_IMAGE_HOLD).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	close_tween.tween_property(bottom_lid, "position:y", _dream_bottom_closed_y(), DREAM_EYE_TIME) \
+		.set_delay(DREAM_IMAGE_FADE_TIME + DREAM_IMAGE_HOLD).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	close_tween.tween_property(bottom_lid, "size:y", _dream_closed_lid_height(), DREAM_EYE_TIME) \
+		.set_delay(DREAM_IMAGE_FADE_TIME + DREAM_IMAGE_HOLD).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await close_tween.finished
+	await get_tree().create_timer(DREAM_CLOSED_HOLD).timeout
+
+	get_tree().change_scene_to_file(path)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	image.visible = false
+	_layout_dream_lids(top_lid, bottom_lid, _dream_closed_lid_height())
+
+	var open_tween := create_tween().set_parallel(true)
+	open_tween.tween_property(top_lid, "size:y", 0.0, DREAM_EYE_TIME) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	open_tween.tween_property(bottom_lid, "position:y", get_viewport().get_visible_rect().size.y, DREAM_EYE_TIME) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	open_tween.tween_property(bottom_lid, "size:y", 0.0, DREAM_EYE_TIME) \
+		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await open_tween.finished
+	layer.queue_free()
+	_scene_transition_active = false
+
+
+func _make_dream_transition_layer() -> CanvasLayer:
+	var layer := CanvasLayer.new()
+	layer.name = "DreamSceneTransition"
+	layer.layer = 1000
+
+	var root := Control.new()
+	root.name = "Root"
+	root.mouse_filter = Control.MOUSE_FILTER_STOP
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(root)
+
+	var image := TextureRect.new()
+	image.name = "StartImage"
+	image.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	image.set_anchors_preset(Control.PRESET_FULL_RECT)
+	image.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	image.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	image.modulate = Color(1, 1, 1, 0)
+	image.texture = _load_start_transition_texture()
+	root.add_child(image)
+
+	var top_lid := ColorRect.new()
+	top_lid.name = "TopLid"
+	top_lid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top_lid.color = Color.BLACK
+	root.add_child(top_lid)
+
+	var bottom_lid := ColorRect.new()
+	bottom_lid.name = "BottomLid"
+	bottom_lid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bottom_lid.color = Color.BLACK
+	root.add_child(bottom_lid)
+
+	return layer
+
+
+func _layout_dream_lids(top_lid: ColorRect, bottom_lid: ColorRect, lid_height: float) -> void:
+	var viewport_size := get_viewport().get_visible_rect().size
+	top_lid.position = Vector2.ZERO
+	top_lid.size = Vector2(viewport_size.x, lid_height)
+	bottom_lid.position = Vector2(0.0, viewport_size.y - lid_height)
+	bottom_lid.size = Vector2(viewport_size.x, lid_height)
+
+
+func _dream_closed_lid_height() -> float:
+	return get_viewport().get_visible_rect().size.y * 0.56
+
+
+func _dream_bottom_closed_y() -> float:
+	return get_viewport().get_visible_rect().size.y - _dream_closed_lid_height()
+
+
+func _load_start_transition_texture() -> Texture2D:
+	if ResourceLoader.exists(START_TRANSITION_IMAGE):
+		return load(START_TRANSITION_IMAGE) as Texture2D
+	var file_image := Image.new()
+	if file_image.load(START_TRANSITION_IMAGE) != OK:
+		return null
+	return ImageTexture.create_from_image(file_image)

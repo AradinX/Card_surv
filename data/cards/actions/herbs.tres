@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 2
-health_delta = 2
+health_delta = 1
+warmth_delta = 1
 id = "herbs"
 display_name = "Zioła lecznicze"
 description = "Wyszukaj zioła i przygotuj okład."

@@ -1015,6 +1015,8 @@ func _season_description(season: int) -> String:
 
 func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> void:
 	var snapshot: Dictionary = _action_state_snapshot()
+	var card_summary := _action_card_base_summary(card)
+	var bonus_parts: PackedStringArray = []
 	state.energy -= card.energy_cost
 	state.food -= card.food_cost
 	state.wood -= card.wood_cost
@@ -1026,26 +1028,34 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 	if state.has_tools:
 		if food_gain > 0:
 			food_gain += TOOLS_GAIN_BONUS
+			bonus_parts.append("narzędzia +%d jedzenia" % TOOLS_GAIN_BONUS)
 		if wood_gain > 0:
 			wood_gain += TOOLS_GAIN_BONUS
+			bonus_parts.append("narzędzia +%d drewna" % TOOLS_GAIN_BONUS)
 	if state.season == RunState.Season.SPRING and card.food_gain > 0:
 		food_gain += SPRING_FOOD_BONUS
-		log_message.emit("Wiosna sprzyja zbieraniu. +%d jedzenia." % SPRING_FOOD_BONUS)
+		bonus_parts.append("wiosna +%d jedzenia" % SPRING_FOOD_BONUS)
 	if state.season == RunState.Season.AUTUMN and card.wood_gain > 0:
 		wood_gain += AUTUMN_WOOD_BONUS
-		log_message.emit("Jesień daje suche gałęzie. +%d drewna." % AUTUMN_WOOD_BONUS)
+		bonus_parts.append("jesień +%d drewna" % AUTUMN_WOOD_BONUS)
 	# Winter: nature gives less — every gathered resource yields one fewer.
 	var materials_gain := card.materials_gain
 	if state.season == RunState.Season.WINTER:
-		var winter_before := food_gain + wood_gain + materials_gain
 		if food_gain > 0:
+			var food_penalty := mini(WINTER_GATHER_PENALTY, food_gain)
 			food_gain = maxi(food_gain - WINTER_GATHER_PENALTY, 0)
+			if food_penalty > 0:
+				bonus_parts.append("zima -%d jedzenia" % food_penalty)
 		if wood_gain > 0:
+			var wood_penalty := mini(WINTER_GATHER_PENALTY, wood_gain)
 			wood_gain = maxi(wood_gain - WINTER_GATHER_PENALTY, 0)
+			if wood_penalty > 0:
+				bonus_parts.append("zima -%d drewna" % wood_penalty)
 		if materials_gain > 0:
+			var materials_penalty := mini(WINTER_GATHER_PENALTY, materials_gain)
 			materials_gain = maxi(materials_gain - WINTER_GATHER_PENALTY, 0)
-		if winter_before > food_gain + wood_gain + materials_gain:
-			log_message.emit("Zima skąpi plonów — mniejszy zbiór.")
+			if materials_penalty > 0:
+				bonus_parts.append("zima -%d kamienia" % materials_penalty)
 	_add_food(food_gain)
 	_add_water(card.water_gain)
 	_add_wood(wood_gain)
@@ -1070,10 +1080,15 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 		"scout_reveal":
 			_scout_reveal()
 	var summary: String = _action_delta_summary(snapshot)
-	var suffix: String = "."
+	var lines: PackedStringArray = ["%s: %s." % [log_prefix, card.display_name]]
+	if card_summary != "":
+		lines.append("Karta: %s." % card_summary)
+	lines.append("Bonusy/modyfikatory: %s." % (
+		", ".join(bonus_parts) if not bonus_parts.is_empty() else "brak"
+	))
 	if summary != "":
-		suffix = ": %s." % summary
-	log_message.emit("%s: %s%s" % [log_prefix, card.display_name, suffix])
+		lines.append("Razem: %s." % summary)
+	log_message.emit("\n".join(lines))
 
 
 func _action_state_snapshot() -> Dictionary:
@@ -1105,6 +1120,43 @@ func _action_delta_summary(before: Dictionary) -> String:
 	if not bool(before["has_tools"]) and state.has_tools:
 		parts.append("narzędzia: tak")
 	return ", ".join(parts)
+
+
+func _action_card_base_summary(card: ActionCardData) -> String:
+	var parts: PackedStringArray = []
+	_append_delta_part(parts, -card.energy_cost, "energii")
+	_append_delta_part(parts, -card.food_cost, "jedzenia")
+	_append_delta_part(parts, -card.wood_cost, "drewna")
+	_append_delta_part(parts, -card.materials_cost, "kamienia")
+	_append_delta_part(parts, card.health_delta, "zdrowia")
+	_append_delta_part(parts, card.hunger_delta, "sytości")
+	_append_delta_part(parts, card.thirst_delta, "nawodnienia")
+	_append_delta_part(parts, card.warmth_delta, "ciepła")
+	_append_delta_part(parts, card.energy_delta, "energii")
+	_append_delta_part(parts, card.food_gain, "jedzenia")
+	_append_delta_part(parts, card.water_gain, "wody")
+	_append_delta_part(parts, card.wood_gain, "drewna")
+	_append_delta_part(parts, card.materials_gain, "kamienia")
+	var special := _action_special_log_text(card.special)
+	if special != "":
+		parts.append(special)
+	return ", ".join(parts)
+
+
+func _action_special_log_text(special: String) -> String:
+	match special:
+		"craft_tools":
+			return "tworzy narzędzia"
+		"explore":
+			return "losowe znalezisko"
+		"double_explore":
+			return "2 losowe znaleziska"
+		"draw_two":
+			return "+2 karty do ręki"
+		"scout_reveal":
+			return "odsłania sąsiedni kafel"
+		_:
+			return ""
 
 
 func _append_delta_part(parts: PackedStringArray, delta: int, label: String) -> void:

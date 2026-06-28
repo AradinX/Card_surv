@@ -5,7 +5,8 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 1
-health_delta = 2
+health_delta = 1
+energy_delta = 2
 id = "deep_sleep"
 display_name = "Głęboki sen"
 description = "Prześpij część dnia, by dojść do siebie."

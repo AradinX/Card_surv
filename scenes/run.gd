@@ -113,7 +113,21 @@ const NIGHT_PANEL_BASE := Vector2(460, 560)
 const NIGHT_NOTE_BASE := Vector2(340, 300)
 const NIGHT_LAYOUT_GAP := 28.0
 const PAUSE_PANEL_BASE := Vector2(460, 430)
-const TUTORIAL_PANEL_BASE := Vector2(390, 156)
+const TUTORIAL_PANEL_BASE := Vector2(430, 190)
+const TUTORIAL_HIGHLIGHT_PAD := 8.0
+const TUTORIAL_BIOME_CARDS := 0
+const TUTORIAL_LOGS := 1
+const TUTORIAL_TOP_STATS := 2
+const TUTORIAL_HAND_CARDS := 3
+const TUTORIAL_BUILD_BUTTON := 4
+const TUTORIAL_BUILD_CAMPFIRE := 5
+const TUTORIAL_CLICK_BUILDING := 6
+const TUTORIAL_USE_BUILDING := 7
+const TUTORIAL_END_DAY := 8
+const TUTORIAL_NIGHT_EVENT := 9
+const TUTORIAL_DISCOVER_TILE := 10
+const TUTORIAL_REPAIR_BUILDING := 11
+const TUTORIAL_DONE := 12
 
 @onready var _background: ColorRect = $Background
 @onready var _background_art: TextureRect = $BackgroundArt
@@ -174,8 +188,16 @@ var _building_info_popup
 var _deck_button: Button
 var _deck_dialog: AcceptDialog
 var _log_drop_zone
+var _tutorial_overlay: Control
+var _tutorial_dim: ColorRect
+var _tutorial_highlight: Panel
 var _tutorial_panel: PanelContainer
+var _tutorial_title: Label
 var _tutorial_label: Label
+var _tutorial_next_button: Button
+var _tutorial_step := TUTORIAL_BIOME_CARDS
+var _tutorial_hand_played := {}
+var _tutorial_delay_token := 0
 var _night_fx: Array[Node] = []
 var _night_tween: Tween
 var _weather_overlay: TextureRect
@@ -341,47 +363,67 @@ func _fit_building_popup(viewport_size: Vector2) -> void:
 
 
 func _fit_tutorial_panel(viewport_size: Vector2) -> void:
-	if _tutorial_panel == null:
+	if _tutorial_overlay == null:
 		return
-	var width := minf(TUTORIAL_PANEL_BASE.x, maxf(viewport_size.x - 32.0, 280.0))
-	var height := minf(TUTORIAL_PANEL_BASE.y, maxf(viewport_size.y - 140.0, 120.0))
-	_tutorial_panel.anchor_left = 1.0
-	_tutorial_panel.anchor_top = 0.0
-	_tutorial_panel.anchor_right = 1.0
-	_tutorial_panel.anchor_bottom = 0.0
-	_tutorial_panel.offset_left = -width - 24.0
-	_tutorial_panel.offset_top = 112.0
-	_tutorial_panel.offset_right = -24.0
-	_tutorial_panel.offset_bottom = 112.0 + height
+	_tutorial_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_tutorial_overlay.offset_left = 0.0
+	_tutorial_overlay.offset_top = 0.0
+	_tutorial_overlay.offset_right = 0.0
+	_tutorial_overlay.offset_bottom = 0.0
+	call_deferred("_update_tutorial_visuals")
 
 
 func _setup_tutorial_panel() -> void:
 	if not GameManager.tutorial_mode:
 		return
+	_tutorial_overlay = Control.new()
+	_tutorial_overlay.name = "TutorialCoachOverlay"
+	_tutorial_overlay.z_index = 160
+	_tutorial_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tutorial_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(_tutorial_overlay)
+
+	_tutorial_dim = ColorRect.new()
+	_tutorial_dim.name = "Dim"
+	_tutorial_dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tutorial_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_tutorial_dim.color = Color(0.02, 0.025, 0.02, 0.0)
+	_tutorial_overlay.add_child(_tutorial_dim)
+
+	_tutorial_highlight = Panel.new()
+	_tutorial_highlight.name = "Highlight"
+	_tutorial_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var highlight_style := StyleBoxFlat.new()
+	highlight_style.bg_color = Color(1.0, 0.86, 0.32, 0.08)
+	highlight_style.set_border_width_all(3)
+	highlight_style.border_color = Color(1.0, 0.82, 0.22, 1.0)
+	highlight_style.set_corner_radius_all(8)
+	_tutorial_highlight.add_theme_stylebox_override("panel", highlight_style)
+	_tutorial_overlay.add_child(_tutorial_highlight)
+
 	_tutorial_panel = PanelContainer.new()
 	_tutorial_panel.name = "TutorialHintPanel"
-	_tutorial_panel.z_index = 30
-	_tutorial_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tutorial_panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.045, 0.055, 0.04, 0.92)
+	style.bg_color = Color(0.045, 0.055, 0.04, 0.96)
 	style.set_border_width_all(2)
 	style.border_color = Color(0.84, 0.68, 0.28, 0.95)
 	style.set_corner_radius_all(6)
 	style.set_content_margin_all(12)
 	_tutorial_panel.add_theme_stylebox_override("panel", style)
-	add_child(_tutorial_panel)
+	_tutorial_overlay.add_child(_tutorial_panel)
 
 	var box := VBoxContainer.new()
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.mouse_filter = Control.MOUSE_FILTER_PASS
 	box.add_theme_constant_override("separation", 6)
 	_tutorial_panel.add_child(box)
 
-	var title := Label.new()
-	title.text = "Samouczek"
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	title.add_theme_font_size_override("font_size", 20)
-	title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.36))
-	box.add_child(title)
+	_tutorial_title = Label.new()
+	_tutorial_title.text = "Samouczek"
+	_tutorial_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tutorial_title.add_theme_font_size_override("font_size", 20)
+	_tutorial_title.add_theme_color_override("font_color", Color(1.0, 0.82, 0.36))
+	box.add_child(_tutorial_title)
 
 	_tutorial_label = Label.new()
 	_tutorial_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -389,24 +431,268 @@ func _setup_tutorial_panel() -> void:
 	_tutorial_label.add_theme_font_size_override("font_size", 15)
 	_tutorial_label.add_theme_color_override("font_color", Color(0.92, 0.88, 0.74))
 	box.add_child(_tutorial_label)
+
+	_tutorial_next_button = Button.new()
+	_tutorial_next_button.custom_minimum_size = Vector2(160, 42)
+	_tutorial_next_button.text = "Dalej"
+	_tutorial_next_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	_tutorial_next_button.pressed.connect(_on_tutorial_next_pressed)
+	ButtonSkin.apply_minimal(_tutorial_next_button)
+	box.add_child(_tutorial_next_button)
 	_update_tutorial_panel()
 
 
 func _update_tutorial_panel() -> void:
-	if _tutorial_panel == null or _survival == null or _survival.state == null:
+	if _tutorial_overlay == null or _tutorial_panel == null or _survival == null or _survival.state == null:
 		return
-	match _survival.state.day:
-		1:
-			_tutorial_label.text = "Dzie\u0144 1: przeci\u0105gnij kart\u0119 akcji na kartk\u0119 log\u00f3w albo obecny biom. Zdob\u0105d\u017a wod\u0119, jedzenie i drewno. Potem otw\u00f3rz Budowanie i postaw pierwszy budynek."
-			_tutorial_panel.visible = true
-		2:
-			_tutorial_label.text = "Dzie\u0144 2: kliknij budynek na biomie, zobacz jego opis i u\u017cyj akcji. Sprawd\u017a te\u017c odkrywanie kafla albo kart\u0119 rozpoznania."
-			_tutorial_panel.visible = true
-		3:
-			_tutorial_label.text = "Cz\u0119\u015b\u0107 prowadzona zako\u0144czona. Dalej grasz normalnie: rozwijaj tali\u0119, buduj osad\u0119 i przygotuj si\u0119 na BUM."
-			_tutorial_panel.visible = true
+	var copy := _tutorial_step_copy()
+	_tutorial_title.text = str(copy.get("title", "Samouczek"))
+	_tutorial_label.text = str(copy.get("body", ""))
+	_tutorial_overlay.visible = true
+	if _tutorial_next_button != null:
+		_tutorial_next_button.visible = _tutorial_step_requires_next()
+		_tutorial_next_button.text = "Zako\u0144cz samouczek" if _tutorial_step == TUTORIAL_DONE else "Dalej"
+	_update_tutorial_visuals()
+
+
+func _tutorial_step_copy() -> Dictionary:
+	var forecast := _survival.end_of_day_forecast()
+	var night_line := "Co noc: syto\u015b\u0107 -%d, nawodnienie -%d, ciep\u0142o -%d. Budynki mog\u0105 to zmieni\u0107." % [
+		int(forecast["hunger_decay"]),
+		int(forecast["thirst_decay"]),
+		int(forecast["warmth_decay"]),
+	]
+	match _tutorial_step:
+		TUTORIAL_BIOME_CARDS:
+			return {
+				"title": "1/12 Karty biomu",
+				"body": "To s\u0105 akcje dost\u0119pne na aktualnym biomie. Na lesie mo\u017cesz pozyska\u0107 drewno. Przeci\u0105gnij kart\u0119 R\u0105b drewno na kartk\u0119 log\u00f3w albo na obecny kafel."
+			}
+		TUTORIAL_LOGS:
+			return {
+				"title": "2/12 Logi",
+				"body": "Tutaj pojawia si\u0119 zapis przebiegu runu. Log pokazuje faktyczne koszty, zdobyte zasoby, modyfikatory pory roku oraz efekty budynk\u00f3w."
+			}
+		TUTORIAL_TOP_STATS:
+			return {
+				"title": "3/12 Pasek stanu",
+				"body": "Pasek u g\u00f3ry pokazuje dzie\u0144, poziom, zdrowie, syto\u015b\u0107, nawodnienie, ciep\u0142o, energi\u0119 oraz zapasy. Najed\u017a kursorem na por\u0119 roku, aby zobaczy\u0107 jej bonusy i kary. " + night_line
+			}
+		TUTORIAL_HAND_CARDS:
+			return {
+				"title": "4/12 Karty w r\u0119ce",
+				"body": "To talia akcji dobrana na bie\u017c\u0105cy dzie\u0144. Zagraj \u0179r\u00f3d\u0142o, aby uzupe\u0142ni\u0107 wod\u0119, oraz Zbieractwo, aby zdoby\u0107 jedzenie i poprawi\u0107 syto\u015b\u0107."
+			}
+		TUTORIAL_BUILD_BUTTON:
+			return {
+				"title": "5/12 Budowanie",
+				"body": "Przejd\u017a do trybu budowania. Lista poka\u017ce konstrukcje dost\u0119pne na obecnym biomie wraz z kosztem energii, drewna i kamienia."
+			}
+		TUTORIAL_BUILD_CAMPFIRE:
+			return {
+				"title": "6/12 Ognisko",
+				"body": "Zbuduj Ognisko, przeci\u0105gaj\u0105c jego kart\u0119 na obecny biom albo na kartk\u0119 log\u00f3w. Ognisko dodaje ciep\u0142o podczas nocy, ale stopniowo traci HP."
+			}
+		TUTORIAL_CLICK_BUILDING:
+			return {
+				"title": "7/12 Budynek na kaflu",
+				"body": "Budynek jest teraz widoczny na kaflu. Kliknij jego ikon\u0119, aby otworzy\u0107 szczeg\u00f3\u0142y: HP, efekt pasywny, akcj\u0119, napraw\u0119 i rozbi\u00f3rk\u0119."
+			}
+		TUTORIAL_USE_BUILDING:
+			return {
+				"title": "8/12 Akcja budynku",
+				"body": "Cz\u0119\u015b\u0107 budynk\u00f3w ma aktywne akcje wykonywane za energi\u0119. U\u017cyj akcji Ogrzej si\u0119. Pami\u0119taj: niekt\u00f3re konstrukcje trac\u0105 HP przez u\u017cycie, prac\u0119 lub nocne zu\u017cycie."
+			}
+		TUTORIAL_END_DAY:
+			return {
+				"title": "9/12 Koniec dnia",
+				"body": "Najed\u017a na Koniec dnia, aby sprawdzi\u0107 prognoz\u0119 nocy: spadki potrzeb, zapasy i wp\u0142yw budynk\u00f3w. Nast\u0119pnie zako\u0144cz dzie\u0144."
+			}
+		TUTORIAL_NIGHT_EVENT:
+			return {
+				"title": "10/12 Noc",
+				"body": "Karta nocy pokazuje wydarzenie, a notatka obok podsumowuje efekty dodatnie i ujemne. W tym miejscu wida\u0107 r\u00f3wnie\u017c, jak budynki wp\u0142ywaj\u0105 na wynik nocy. Po przeczytaniu kliknij Dalej w panelu nocy."
+			}
+		TUTORIAL_DISCOVER_TILE:
+			return {
+				"title": "11/12 Odkrywanie",
+				"body": "Drugiego dnia odkryj s\u0105siedni, nieznany kafel. Odkrywanie kosztuje energi\u0119 i mo\u017ce doda\u0107 zagro\u017cenia danego biomu do nocnej puli wydarze\u0144."
+			}
+		TUTORIAL_REPAIR_BUILDING:
+			return {
+				"title": "12/12 Naprawa",
+				"body": "Po nocy ognisko mo\u017ce mie\u0107 mniej HP. Otw\u00f3rz szczeg\u00f3\u0142y budynku i u\u017cyj naprawy, aby zobaczy\u0107 koszt oraz przywr\u00f3ci\u0107 wytrzyma\u0142o\u015b\u0107."
+			}
+		TUTORIAL_DONE:
+			return {
+				"title": "Samouczek zako\u0144czony",
+				"body": "Chyba ju\u017c rozumiesz podstawy. Pora wr\u00f3ci\u0107 do menu i rozpocz\u0105\u0107 normaln\u0105 gr\u0119."
+			}
 		_:
-			_tutorial_panel.visible = false
+			return {"title": "Samouczek", "body": ""}
+
+
+func _update_tutorial_visuals() -> void:
+	if _tutorial_overlay == null or not _tutorial_overlay.visible:
+		return
+	if _tutorial_step == TUTORIAL_DONE:
+		_tutorial_highlight.visible = false
+		var viewport_size := get_viewport_rect().size
+		var width := minf(TUTORIAL_PANEL_BASE.x, maxf(viewport_size.x - 32.0, 280.0))
+		var height := minf(TUTORIAL_PANEL_BASE.y, maxf(viewport_size.y - 32.0, 140.0))
+		_tutorial_panel.custom_minimum_size = Vector2(width, height)
+		_tutorial_panel.size = Vector2(width, height)
+		_tutorial_panel.position = viewport_size * 0.5 - Vector2(width, height) * 0.5
+		return
+	var rect := _tutorial_target_rect()
+	var viewport_size := get_viewport_rect().size
+	if rect.size.x <= 1.0 or rect.size.y <= 1.0:
+		rect = Rect2(Vector2(24, 112), Vector2(360, 160))
+	_tutorial_highlight.visible = not _tutorial_should_hide_highlight()
+	var pad := TUTORIAL_HIGHLIGHT_PAD
+	var highlight_rect := Rect2(
+		rect.position - Vector2(pad, pad),
+		rect.size + Vector2(pad * 2.0, pad * 2.0)
+	)
+	_tutorial_highlight.position = highlight_rect.position
+	_tutorial_highlight.size = highlight_rect.size
+	_position_tutorial_panel(rect, viewport_size)
+
+
+func _tutorial_should_hide_highlight() -> bool:
+	if _building_info_popup == null or not _building_info_popup.visible:
+		return false
+	return _tutorial_step in [TUTORIAL_USE_BUILDING, TUTORIAL_REPAIR_BUILDING]
+
+
+func _position_tutorial_panel(target_rect: Rect2, viewport_size: Vector2) -> void:
+	var width := minf(TUTORIAL_PANEL_BASE.x, maxf(viewport_size.x - 32.0, 280.0))
+	var height := minf(TUTORIAL_PANEL_BASE.y, maxf(viewport_size.y - 32.0, 140.0))
+	_tutorial_panel.custom_minimum_size = Vector2(width, height)
+	_tutorial_panel.size = Vector2(width, height)
+	var pos := Vector2(target_rect.position.x, target_rect.end.y + 14.0)
+	if pos.y + height > viewport_size.y - 16.0:
+		pos.y = target_rect.position.y - height - 14.0
+	if pos.y < 16.0:
+		pos.y = 16.0
+	if pos.x + width > viewport_size.x - 16.0:
+		pos.x = viewport_size.x - width - 16.0
+	if pos.x < 16.0:
+		pos.x = 16.0
+	_tutorial_panel.position = pos
+
+
+func _tutorial_target_rect() -> Rect2:
+	match _tutorial_step:
+		TUTORIAL_BIOME_CARDS:
+			return _node_rect(_gather_bar)
+		TUTORIAL_LOGS:
+			return _node_rect(_log_panel)
+		TUTORIAL_TOP_STATS:
+			return _node_rect(_top_status_bar)
+		TUTORIAL_HAND_CARDS:
+			return _node_rect(_hand_container)
+		TUTORIAL_BUILD_BUTTON:
+			return _node_rect(_build_toggle_button)
+		TUTORIAL_BUILD_CAMPFIRE:
+			return _node_rect(_build_scroll)
+		TUTORIAL_CLICK_BUILDING:
+			return _current_tile_rect()
+		TUTORIAL_USE_BUILDING:
+			return _node_rect(_building_info_popup if _building_info_popup != null and _building_info_popup.visible else _current_tile_button())
+		TUTORIAL_END_DAY:
+			return _node_rect(_end_day_button)
+		TUTORIAL_NIGHT_EVENT:
+			return _node_rect(_night_note_panel if _night_note_panel.visible else _night_overlay)
+		TUTORIAL_DISCOVER_TILE:
+			return _discoverable_tile_rect()
+		TUTORIAL_REPAIR_BUILDING:
+			return _node_rect(_building_info_popup if _building_info_popup != null and _building_info_popup.visible else _board_grid)
+		_:
+			return Rect2()
+
+
+func _node_rect(node: Variant) -> Rect2:
+	if node is Control and is_instance_valid(node):
+		return (node as Control).get_global_rect()
+	return Rect2()
+
+
+func _current_tile_button() -> Control:
+	if _survival == null or _survival.state == null:
+		return null
+	var idx := _survival.state.current_tile
+	if idx >= 0 and idx < _tile_buttons.size():
+		return _tile_buttons[idx]
+	return null
+
+
+func _current_tile_rect() -> Rect2:
+	return _node_rect(_current_tile_button())
+
+
+func _discoverable_tile_rect() -> Rect2:
+	if _survival == null or _survival.state == null:
+		return _node_rect(_board_grid)
+	for i in _survival.state.board.size():
+		if BoardGenerator.are_adjacent(_survival.state.current_tile, i) \
+				and not _survival.state.board[i].is_discovered \
+				and i < _tile_buttons.size():
+			return _tile_buttons[i].get_global_rect()
+	return _node_rect(_board_grid)
+
+
+func _tutorial_set_step(step: int) -> void:
+	if not GameManager.tutorial_mode or _tutorial_step == TUTORIAL_DONE:
+		return
+	if step <= _tutorial_step and step != TUTORIAL_DONE:
+		return
+	_tutorial_step = step
+	_tutorial_delay_token += 1
+	_update_tutorial_panel()
+	call_deferred("_update_tutorial_visuals")
+
+
+func _tutorial_step_requires_next() -> bool:
+	return _tutorial_step in [
+		TUTORIAL_LOGS,
+		TUTORIAL_TOP_STATS,
+		TUTORIAL_DONE,
+	]
+
+
+func _on_tutorial_next_pressed() -> void:
+	match _tutorial_step:
+		TUTORIAL_LOGS:
+			_tutorial_set_step(TUTORIAL_TOP_STATS)
+		TUTORIAL_TOP_STATS:
+			_tutorial_set_step(TUTORIAL_HAND_CARDS)
+		TUTORIAL_NIGHT_EVENT:
+			_hide_night_event()
+			_survival.resolve_night()
+		TUTORIAL_DONE:
+			GameManager.return_to_menu()
+		_:
+			pass
+
+
+func _tutorial_on_card_played(source: String, card_id: String) -> void:
+	if not GameManager.tutorial_mode:
+		return
+	match _tutorial_step:
+		TUTORIAL_BIOME_CARDS:
+			if source == "gather":
+				_tutorial_set_step(TUTORIAL_LOGS)
+		TUTORIAL_HAND_CARDS:
+			if source == "hand" and card_id in ["find_water", "forage"]:
+				_tutorial_hand_played[card_id] = true
+				if _tutorial_hand_played.has("find_water") and _tutorial_hand_played.has("forage"):
+					_tutorial_set_step(TUTORIAL_BUILD_BUTTON)
+		TUTORIAL_BUILD_CAMPFIRE:
+			if source == "build" and card_id == "building_campfire":
+				_tutorial_set_step(TUTORIAL_CLICK_BUILDING)
+		_:
+			pass
 
 
 ## Esc toggles the pause menu. If the settings panel is open (from pause), Esc
@@ -490,13 +776,21 @@ func _on_end_day_pressed() -> void:
 	if _build_mode:
 		_set_build_mode(false)
 	_survival.end_day()
+	if GameManager.tutorial_mode and _tutorial_step == TUTORIAL_END_DAY:
+		call_deferred("_update_tutorial_visuals")
 
 
 func _on_day_started(day: int) -> void:
 	_top_status_bar.set_day(day, SurvivalSystem.WIN_DAY, _survival.state.season)
 	_update_weather()
 	_update_forecast()
-	_update_tutorial_panel()
+	if GameManager.tutorial_mode:
+		if day == 2 and _tutorial_step <= TUTORIAL_NIGHT_EVENT:
+			_tutorial_set_step(TUTORIAL_DISCOVER_TILE)
+		elif day >= 3 and _tutorial_step < TUTORIAL_DONE:
+			_tutorial_set_step(TUTORIAL_DONE)
+		else:
+			_update_tutorial_panel()
 
 
 func _on_stats_changed(state: RunState) -> void:
@@ -543,6 +837,8 @@ func _on_tile_discovered(tile_index: int) -> void:
 	AudioManager.play_sfx("discover")
 	if tile_index >= 0 and tile_index < _tile_buttons.size():
 		_tile_buttons[tile_index].play_discovery_fx()
+	if GameManager.tutorial_mode and _tutorial_step == TUTORIAL_DISCOVER_TILE:
+		_tutorial_set_step(TUTORIAL_REPAIR_BUILDING)
 
 
 func _refresh_tiles(state: RunState) -> void:
@@ -610,6 +906,11 @@ func _show_building_info(building_index: int, anchor: Rect2 = Rect2()) -> void:
 	if popup_data.is_empty():
 		return
 	_building_info_popup.popup_for(popup_data, anchor, get_viewport_rect().size)
+	if GameManager.tutorial_mode:
+		if _tutorial_step == TUTORIAL_CLICK_BUILDING:
+			_tutorial_set_step(TUTORIAL_USE_BUILDING)
+		elif _tutorial_step == TUTORIAL_REPAIR_BUILDING:
+			call_deferred("_update_tutorial_visuals")
 
 
 func _refresh_building_info_popup() -> void:
@@ -710,6 +1011,8 @@ func _on_building_info_use_pressed(building_index: int) -> void:
 	AudioManager.play_sfx("card_play")
 	_refresh_building_actions()
 	_refresh_building_info_popup()
+	if GameManager.tutorial_mode and _tutorial_step == TUTORIAL_USE_BUILDING:
+		_tutorial_set_step(TUTORIAL_END_DAY)
 
 
 func _on_building_info_repair_pressed(building_index: int) -> void:
@@ -720,6 +1023,8 @@ func _on_building_info_repair_pressed(building_index: int) -> void:
 	_spawn_tile_fx(REPAIR_FX, true)
 	_refresh_building_actions()
 	_refresh_building_info_popup()
+	if GameManager.tutorial_mode and _tutorial_step == TUTORIAL_REPAIR_BUILDING:
+		_tutorial_set_step(TUTORIAL_DONE)
 
 
 func _on_building_info_demolish_pressed(building_index: int) -> void:
@@ -945,6 +1250,10 @@ func _set_build_mode(enabled: bool) -> void:
 	if enabled:
 		_hide_building_popup()
 		_refresh_build_cards()
+		if GameManager.tutorial_mode and _tutorial_step == TUTORIAL_BUILD_BUTTON:
+			_tutorial_set_step(TUTORIAL_BUILD_CAMPFIRE)
+	if GameManager.tutorial_mode:
+		call_deferred("_update_tutorial_visuals")
 
 
 ## Catalog of buildings as cards, greyed out when they can't be placed on the
@@ -1491,6 +1800,8 @@ func _apply_close_button_skin() -> void:
 func _on_night_card_drawn(card: CardData) -> void:
 	_clear_night_card()
 	_night_overlay.visible = true
+	if GameManager.tutorial_mode and _tutorial_step == TUTORIAL_END_DAY:
+		_tutorial_set_step(TUTORIAL_NIGHT_EVENT)
 	# Locked until the reveal animation finishes, so the card is always read
 	# before its effects resolve (re-enabled on the reveal tween's `finished`).
 	_night_continue_button.disabled = true
@@ -1989,6 +2300,7 @@ func _play_dragged_hand_card(payload: Dictionary, feedback_position: Vector2) ->
 		return
 	_card_feedback_fx_at(card, feedback_position)
 	_survival.play_card(index)
+	_tutorial_on_card_played("hand", card.id)
 
 
 func _play_dragged_gather_card(payload: Dictionary, feedback_position: Vector2) -> void:
@@ -2002,6 +2314,7 @@ func _play_dragged_gather_card(payload: Dictionary, feedback_position: Vector2) 
 		return
 	_card_feedback_fx_at(action, feedback_position)
 	_survival.play_gather(action)
+	_tutorial_on_card_played("gather", action.id)
 
 
 func _play_dragged_building_card(payload: Dictionary, _feedback_position: Vector2) -> void:
@@ -2018,6 +2331,7 @@ func _play_dragged_building_card(payload: Dictionary, _feedback_position: Vector
 	_spawn_tile_fx(BUILD_PLACE_FX, false)
 	if _build_mode:
 		_refresh_build_cards()
+	_tutorial_on_card_played("build", building.id)
 
 
 func _resolve_hand_card_index(payload: Dictionary) -> int:
