@@ -55,6 +55,27 @@ const POST_BUM_BUILD_MATERIALS_SURCHARGE := 5
 ## buildings return less, because some materials are lost during careful removal.
 const DEMOLISH_REFUND_DIVISOR := 2
 const DEMOLISH_STANDING_REFUND_DIVISOR := 4
+const DAILY_BUILDING_WEAR := 1
+const BUILDING_PASSIVE_WEAR := 1
+const BUILDING_ACTION_WEAR := 1
+const NIGHTLY_WEAR_BUILDING_IDS := ["building_campfire"]
+const EVERY_OTHER_DAY_WEAR_BUILDING_IDS := [
+	"building_hut",
+	"building_palisade",
+	"building_watchtower",
+	"building_reinforced_shelter",
+	"building_bastion",
+]
+const PASSIVE_WEAR_EXCLUDED_BUILDING_IDS := [
+	"building_campfire",
+	"building_hut",
+	"building_palisade",
+	"building_watchtower",
+	"building_reinforced_shelter",
+	"building_bastion",
+	"building_pantry",
+	"building_wood_storage",
+]
 const HAND_SIZE := 4
 const MOVE_ENERGY_COST := 1
 const DAILY_HUNGER_DECAY := 3
@@ -451,7 +472,12 @@ func use_building(building_index: int) -> void:
 		str(action.get("title", "Akcja")),
 		": %s." % summary if summary != "" else ".",
 	])
+	_apply_building_wear(built, BUILDING_ACTION_WEAR, "Użycie zużywa %s (-%d HP)." % [
+		built.data.display_name,
+		BUILDING_ACTION_WEAR,
+	])
 	stats_changed.emit(state)
+	board_changed.emit(state)
 	if drawn > 0:
 		hand_changed.emit(hand)
 
@@ -472,6 +498,9 @@ func can_play(card: CardData) -> String:
 		)
 	if card is BuildingCardData:
 		var building := card as BuildingCardData
+		var lock_reason := _biome_lock_reason(building)
+		if lock_reason != "":
+			return lock_reason
 		if current_tile().buildings.size() >= current_tile().biome.building_slots:
 			return "Brak wolnych slotów w tym biomie."
 		return _cost_block_reason(
@@ -512,16 +541,16 @@ func building_catalog() -> Array[BuildingCardData]:
 	return _building_catalog
 
 
-## True if the building should SHOW in the build panel now: its biome is
-## discovered (or none required) and it isn't an Act II-only building pre-BUM.
+## True if the building should SHOW in the build panel now: generic buildings
+## show everywhere, biome buildings only on their matching current biome.
 func is_building_available(building: BuildingCardData) -> bool:
 	if building.act2_only and not state.bum_happened:
 		return false
 	return _biome_lock_reason(building) == ""
 
 
-## Catalog filtered to what the player can currently build (locked biome / Act II
-## buildings are hidden, not greyed). Affordability still greys via can_build.
+## Catalog filtered to what can be built on the current biome. Affordability
+## still greys via can_build, but wrong-biome buildings are hidden.
 func available_buildings() -> Array[BuildingCardData]:
 	var out: Array[BuildingCardData] = []
 	for building in _building_catalog:
@@ -588,18 +617,17 @@ const BIOME_DISPLAY_NAMES := {
 }
 
 
-## "" if the building has no biome requirement or at least one required biome is
-## already discovered; otherwise a "needs discovery" reason naming the biomes.
+## "" if the building has no biome requirement or the current biome matches.
+## Otherwise returns a player-facing reason naming the allowed biomes.
 func _biome_lock_reason(building: BuildingCardData) -> String:
 	if building.required_biome_ids.is_empty():
 		return ""
-	for tile in state.board:
-		if tile.is_discovered and tile.biome.id in building.required_biome_ids:
-			return ""
+	if current_tile().biome.id in building.required_biome_ids:
+		return ""
 	var names: PackedStringArray = []
 	for biome_id in building.required_biome_ids:
 		names.append(BIOME_DISPLAY_NAMES.get(biome_id, biome_id))
-	return "Wymaga odkrycia: " + " / ".join(names)
+	return "Można budować tylko na: " + " / ".join(names)
 
 
 ## Effective build cost on the current tile (class discount + post-BUM surcharge),
@@ -688,7 +716,9 @@ func resolve_night(choice_index: int = 0) -> void:
 				_resolve_event(event)
 	_night_choice_done = false
 	_resolve_needs()
+	_resolve_scheduled_building_wear()
 	stats_changed.emit(state)
+	board_changed.emit(state)
 
 	if state.health <= 0:
 		_finish(false)
@@ -1315,6 +1345,69 @@ func building_max_hp(building: BuildingCardData) -> int:
 	return building.max_hp + state.character_class.building_hp_bonus
 
 
+func _apply_building_wear(built: BuildingState, amount: int, message: String = "") -> void:
+	if built == null or built.is_ruined or amount <= 0:
+		return
+	built.hp = maxi(built.hp - amount, 0)
+	if message != "":
+		log_message.emit(message)
+	_check_ruin(built)
+
+
+func _resolve_scheduled_building_wear() -> void:
+	var wear_logs: PackedStringArray = []
+	for tile in state.board:
+		for built in tile.buildings:
+			if built.is_ruined:
+				continue
+			var building_id := built.data.id
+			if NIGHTLY_WEAR_BUILDING_IDS.has(building_id):
+				_apply_building_wear(built, DAILY_BUILDING_WEAR)
+				wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
+			elif state.day % 2 == 0 and EVERY_OTHER_DAY_WEAR_BUILDING_IDS.has(building_id):
+				_apply_building_wear(built, DAILY_BUILDING_WEAR)
+				wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
+	if not wear_logs.is_empty():
+		log_message.emit("Zużycie budynków: %s." % "; ".join(wear_logs))
+
+
+func _should_passive_wear(data: BuildingCardData, apply_stat_passives: bool) -> bool:
+	if data == null or PASSIVE_WEAR_EXCLUDED_BUILDING_IDS.has(data.id):
+		return false
+	if data.food_gain != 0 or data.water_gain != 0 or data.wood_gain != 0 or data.materials_gain != 0:
+		return true
+	if apply_stat_passives and (
+		data.health_delta != 0 or data.hunger_delta != 0
+		or data.thirst_delta != 0 or data.warmth_delta != 0
+	):
+		return true
+	return false
+
+
+func _resolve_stat_passive_building_wear(stat_key: String) -> void:
+	var wear_logs: PackedStringArray = []
+	for tile in state.board:
+		for built in tile.buildings:
+			if built.is_ruined or not _should_passive_wear(built.data, true):
+				continue
+			var value := 0
+			match stat_key:
+				"health":
+					value = built.data.health_delta
+				"hunger":
+					value = built.data.hunger_delta
+				"thirst":
+					value = built.data.thirst_delta
+				"warmth":
+					value = built.data.warmth_delta
+			if value == 0:
+				continue
+			_apply_building_wear(built, BUILDING_PASSIVE_WEAR)
+			wear_logs.append("%s -%d HP" % [built.data.display_name, BUILDING_PASSIVE_WEAR])
+	if not wear_logs.is_empty():
+		log_message.emit("Praca budynków zużywa: %s." % "; ".join(wear_logs))
+
+
 ## Below 50% HP a building collapses into a ruin: passives, defense and
 ## specials stop working; it can only be torn down (README BUM threshold).
 func _check_ruin(built: BuildingState) -> void:
@@ -1331,6 +1424,7 @@ func _check_ruin(built: BuildingState) -> void:
 
 func _resolve_building_passives(apply_stat_passives: bool = true) -> void:
 	var building_logs: PackedStringArray = []
+	var wear_logs: PackedStringArray = []
 	for tile in state.board:
 		for built in tile.buildings:
 			if built.is_ruined:
@@ -1348,11 +1442,16 @@ func _resolve_building_passives(apply_stat_passives: bool = true) -> void:
 			var summary := _action_delta_summary(snapshot)
 			if summary != "":
 				building_logs.append("%s %s" % [data.display_name, summary])
+				if _should_passive_wear(data, apply_stat_passives):
+					_apply_building_wear(built, BUILDING_PASSIVE_WEAR)
+					wear_logs.append("%s -%d HP" % [data.display_name, BUILDING_PASSIVE_WEAR])
 			# Workshop crafting: turns a spare log into a material each day.
 			if data.special == "unlock_crafting" and state.wood > 0:
 				snapshot = _action_state_snapshot()
 				state.wood -= 1
 				_add_materials(1)
+				_apply_building_wear(built, BUILDING_PASSIVE_WEAR)
+				wear_logs.append("%s -%d HP" % [data.display_name, BUILDING_PASSIVE_WEAR])
 				summary = _action_delta_summary(snapshot)
 				if summary != "":
 					building_logs.append("%s przerabia drewno na kamień (%s)" % [
@@ -1363,6 +1462,10 @@ func _resolve_building_passives(apply_stat_passives: bool = true) -> void:
 					building_logs.append("%s próbuje przerobić drewno na kamień, ale magazyn jest pełny" % data.display_name)
 	if not building_logs.is_empty():
 		log_message.emit("Budynki nocą: %s." % "; ".join(building_logs))
+
+
+	if not wear_logs.is_empty():
+		log_message.emit("Praca budynków zużywa: %s." % "; ".join(wear_logs))
 
 
 func _standing_building_stat_passives() -> Dictionary:
@@ -1510,7 +1613,10 @@ func _resolve_needs() -> void:
 
 	var health_passive := int(stat_passives.get("health", 0))
 	if health_passive != 0:
+		var health_before_passive := state.health
 		state.health = clampi(state.health + health_passive, 0, state.max_health)
+		if state.health > health_before_passive:
+			_resolve_stat_passive_building_wear("health")
 
 	# Hunger: building passives and decay resolve as one nightly balance, then
 	# food is eaten from stock (class can change food efficiency).

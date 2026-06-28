@@ -29,7 +29,7 @@ void fragment() {
 @onready var _panel_art: TextureRect = $Root/PanelArt
 @onready var _title_label: Label = $Root/TitleLabel
 @onready var _hp_label: Label = $Root/HPLabel
-@onready var _status_label: Label = $Root/StatusLabel
+@onready var _status_label: Label = get_node_or_null("Root/StatusLabel") as Label
 @onready var _effects_label: Label = $Root/EffectsLabel
 @onready var _action_label: Label = $Root/ActionLabel
 @onready var _repair_label: Label = $Root/RepairLabel
@@ -72,8 +72,9 @@ func set_content(data: Dictionary) -> void:
 
 	_title_label.text = building_data.display_name if building_data != null else ""
 	_hp_label.text = str(data.get("hp_text", ""))
-	_status_label.text = ""
-	_status_label.visible = false
+	if _status_label != null:
+		_status_label.text = ""
+		_status_label.visible = false
 	_effects_label.text = str(data.get("effects_text", ""))
 	_action_label.text = str(data.get("action_text", ""))
 	_repair_label.text = str(data.get("repair_text", ""))
