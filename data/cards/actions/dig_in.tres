@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+energy_cost = 1
+materials_cost = 1
+warmth_delta = 1
+special = "ward_night"
+id = "dig_in"
+display_name = "Okopanie się"
+description = "Sypiesz wał z kamieni i gałęzi — osłona przed nocą i odrobina ciepła."

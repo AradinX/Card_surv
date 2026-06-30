@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+energy_cost = 2
+health_delta = 3
+warmth_delta = 1
+hunger_delta = 1
+id = "herbs_up"
+display_name = "Zioła: Mocny wywar"
+description = "Twój wywar leczy ciało, grzeje i odrobinę nasyca — prawdziwa apteczka w kubku."

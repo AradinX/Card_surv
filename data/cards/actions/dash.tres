@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+special = "free_move"
+id = "dash"
+display_name = "Bieg"
+description = "Zrywasz się i pędzisz przez ostępy — następne przejście nic nie kosztuje."

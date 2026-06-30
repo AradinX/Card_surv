@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+energy_delta = 3
+health_delta = 1
+id = "rest_up"
+display_name = "Odpoczynek: Głęboki sen"
+description = "Nauczyłeś się naprawdę regenerować — budzisz się silniejszy i zdrowszy."

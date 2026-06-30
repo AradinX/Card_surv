@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 energy_delta = 2
+upgrade_id = "res://data/cards/actions/upgrades/rest_up.tres"
 id = "rest"
 display_name = "Odpoczynek"
 description = "Złap oddech i zbierz siły."

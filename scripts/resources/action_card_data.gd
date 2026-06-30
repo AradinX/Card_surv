@@ -21,11 +21,21 @@ extends CardData
 @export var wood_gain: int = 0
 @export var materials_gain: int = 0
 
-## Special effects handled by RunSystem:
-## - build_shelter: shelter_level +1 (max RunState.MAX_SHELTER)
+## Special effects handled by SurvivalSystem:
 ## - craft_tools: sets has_tools (one-time; +1 food/wood gain from cards)
-## - explore: random reward rolled by RunSystem
-## - double_explore: two random reward rolls
-## - draw_two: draw 2 extra cards into hand
-@export_enum("none", "build_shelter", "craft_tools", "explore", "double_explore", "draw_two", "scout_reveal")
+## - explore / double_explore: one / two random reward rolls
+## - draw_two: refill hand by up to 2 cards
+## - scout_reveal: reveal a random adjacent undiscovered tile
+## - free_move: the next tile move today costs 0 energy
+## - repair_tile: patch the most damaged standing building on the current tile
+## - ward_night: this night's event/monster health & warmth losses are softened
+## - set_trap: negate one monster attack on you this night
+## - momentum: every later card played this turn refunds +1 energy
+## - rhythm: +1 energy for each card already played this turn
+## - combo_food: +2 extra food if you already played a food card this turn
+@export_enum("none", "build_shelter", "craft_tools", "explore", "double_explore", "draw_two", "scout_reveal", "free_move", "repair_tile", "ward_night", "set_trap", "momentum", "rhythm", "combo_food")
 var special: String = "none"
+
+## Optional one-step upgrade: res:// path of the ActionCardData this card becomes
+## when the player picks its upgrade reward (swaps in the deck). "" = no upgrade.
+@export var upgrade_id: String = ""

@@ -6,6 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 1
 special = "draw_two"
+upgrade_id = "res://data/cards/actions/upgrades/scout_up.tres"
 id = "scout"
 display_name = "Zwiad"
 description = "Rozejrzyj się i zaplanuj dzień."

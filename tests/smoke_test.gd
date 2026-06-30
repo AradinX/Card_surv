@@ -145,15 +145,24 @@ func _play_day(
 					if rewards.is_empty():
 						survival.claim_max_energy()
 					else:
-						survival.claim_card(rewards[rng.randi_range(0, rewards.size() - 1)])
+						survival.claim_card(_pick_reward(survival, rewards, rng))
 
-		# Greedy: first playable hand card...
+		# Greedy: first playable hand card — but a reasonable player won't burn
+		# health or satiety they can't spare (trade/tempo cards are opt-in).
 		var played := false
 		for i in survival.hand.size():
-			if survival.can_play(survival.hand[i]) == "":
-				survival.play_card(i)
-				played = true
-				break
+			var hand_card := survival.hand[i]
+			if survival.can_play(hand_card) != "":
+				continue
+			if hand_card is ActionCardData:
+				var ac := hand_card as ActionCardData
+				if ac.health_delta < 0 and survival.state.health + ac.health_delta <= 3:
+					continue
+				if ac.hunger_delta < 0 and survival.state.hunger + ac.hunger_delta <= 2:
+					continue
+			survival.play_card(i)
+			played = true
+			break
 		if played:
 			continue
 
@@ -209,3 +218,23 @@ func _play_day(
 	# Step guard tripped — end the day to keep the run moving.
 	survival.end_day()
 	survival.resolve_night()
+
+
+## A reasonable player's reward pick: take an upgrade of an owned card if offered
+## (strict improvement), else any card with no self-harm, else random.
+func _pick_reward(
+	survival: SurvivalSystem, rewards: Array[CardData], rng: RandomNumberGenerator
+) -> CardData:
+	var upgrade_ids := {}
+	for upgrade in survival.available_upgrades():
+		upgrade_ids[upgrade.id] = true
+	for card in rewards:
+		if upgrade_ids.has(card.id):
+			return card
+	for card in rewards:
+		if not (card is ActionCardData):
+			return card
+		var action := card as ActionCardData
+		if action.health_delta >= 0 and action.hunger_delta >= 0:
+			return card
+	return rewards[rng.randi_range(0, rewards.size() - 1)]

@@ -44,6 +44,8 @@ const BUM_DAMAGE_PERCENT_MAX := 80
 ## before BUM (which strikes day 14-18) regardless of the rolled BUM day.
 const OMEN_START_DAY := 8
 const REPAIR_ENERGY_COST := 1
+## HP restored by the "repair_tile" card verb (no wood, no slot interaction).
+const REPAIR_TILE_AMOUNT := 3
 const DEMOLISH_ENERGY_COST := 1
 ## Building after the cataclysm is allowed but taxed — raw materials are scarce
 ## in Act II, so every new building costs extra energy/wood/materials. This keeps
@@ -133,6 +135,17 @@ var _building_catalog: Array[BuildingCardData] = []
 ## Generic events shared by both acts; biome/disaster extras come on top.
 var _base_event_cards: Array[CardData] = []
 var _day_active := false
+## Per-day card-verb state (reset at dawn in _start_day).
+## free moves banked by "free_move" cards; extra night mitigation from "ward_night";
+## a one-shot monster-attack negation from "set_trap".
+var _free_moves := 0
+var _extra_night_protection := 0
+var _night_trap := false
+## Per-turn synergy state (also reset at dawn): how many cards played today, whether
+## a food card was played, and the running "momentum" energy refund per later card.
+var _turn_cards_played := 0
+var _turn_food_played := false
+var _energy_refund_per_card := 0
 ## After end_day() draws the night card, effects wait here until resolve_night()
 ## (the player acknowledges the popup; headless callers resolve immediately).
 var _night_pending := false
@@ -278,7 +291,7 @@ func can_move(tile_index: int) -> String:
 		return "Dzień dobiegł końca."
 	if not BoardGenerator.are_adjacent(state.current_tile, tile_index):
 		return "Ten kafel nie sąsiaduje z twoją pozycją."
-	if state.energy < move_energy_cost():
+	if _free_moves <= 0 and state.energy < move_energy_cost():
 		return "Za mało energii (potrzeba %d)." % move_energy_cost()
 	return ""
 
@@ -288,7 +301,11 @@ func move_to(tile_index: int) -> void:
 	if block_reason != "":
 		log_message.emit(block_reason)
 		return
-	state.energy -= move_energy_cost()
+	if _free_moves > 0:
+		_free_moves -= 1
+		log_message.emit("Bieg: ten ruch jest darmowy.")
+	else:
+		state.energy -= move_energy_cost()
 	state.current_tile = tile_index
 	var discovered_now := false
 	if not current_tile().is_discovered:
@@ -389,6 +406,24 @@ func repair(building_index: int) -> void:
 		built.data.display_name, built.hp, building_max_hp(built.data)
 	])
 	stats_changed.emit(state)
+	board_changed.emit(state)
+
+
+## Card verb "repair_tile": patch the most-damaged standing (non-ruined) building
+## on the current tile by `amount` HP — no wood, no energy beyond the card itself.
+func _repair_current_tile(amount: int) -> void:
+	var best: BuildingState = null
+	for built in current_tile().buildings:
+		if not built.is_ruined and built.hp < building_max_hp(built.data):
+			if best == null or built.hp < best.hp:
+				best = built
+	if best == null:
+		log_message.emit("Brak budynku do doraźnej naprawy na tym kaflu.")
+		return
+	best.hp = mini(best.hp + amount, building_max_hp(best.data))
+	log_message.emit("Doraźna naprawa: %s (HP %d/%d)." % [
+		best.data.display_name, best.hp, building_max_hp(best.data)
+	])
 	board_changed.emit(state)
 
 
@@ -806,11 +841,35 @@ func claim_max_health() -> void:
 	stats_changed.emit(state)
 
 
-## Up to REWARD_CHOICES distinct random cards from the reward pool
-## (actions and buildings alike — a building reward is a new card to build).
+## Upgrade variants available right now: for each owned action card that names an
+## upgrade path, the upgraded card — deduped and only if not already owned. Choosing
+## one swaps the base card in the deck (deck evolves instead of bloating).
+func available_upgrades() -> Array[CardData]:
+	var out: Array[CardData] = []
+	var owned_ids := {}
+	for owned in state.deck:
+		owned_ids[owned.id] = true
+	var seen_paths := {}
+	for owned in state.deck:
+		if owned is ActionCardData:
+			var path: String = (owned as ActionCardData).upgrade_id
+			if path != "" and not seen_paths.has(path) and ResourceLoader.exists(path):
+				var upgraded := load(path) as CardData
+				if upgraded != null and not owned_ids.has(upgraded.id):
+					seen_paths[path] = true
+					out.append(upgraded)
+	return out
+
+
+## Up to REWARD_CHOICES cards for the level-up choice: at most one is an upgrade of
+## an owned card (so deck evolution competes with raw new cards), the rest random
+## from the reward pool (actions and buildings alike).
 func roll_card_rewards() -> Array[CardData]:
-	var pool := _card_pool.duplicate()
 	var result: Array[CardData] = []
+	var upgrades := available_upgrades()
+	if not upgrades.is_empty():
+		result.append(upgrades[_rng.randi_range(0, upgrades.size() - 1)])
+	var pool := _card_pool.duplicate()
 	while result.size() < REWARD_CHOICES and not pool.is_empty():
 		result.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
 	return result
@@ -820,6 +879,18 @@ func claim_card(card: CardData) -> void:
 	if not has_pending_reward() or card == null:
 		return
 	state.pending_rewards -= 1
+	# If this card upgrades a card already in the deck, swap it in place.
+	for i in state.deck.size():
+		var base := state.deck[i]
+		if base is ActionCardData:
+			var path: String = (base as ActionCardData).upgrade_id
+			if path != "" and ResourceLoader.exists(path):
+				var upgraded := load(path)
+				if upgraded != null and upgraded.id == card.id:
+					state.deck[i] = card
+					log_message.emit("Ulepszenie: %s → %s." % [base.display_name, card.display_name])
+					stats_changed.emit(state)
+					return
 	state.deck.append(card)
 	log_message.emit("Nagroda: %s dołącza do talii (%d kart)." % [
 		card.display_name, state.deck.size()
@@ -844,6 +915,14 @@ func _start_day() -> void:
 	_day_active = true
 	_used_gathers.clear()
 	_used_building_actions.clear()
+	# Card-verb and synergy state are fresh each day (night flags were already
+	# spent during the previous night's resolution).
+	_free_moves = 0
+	_extra_night_protection = 0
+	_night_trap = false
+	_turn_cards_played = 0
+	_turn_food_played = false
+	_energy_refund_per_card = 0
 	_health_history.append(state.health)
 	_update_season_for_day()
 
@@ -873,8 +952,7 @@ func _start_day() -> void:
 	var opening_ids := _tutorial_opening_hand_ids()
 	hand.clear()
 	if opening_ids.is_empty():
-		_day_deck = Deck.new(deck_cards, _rng)
-		_draw_cards(HAND_SIZE + maxi(state.character_class.bonus_hand_cards, 0))
+		_deal_bucketed_hand(deck_cards)
 	else:
 		var remaining := deck_cards.duplicate()
 		for card_id in opening_ids:
@@ -915,13 +993,138 @@ func _check_death() -> bool:
 	return true
 
 
+func _hand_limit() -> int:
+	return HAND_SIZE + maxi(state.character_class.bonus_hand_cards, 0)
+
+
 func _draw_cards(count: int) -> void:
 	for i in count:
-		if hand.size() >= HAND_SIZE:
+		if hand.size() >= _hand_limit():
 			return
 		var card := _day_deck.draw()
 		if card != null:
 			hand.append(card)
+
+
+## --- Role-bucketed opening hand (variant A) ---
+##
+## Roles drive a "guaranteed variety" opening hand so three look-alike cards never
+## clog the hand. A card's role is derived from its fields (no per-card data).
+enum HandRole { ECONOMY, SUSTAIN, TEMPO, PAYOFF }
+
+const HAND_GUEST_CHANCE_ACT1 := 0.5
+const HAND_GUEST_CHANCE_ACT2 := 0.25
+const HAND_SYNERGY_SPECIALS := ["momentum", "rhythm", "combo_food"]
+
+
+func _card_role(card: CardData) -> int:
+	if not (card is ActionCardData):
+		return HandRole.TEMPO
+	var a := card as ActionCardData
+	if a.special in HAND_SYNERGY_SPECIALS:
+		return HandRole.PAYOFF
+	if a.food_gain > 0 or a.water_gain > 0 or a.wood_gain > 0 or a.materials_gain > 0:
+		return HandRole.ECONOMY
+	if a.health_delta > 0 or a.hunger_delta > 0 or a.thirst_delta > 0 or a.warmth_delta > 0:
+		return HandRole.SUSTAIN
+	return HandRole.TEMPO
+
+
+## Deterministic in-place shuffle using the system RNG (so seeded runs/tests stay
+## reproducible — Array.shuffle() would use the global RNG).
+func _rng_shuffle(arr: Array) -> void:
+	for i in range(arr.size() - 1, 0, -1):
+		var j := _rng.randi_range(0, i)
+		var tmp: Variant = arr[i]
+		arr[i] = arr[j]
+		arr[j] = tmp
+
+
+## Build the opening hand: cover ECONOMY + SUSTAIN + TEMPO (if owned), then a
+## wildcard slot that may borrow a not-yet-owned "guest" from the reward pool.
+## Leftover owned cards become the mid-day draw pile (_day_deck). Sets `hand`.
+func _deal_bucketed_hand(deck_cards: Array[CardData]) -> void:
+	var limit := _hand_limit()
+	var buckets := {
+		HandRole.ECONOMY: [], HandRole.SUSTAIN: [],
+		HandRole.TEMPO: [], HandRole.PAYOFF: [],
+	}
+	for card in deck_cards:
+		buckets[_card_role(card)].append(card)
+	for role in buckets:
+		_rng_shuffle(buckets[role])
+
+	var picked: Array[CardData] = []
+	# Guarantee coverage of the three core roles (leave the last slot for wildcard).
+	for role in [HandRole.ECONOMY, HandRole.SUSTAIN, HandRole.TEMPO]:
+		if picked.size() < limit - 1 and not buckets[role].is_empty():
+			picked.append(buckets[role].pop_back())
+	# Wildcard / payoff slot: try a guest from the unlock pool first.
+	if picked.size() < limit:
+		var guest := _maybe_guest_card(picked)
+		if guest != null:
+			picked.append(guest)
+
+	# Fill any remaining slots from leftover owned cards (avoid duplicate ids).
+	var leftover: Array[CardData] = []
+	for role in buckets:
+		for card in buckets[role]:
+			leftover.append(card)
+	_rng_shuffle(leftover)
+	while picked.size() < limit and not leftover.is_empty():
+		picked.append(_pop_non_duplicate(leftover, picked))
+
+	hand = picked
+	_day_deck = Deck.new(leftover, _rng)
+
+
+## Reward-pool action cards the player does NOT yet own (guest candidates).
+func _guest_candidates() -> Array[CardData]:
+	var owned := {}
+	for card in state.deck:
+		owned[card.id] = true
+	var out: Array[CardData] = []
+	for card in _card_pool:
+		if card is ActionCardData and not owned.has(card.id):
+			out.append(card)
+	return out
+
+
+func _hand_guest_chance() -> float:
+	return HAND_GUEST_CHANCE_ACT2 if state.bum_happened else HAND_GUEST_CHANCE_ACT1
+
+
+## With a (phase-scaled) chance, lend one not-yet-owned card to today's hand —
+## preferring a role the hand is still missing (variety), especially PAYOFF.
+## The guest is for this day only; it never joins state.deck.
+func _maybe_guest_card(current_hand: Array[CardData]) -> CardData:
+	if _rng.randf() > _hand_guest_chance():
+		return null
+	var candidates := _guest_candidates()
+	if candidates.is_empty():
+		return null
+	_rng_shuffle(candidates)
+	var present_roles := {}
+	for card in current_hand:
+		present_roles[_card_role(card)] = true
+	for card in candidates:
+		if not present_roles.has(_card_role(card)):
+			log_message.emit("Improwizacja: na dziś masz w ręku %s (gość)." % card.display_name)
+			return card
+	log_message.emit("Improwizacja: na dziś masz w ręku %s (gość)." % candidates[0].display_name)
+	return candidates[0]
+
+
+func _pop_non_duplicate(pool: Array, picked: Array) -> CardData:
+	for i in pool.size():
+		var duplicate := false
+		for chosen in picked:
+			if chosen.id == pool[i].id:
+				duplicate = true
+				break
+		if not duplicate:
+			return pool.pop_at(i)
+	return pool.pop_back()
 
 
 func _cards_by_ids(ids: Array[String]) -> Array[CardData]:
@@ -1063,7 +1266,9 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 	_apply_stat_deltas(
 		card.health_delta, card.hunger_delta, card.thirst_delta, card.warmth_delta
 	)
-	state.energy = clampi(state.energy + card.energy_delta, 0, state.max_energy)
+	state.energy = clampi(
+		state.energy + card.energy_delta + _energy_refund_per_card, 0, state.max_energy
+	)
 
 	match card.special:
 		"craft_tools":
@@ -1079,6 +1284,34 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 			log_message.emit("Dobierasz 2 karty.")
 		"scout_reveal":
 			_scout_reveal()
+		"free_move":
+			_free_moves += 1
+			log_message.emit("Następny ruch dziś jest darmowy.")
+		"repair_tile":
+			_repair_current_tile(REPAIR_TILE_AMOUNT)
+		"ward_night":
+			_extra_night_protection += NIGHT_PROTECTION_VALUE
+			log_message.emit("Warta: tej nocy mniej oberwiesz od zdarzeń i potworów.")
+		"set_trap":
+			_night_trap = true
+			log_message.emit("Zastawiasz wnyki — pierwszy nocny napastnik wpadnie w pułapkę.")
+		"momentum":
+			_energy_refund_per_card += 1
+			log_message.emit("Zapał: każda kolejna karta dziś zwraca +1 energii.")
+		"rhythm":
+			if _turn_cards_played > 0:
+				state.energy = mini(state.energy + _turn_cards_played, state.max_energy)
+				log_message.emit("Rytm dnia: +%d energii za wcześniejsze zagrania." % _turn_cards_played)
+		"combo_food":
+			if _turn_food_played:
+				_add_food(2)
+				log_message.emit("Drugie śniadanie: +2 jedzenia za wcześniejszą kartę jedzenia.")
+	# Per-turn synergy bookkeeping: count this card so later plays this turn can
+	# react (rhythm/momentum/combo_food). Gather actions resolve here too, so they
+	# also feed the combo counters.
+	_turn_cards_played += 1
+	if card.food_gain > 0 or card.hunger_delta > 0:
+		_turn_food_played = true
 	var summary: String = _action_delta_summary(snapshot)
 	var lines: PackedStringArray = ["%s: %s." % [log_prefix, card.display_name]]
 	if card_summary != "":
@@ -1155,6 +1388,20 @@ func _action_special_log_text(special: String) -> String:
 			return "+2 karty do ręki"
 		"scout_reveal":
 			return "odsłania sąsiedni kafel"
+		"free_move":
+			return "następny ruch za darmo"
+		"repair_tile":
+			return "doraźna naprawa budynku"
+		"ward_night":
+			return "warta: łagodzi noc"
+		"set_trap":
+			return "wnyki: blokują atak potwora"
+		"momentum":
+			return "zapał: kolejne karty zwracają energię"
+		"rhythm":
+			return "rytm: +energia za zagrane karty"
+		"combo_food":
+			return "combo jedzenia"
 		_:
 			return ""
 
@@ -1451,6 +1698,13 @@ func _resolve_monster_attack(monster: MonsterCardData) -> void:
 	if player_damage > 0 and _has_night_protection():
 		player_damage = maxi(player_damage - NIGHT_PROTECTION_VALUE, 0)
 		log_message.emit("Szałas osłania cię przed atakiem.")
+	if player_damage > 0 and _night_trap:
+		_night_trap = false
+		player_damage = 0
+		log_message.emit("Wnyki przyjmują cios — unikasz ataku potwora.")
+	if player_damage > 0 and _extra_night_protection > 0:
+		player_damage = maxi(player_damage - _extra_night_protection, 0)
+		log_message.emit("Warta osłania cię przed atakiem.")
 	if player_damage > 0:
 		state.health = maxi(state.health - player_damage, 0)
 		_record_damage(player_damage, "Atak: %s" % monster.display_name)
@@ -1710,6 +1964,15 @@ func _resolve_event(event: EventCardData) -> void:
 			log_message.emit("Szałas osłania cię przed nocą.")
 		health_delta = maxi(health_delta, mitigated_health)
 		warmth_delta = maxi(warmth_delta, mitigated_warmth)
+
+	# Card verb "ward_night" softens this night's health/warmth losses on top of
+	# any shelter, whether or not the event is shelter-protected.
+	if _extra_night_protection > 0 and (health_delta < 0 or warmth_delta < 0):
+		if health_delta < 0:
+			health_delta = mini(health_delta + _extra_night_protection, 0)
+		if warmth_delta < 0:
+			warmth_delta = mini(warmth_delta + _extra_night_protection, 0)
+		log_message.emit("Warta łagodzi skutki nocy.")
 
 	_apply_stat_deltas(health_delta, event.hunger_delta, event.thirst_delta, warmth_delta)
 	_add_food(event.food_delta)

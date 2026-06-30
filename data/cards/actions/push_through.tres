@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+health_delta = -2
+materials_gain = 3
+id = "push_through"
+display_name = "Zacisnąć zęby"
+description = "Pracujesz w bólu, byle wyrwać z gruzu tyle kamienia, ile się da."

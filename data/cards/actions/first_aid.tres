@@ -6,6 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 1
 health_delta = 2
+upgrade_id = "res://data/cards/actions/upgrades/first_aid_up.tres"
 id = "first_aid"
 display_name = "Opatrz rany"
 description = "Opatrz się tym, co masz pod ręką."

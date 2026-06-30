@@ -1324,6 +1324,102 @@ wektorem nacisku, żeby Akt II bił w różne staty zależnie od tego, gdzie sto
   (szum), Akt II 49, śr. 19.8 dnia — Akt II celowo twardszy, zgodnie z prośbą
   „karty po BUM mają realnie utrudnić". Cała dziesiątka testów zielona.
 
+### Walka z monotonią kart: wymiany, czasowniki, synergie, ulepszenia (2026-06-28)
+
+Feedback graczy: „trzy karty na ręce, wszystkie robią +2 czegoś — monotonia".
+Diagnoza: każda karta talii miała ten sam czasownik („zapłać energię → zyskaj"),
+bez decyzji przy zagraniu. Cztery fale (27 nowych kart akcji + nowe `special`):
+
+- **Fala 1 — wymiany/tempo (czyste dane, pula nagród).** 10 kart, w których coś
+  bierzesz, by coś dać (sytuacyjne, czasem „martwe"): Forsowny marsz (+energia/
+  −sytość), Nadludzki wysiłek (+energia/−zdrowie), Wymiana: jedzenie (drewno→
+  jedzenie), Filtracja zapasów (jedzenie→woda), Obróbka kamienia (drewno→kamień),
+  Objuczony kram / Handel okazyjny (konwersje), Dołóż do ognia (drewno→ciepło),
+  Hartowanie (zdrowie→ciepło), Zacisnąć zęby (zdrowie→kamień).
+- **Fala 2 — nowe czasowniki (`special` + handlery).** 7 nowych `special` w
+  `_resolve_action` (dyspozytor) + hooki: `free_move` (Bieg — następny ruch za 0
+  energii; `move_to`/`can_move`), `repair_tile` (Doraźna naprawa —
+  `_repair_current_tile`, bez drewna), `ward_night` (Warta/Okopanie się — tej nocy
+  −2 do strat zdrowia/ciepła ze zdarzeń i obrażeń potworów; `_resolve_event`/
+  `_resolve_monster_attack`), `set_trap` (Wnyki/Zwabienie — negacja jednego
+  nocnego ataku potwora). 6 kart.
+- **Fala 3 — synergie/silniki (stan tury, reset o świcie).** `_turn_cards_played`,
+  `_turn_food_played`, `_energy_refund_per_card` zerowane w `_start_day`; karty
+  reagują na to, co zagrałeś wcześniej w turze: `momentum` (Zapał/Nieustępliwość —
+  każda kolejna karta dziś zwraca +1 energii), `rhythm` (Rytm dnia/Kadencja —
+  +1 energii za każdą wcześniejszą kartę), `combo_food` (Drugie śniadanie/
+  Zbieractwo: Spiżarka — +2 jedzenia, jeśli grałeś już jedzenie). 5 kart.
+  Akcje biomu też liczą się do combo (resolują przez `_resolve_action`).
+- **Fala 4 — ulepszenia kart (talia EWOLUUJE, nie puchnie).** `ActionCardData`
+  ma `upgrade_id` (res:// ścieżka wariantu w `data/cards/actions/upgrades/`, poza
+  pulą nagród). Reużywa istniejące UI nagrody: `roll_card_rewards()` wstawia ≤1
+  ulepszenie posiadanej karty, a `claim_card()` PODMIENIA bazę w talii zamiast
+  dopisywać (`available_upgrades()`). 6 wariantów (Zbieractwo→Spiżarka,
+  Źródło→Bystry strumień, Opatrz rany→Szwy, Odpoczynek→Głęboki sen, Zwiad→
+  Rekonesans, Zioła→Mocny wywar) wpiętych w 6 baz. To zarazem leczy rozcieńczanie:
+  awans może ulepszać, nie tylko dorzucać kolejny „faucet".
+- **Balans (smoke).** Surowe dodanie 21 kart Fal 1–3 rozcieńczyło pulę nagród
+  (28→49) → bot losujący nagrodę częściej brał karty sytuacyjne i ginął wcześniej
+  (Akt I zgony 0→4). Fala 4 (ulepszenia) to ODWRÓCIŁA: bot bierze ulepszenia,
+  talia silnieje → **Akt I zgony z powrotem 1** (dzień 12), śr. 21,4 dnia, win-rate
+  per klasa w górę (Zielarka 26/30, Strateg 9, Wędrowiec 7). Bot dostał też
+  rozsądną osłonę: nie gra kart samobójczych (−zdrowie/−sytość przy niskim stanie)
+  i przy nagrodzie woli ulepszenie / kartę bez minusów (prawdziwszy sygnał niż
+  losowy wybór). Akt II nadal jest ścianą (główny run ~1/50) — zgodnie z założeniem.
+- Nowy `card_view._action_special_text` + `survival._action_special_log_text`
+  opisują wszystkie nowe czasowniki na kartach i w logu.
+- `tests/card_upgrade_test.gd`: ulepszenie podmienia bazę w miejscu (rozmiar talii
+  bez zmian), zwykła nagroda dopisuje, ulepszenie znika z oferty po wzięciu.
+- Testy: cała jedenastka zielona (load/night_pool/board/ui_layout 117 kart/fog/
+  season/save_load/meta/audio/card_upgrade + smoke).
+
+### Wyrównanie gałęzi drewna (2026-06-30)
+
+Audyt kart (`KARTY_PODZIAL.md`) pokazał, że drewno było najcieńszym zasobem:
+tylko 3 karty je produkowały i ŻADNA przez wymianę/ulepszenie/sygnaturkę (wymiany
+tylko je zużywały). Dodano 4 karty przez różne kanały: `haul_wood` (Naręcze drewna,
+−2E/+3D, pula), `deadfall_wood` (Wiatrołom, −1E/+2D, najtaniej na energię, pula),
+`barter_wood` (Wymiana: drewno, −2 kamienia/+3 drewna — pierwsza konwersja DO drewna)
+oraz `gather_sticks_up` (Chrust: Naręcze, +2D) jako ulepszenie Chrustu (`gather_sticks`
+dostał `upgrade_id`; Budowlaniec ma Chrust ×2, więc ulepszenie realnie się pojawia).
+Gałąź drewna ma teraz 7 producentów. Art: 4 nowe karty aliasowane na
+`action_chop_wood` (`card_view.ACTION_ART_ALIASES`) — zero nowych dziur graficznych.
+Smoke bez regresji (pula nagród 49→52, drewno to czysta ekonomia); `load`/`ui_layout`
+(120 kart)/`card_upgrade` zielone.
+
+### Ręka kafelkowa (wariant A) + karty-goście (2026-06-30)
+
+Dotąd ręka = czyste losowe 4 z talii (świeży tasunek co świt) → potrafiła się
+skleić (3× podobna karta / ręka bez ekonomii / „martwa ręka"). Wdrożono **dobór
+kafelkowy z gwarancją różnorodności**:
+
+- **Role kart** (wyliczane z pól, bez nowych danych): `ECONOMY` (zysk zasobu/wymiana),
+  `SUSTAIN` (leczy stat teraz, bez zysku zasobu), `TEMPO` (energia/dobór/ruch/zwiad/
+  naprawa/warta/pułapka/narzędzia), `PAYOFF` (synergie momentum/rhythm/combo_food).
+  `_card_role()` + enum `HandRole`.
+- **`_deal_bucketed_hand()`** w `_start_day`: ręka pokrywa ECONOMY+SUSTAIN+TEMPO
+  (jeśli talia ma), 4. slot to wildcard; resztki talii idą do `_day_deck` (dobór
+  w ciągu dnia, np. `draw_two`, działa jak dotąd). Anty-clump: `_pop_non_duplicate`
+  unika 2× to samo id; nigdy 3 karty tego samego efektu. Tasowanie własnym `_rng`
+  (`_rng_shuffle`) — seedowane runy/testy są deterministyczne.
+- **Karty-goście (decyzja gracza: wczesna różnorodność BEZ psucia progresji).**
+  Slot wildcard z szansą podbiera „gościa" z puli nagród, której gracz **jeszcze
+  NIE ma** (`_guest_candidates` = `_card_pool` minus talia), preferując rolę
+  nieobecną w ręce (zwykle PAYOFF). **Gość jest tylko na dziś — nie wchodzi do
+  `state.deck`**, więc system nagród/ulepszeń zostaje nienaruszony. Szansa zależy
+  od fazy: `HAND_GUEST_CHANCE_ACT1=0.5`, `ACT2=0.25` (więcej „na początek").
+  Log „Improwizacja: …".
+- **Fix przy okazji:** `bonus_hand_cards` (Strateg +1 karta/świt) realnie działa —
+  dobór i `_draw_cards` używają `_hand_limit()` zamiast twardego `HAND_SIZE`
+  (wcześniej cap kasował bonus).
+- **Balans (smoke):** **Akt I zgony 0** (śr. dzień —) — gwarantowana funkcjonalna
+  ręka zniosła śmierć z „martwej ręki". Klasy tempo zyskały najwięcej (Strateg
+  22/30, Zielarka 20/30), trudne wciąż 0/30 (ich problem to Akt II, nie ręka).
+  Główny run dalej 0/50 (ściana Aktu II). Szansa gościa to wygodne pokrętło, jeśli
+  trzeba zbić wczesną siłę.
+- `tests/hand_draw_test.gd`: co świt ręka ma ≥3 role (gdy talia je ma), brak 3×
+  tego samego id, i gość pojawia się w oknie Aktu I. Cała dwunastka testów zielona.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -1345,6 +1441,8 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/night_pool_te
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/save_load_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/meta_progression_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/audio_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/card_upgrade_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/hand_draw_test.gd
 ```
 
 - `smoke_test` — naiwny bot rozgrywa 50 pełnych runów na planszy (karty
@@ -1361,6 +1459,10 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/audio_test.gd
   odblokowanie klasy oraz zapis/odczyt meta-stanu bez dotykania zapisu gracza.
 - `audio_test` — dostępność audio, busy Music/SFX, ładowanie streamów oraz start
   odtwarzaczy; realny problem sterownika sprawdzamy dodatkowo bez `--headless`.
+- `card_upgrade_test` — nagroda-ulepszenie podmienia bazową kartę w talii w
+  miejscu (rozmiar bez zmian), a zwykła karta dopisuje.
+- `hand_draw_test` — ręka kafelkowa: każdy świt ma ≥3 role, brak 3× tej samej
+  karty, a slot wildcard czasem podbiera kartę-gościa spoza talii.
 
 Poza tym testujemy ręcznie przez rozegranie runu w edytorze.
 

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+wood_cost = 2
+food_gain = 3
+id = "barter_food"
+display_name = "Wymiana: jedzenie"
+description = "Oddajesz zapas drewna za coś do garnka."

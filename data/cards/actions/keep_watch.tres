@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="ActionCardData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/resources/action_card_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+energy_cost = 1
+special = "ward_night"
+id = "keep_watch"
+display_name = "Warta"
+description = "Czuwasz przy ogniu z bronią w ręku — tej nocy mniej cię zaskoczy."

@@ -25,8 +25,10 @@ const MONSTER_ART_DIR := "res://assets/art/cards/illustrations/monsters"
 
 const ACTION_ART_ALIASES := {
 	"adrenaline": "action_rest",
+	"barter_wood": "action_chop_wood",
 	"big_hunt": "action_forage",
 	"campfire": "action_rest",
+	"deadfall_wood": "action_chop_wood",
 	"craft_tools": "action_craft_tools",
 	"expedition": "action_explore",
 	"explore": "action_explore",
@@ -36,7 +38,9 @@ const ACTION_ART_ALIASES := {
 	"fishing": "action_forage",
 	"forage": "action_forage",
 	"gather_sticks": "action_chop_wood",
+	"gather_sticks_up": "action_chop_wood",
 	"gather_wood": "action_chop_wood",
+	"haul_wood": "action_chop_wood",
 	"herbs": "action_treat_wounds",
 	"hunt": "action_forage",
 	"rest": "action_rest",
@@ -322,6 +326,13 @@ func _action_special_text(special: String) -> String:
 		"double_explore": return "+2 losowe znaleziska"
 		"draw_two": return "+2 karty do ręki"
 		"scout_reveal": return "odkrywa sąsiedni teren"
+		"free_move": return "następny ruch za darmo"
+		"repair_tile": return "doraźna naprawa budynku"
+		"ward_night": return "warta: łagodzi tę noc"
+		"set_trap": return "wnyki: blokują atak potwora"
+		"momentum": return "kolejne karty dziś zwracają energię"
+		"rhythm": return "+1 energii za każdą kartę zagraną dziś"
+		"combo_food": return "+2 jedzenia, jeśli grałeś już jedzenie"
 		_: return ""
 
 
