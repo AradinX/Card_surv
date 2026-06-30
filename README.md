@@ -6,14 +6,14 @@ zdarzenie. W połowie runu następuje **BUM**: plansza zostaje skażona, budynki
 ulegają uszkodzeniu, a do puli nocy trafiają potwory. Celem jest przetrwanie
 do dnia 50.
 
-> **Stan projektu: 2026-06-22.** Grywalny, kompletny funkcjonalnie vertical
+> **Stan projektu: 2026-06-30.** Grywalny, kompletny funkcjonalnie vertical
 > slice z pełnym 50-dniowym runem. Główna linia rozwoju to wersja Godot;
 > `web/` zawiera starszy, równoległy prototyp przeglądarkowy.
 
 ## Co jest w grze
 
 - pełny run do **dnia 50** w dwóch aktach;
-- BUM losowane na dzień **22–27**;
+- BUM losowane na dzień **11–14**;
 - plansza 3×2 losowana z puli **8 biomów**, fog of war i ruch za energię;
 - cztery potrzeby: zdrowie, sytość, nawodnienie i ciepło;
 - **19 budynków** stawianych z katalogu na slotach biomów;
@@ -37,10 +37,13 @@ Aktualne zasoby danych:
 | Klasy i talie startowe | 9 |
 | Katastrofy | 4 |
 | Potwory | 15 |
-| Karty akcji w głównej puli nagród | 27 |
-| Skażone akcje biomów | 2 |
+| Karty akcji (łącznie) | 74 |
+| Karty akcji w głównej puli nagród | 50 |
+| Karty zbierania przypięte do biomu (`gather_only`) | 4 |
+| Skażone akcje biomów | 4 |
 | Karty sygnaturowe klas | 9 |
-| Zasoby zdarzeń nocnych | 70 |
+| Warianty ulepszeń kart | 7 |
+| Zasoby zdarzeń nocnych | 146 |
 
 Szczegółowy spis zawartości i aktualnych braków znajduje się w
 [`docs/INWENTARZ.md`](docs/INWENTARZ.md). Historia prac jest prowadzona w
@@ -106,6 +109,9 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/night_pool_te
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/save_load_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/meta_progression_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/audio_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/card_upgrade_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/hand_draw_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/biome_camp_test.gd
 ```
 
 Aktualny zestaw obejmuje:
@@ -117,12 +123,15 @@ Aktualny zestaw obejmuje:
 - instancjonowanie 100 wariantów kart UI;
 - zapis/odczyt runu;
 - koszt, odblokowanie i zapis/odczyt meta-progresji;
-- katalogi audio, busy oraz start odtwarzaczy muzyki i SFX.
+- katalogi audio, busy oraz start odtwarzaczy muzyki i SFX;
+- ulepszenia kart (podmiana w talii), owned-only dobór ręki oraz flagę
+  `gather_only` i modyfikatory kafla (camp).
 
-Kontrolne pomiary smoke testu z 2026-06-22: **31–33/50 wygranych**; wszystkie
-porażki nastąpiły po BUM.
-To sygnał do dalszego strojenia Aktu I oraz różnic między klasami, nie twarda
-bramka testowa.
+Kontrolne pomiary smoke testu (2026-06-30): główny przebieg **0/50** dla
+naiwnego bota — Akt I jest dla niego bezpieczny (zgony ~0–1), a cała śmiertelność
+przypada na Akt II (ściana katastrofy, zgodnie z założeniem). Próbka klasowa
+rozjeżdża się szeroko (Zielarka ~10/30, Strateg ~5/30, reszta niżej). To sygnał
+balansu do strojenia, nie twarda bramka — świadomy gracz celuje wyżej niż bot.
 
 ## Architektura
 
@@ -145,18 +154,25 @@ nocy/BUM oraz prezentację efektów.
 
 ## Aktualne priorytety
 
-1. Ręczny playtest i balans Aktu I, Aktu II oraz skrajnie różnych klas.
-2. Powtarzalny eksport Windows/Web i automatyczne uruchamianie testów w CI.
+1. Balans Aktu II — przy BUM w dniu 11–14 i mecie w dniu 50 to ~36 dni
+   katastrofy (bot 0/50); pacing/odbudowa wymagają strojenia.
+2. Ręczny playtest skrajnie różnych klas (spread Zielarka↔Informatyk).
 3. Uzupełnienie źródeł i licencji audio oraz ekran creditsów.
-4. Dalsza optymalizacja rozmiaru builda i repozytorium.
-5. Rozszerzenie meta-progresji i systemu podglądania nieodkrytych biomów.
+4. Wersjonowanie/migracja zapisów (zmiana schematu `RunState` psuje stare zapisy).
+5. Rozszerzenie meta-progresji (kolekcja, odblokowania) i pełnego podglądu
+   nieodkrytych biomów.
+
+CI (testy + build Windows + release) działa już w
+[`.github/workflows/godot-ci.yml`](.github/workflows/godot-ci.yml); preset
+eksportu `Windows` jest śledzony w `export_presets.cfg`.
 
 ## Znane ograniczenia
 
 - balans klas jest szeroki: Zielarka i Skaut są znacznie łatwiejsze od Informatyka;
+- Akt II to ściana — przy obecnym oknie BUM (11–14) zajmuje większość runu;
 - autozapis działa na granicy dni, bez ręcznych slotów zapisu;
-- brak drabinki trudności, kolekcji i ulepszania istniejących kart;
+- brak drabinki trudności i kolekcji kart (ulepszanie kart już działa);
 - karty zwiadu nie oferują jeszcze pełnego podglądu nieodkrytego kafla;
 - brak wersjonowania/migracji starszych zapisów;
-- brak śledzonego presetu eksportu i CI;
-- `assets/audio/LICENSES.txt` wymaga uzupełnienia przed wydaniem.
+- `assets/audio/LICENSES.txt` jest wypełniony (manifest Suno Pro, 23 pliki);
+  przed wydaniem zostaje tylko weryfikacja prawna regulaminu Suno.

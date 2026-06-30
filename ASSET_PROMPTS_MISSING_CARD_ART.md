@@ -1,5 +1,11 @@
 # Missing Card Illustration Prompts (unique art for aliased / frame-only cards)
 
+> **STATUS: UKOŃCZONE (2026-06-30).** Wszystkie 22 ilustracje wygenerowane i
+> wpięte — każda z 74 kart akcji ma teraz własny, unikalny obrazek. Zbędne wpisy
+> `ACTION_ART_ALIASES` usunięte (został tylko `find_water → action_spring_source`).
+> Plik zostaje jako referencja promptów.
+
+
 These 22 action cards currently have **no dedicated illustration** — 20 reuse a
 shared alias image (`action_chop_wood` / `action_forage` / `action_explore` /
 `action_rest` / `action_treat_wounds`) and 2 render frame-only. Generating the

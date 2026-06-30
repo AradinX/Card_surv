@@ -3,38 +3,50 @@ DŹWIĘK — Dzień 50
 
 Wrzuć pliki dokładnie pod tymi nazwami; AudioManager (scripts/audio_manager.gd)
 ładuje je po kluczu i jest odporny na brak pliku (gra gra wtedy w ciszy).
-Preferowany format: .ogg (muzyka) / .ogg lub .wav (SFX).
+Ścieżki w kodzie pisane są z `.ogg`, ale rozwiązują się przeciw dowolnemu
+z rozszerzeń `.ogg/.wav/.mp3`. Stan faktyczny: muzyka = `.ogg`, ambient + SFX = `.wav`.
 
 MUZYKA  -> assets/audio/music/
   music_menu.ogg          (menu główne)
   music_act1.ogg          (Akt I — budowa osady)
-  music_act2.ogg          (Akt II — generyczny fallback)
-  music_act2_plague.ogg   (Akt II — Plaga)        [opcjonalne]
-  music_act2_eclipse.ogg  (Akt II — Zaćmienie)    [opcjonalne]
-  music_act2_rift.ogg     (Akt II — Pęknięcie)    [opcjonalne]
-  music_act2_flood.ogg    (Akt II — Powódź)       [opcjonalne]
+  music_act2.ogg          (Akt II — generyczny fallback) [NIEUŻYWANY: każda
+                          katastrofa ma własny utwór; brak pliku, patrz BRAKI]
+  music_act2_plague.ogg   (Akt II — Plaga)
+  music_act2_eclipse.ogg  (Akt II — Zaćmienie)
+  music_act2_rift.ogg     (Akt II — Pęknięcie)
+  music_act2_flood.ogg    (Akt II — Powódź)
   music_win.ogg           (przebudzenie / wygrana)
 
 AMBIENT (pętla pod muzyką)  -> assets/audio/ambience/
-  ambience_forest.ogg     (Akt I — las, ptaki, wiatr, natura)
-  ambience_act2.ogg       (Akt II — głuchy wiatr / posępna atmosfera)
+  ambience_forest.wav         (Akt I — las, ptaki, wiatr, natura)
+  ambience_act2.wav           (Akt II — generyczny; Plaga gra ten plik)
+  ambience_act2_eclipse.wav   (Akt II — Zaćmienie)
+  ambience_act2_rift.wav      (Akt II — Pęknięcie)
+  ambience_act2_flood.wav     (Akt II — Powódź)
 
-SFX  -> assets/audio/sfx/
-  card_play.ogg     build_place.ogg   repair.ogg
-  bum_explosion.ogg monster_attack.ogg level_up.ogg
-  coin.ogg          eat_drink.ogg     discover.ogg
-  button_click.ogg  alarm_clock.ogg   (budzik = przegrana)
+SFX  -> assets/audio/sfx/  (w podfolderach)
+  cards/      card_play  build_place  repair  discover  alarm_clock (budzik = przegrana)
+  bum/        bum_explosion
+  monsters/   monster_attack
+  day_cycle/  level_up  eat  drink
+  ui/         button_click  [coin — BRAK, patrz BRAKI]
 
 Muzyka jest przechowywana jako OGG Vorbis. AudioManager ustawia zapętlenie
 w runtime, więc import nie wymaga ręcznego zaznaczania opcji „Loop”.
 
 
-LICENCJE — stan na 2026-06-28
+LICENCJE — stan na 2026-06-30 (zweryfikowano 1:1 z plikami na dysku i kluczami
+AudioManager: 7 utworów, 5 ambientów, 11 SFX = 23 pliki obecne)
 ------------------------------------------------------
 Całość audio wygenerowana w **Suno (plan Pro)** z promptów projektowych.
 Plan Pro Suno przyznaje użytkownikowi prawa do komercyjnego wykorzystania
 wygenerowanego outputu (zgodnie z regulaminem Suno). Zachowaj dowód subskrypcji.
-(To nie jest porada prawna — zweryfikuj aktualny regulamin przed wydaniem.)
+
+DO ZROBIENIA PRZED PUBLICZNYM WYDANIEM (właściciel projektu):
+  - potwierdzić aktualny regulamin Suno dla planu, na którym wygenerowano audio,
+    i zachować potwierdzenie subskrypcji/zakupu z dat generacji;
+  - uzupełnić rzeczywiste daty generacji per plik, jeśli różnią się od 2026-06-22.
+  (To nie jest porada prawna — to checklista. Zweryfikuj regulamin przed wydaniem.)
 
 Skrót tych informacji widnieje też w grze: Menu główne -> „Twórcy"
 (ekran creditsów, ui/credits_overlay). Pełny manifest pozostaje tutaj.
@@ -70,6 +82,8 @@ SFX (assets/audio/sfx/)
   day_cycle/drink.wav      | Suno Pro | komercyjna (output) | 2026-06-22
   ui/button_click.wav      | Suno Pro | komercyjna (output) | 2026-06-22
 
-BRAKI (opcjonalne, gra działa bez nich):
-  ui/coin.wav                 — cisza przy nagrodzie monety
+BRAKI (referencjonowane w AudioManager, ale nieobecne — gra działa bez nich):
+  music/music_act2.ogg              — generyczny utwór Aktu II; NIEUŻYWANY, bo
+                                      każda z 4 katastrof ma własny track
+  ui/coin.wav                       — cisza przy nagrodzie monety
   ambience/ambience_act2_plague.wav — Plaga gra generyczny ambience_act2

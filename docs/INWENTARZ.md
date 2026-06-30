@@ -1,6 +1,6 @@
 # Inwentarz „Dzień 50” — co jest, czego brakuje
 
-Żywy spis zawartości gry. Stan: **2026-06-22**.
+Żywy spis zawartości gry. Stan: **2026-06-30**.
 
 **Legenda:** ✅ działa w grze · 🟡 działa częściowo lub wymaga polishu · 🔴 brak.
 
@@ -16,10 +16,10 @@
 | Meta-progresja klas | ✅ |
 | Grafiki kart, biomów i potworów | ✅ |
 | Muzyka, ambient i podstawowe SFX | ✅ |
-| Automatyczne testy Godot | ✅ 10 testów |
+| Automatyczne testy Godot | ✅ 13 testów |
 | Balans klas i aktów | 🟡 |
-| Eksport/CI | 🔴 |
-| Kompletna dokumentacja licencji | 🔴 |
+| Eksport/CI | ✅ |
+| Dokumentacja licencji audio | 🟡 (manifest gotowy, weryfikacja prawna przed wydaniem) |
 
 ## Klasy postaci
 
@@ -74,6 +74,12 @@ playtestów człowieka.
 ✅ Każdy biom ma dane, sloty budynków, akcje zbierania, zdarzenia oraz
 normalne i skażone tło.
 
+✅ Modyfikatory kafla (`BiomeData.camp_*`) — kafel, na którym KOŃCZYSz dzień,
+narzuca nocną presję, więc „gdzie obozować" to realna decyzja: Góry/Jaskinie
+(−1 ciepła nocą), Pustkowie (−1 nawodnienia), Bagno (30% ryzyka choroby = −2
+zdrowia); biomy bezpieczne (Las/Łąki/Rzeka/Wybrzeże) neutralne. Schron na danym
+kaflu łagodzi utratę ciepła i ryzyko choroby. Prognoza nocy uwzględnia te spadki.
+
 ✅ Fog of war: run zaczyna się z jednym odkrytym kaflem, a wejście na sąsiada
 odsłania jego zawartość.
 
@@ -105,27 +111,35 @@ podglądu/oznaczania nieodkrytych kafli przed ruchem.
 
 ## Karty akcji
 
-✅ **27 kart** w głównej puli nagród.
+✅ **74 karty akcji** łącznie (54 top-level, 9 sygnaturowych, 7 ulepszeń,
+4 skażone).
 
-✅ **2 skażone akcje biomów** używane po BUM.
+✅ **50 kart** w głównej puli nagród (top-level minus 4 karty `gather_only`
+przypięte do biomu — Poluj/Wędkowanie/Sidła/Suchy chrust nie wpadają już do
+nagród awansu).
+
+✅ **4 skażone akcje biomów** używane po BUM.
 
 ✅ **9 kart sygnaturowych** klas.
 
-✅ Wszystkie używane akcje mają ilustracje albo jawnie zdefiniowany alias artu.
+✅ Każda karta akcji ma własną, unikalną ilustrację (74/74); jedyny alias artu
+to `find_water → action_spring_source`.
 
-🔴 Nie ma systemu ulepszania istniejących kart. Nagroda awansu dodaje nową
-kartę, zwiększa maksymalne HP albo maksymalną energię.
+✅ System ulepszania kart (`upgrade_id`): nagroda awansu może PODMIENIĆ posiadaną
+kartę na mocniejszy wariant (7 wariantów w `data/cards/actions/upgrades/`), zamiast
+tylko dorzucać nową — talia ewoluuje. Pozostałe nagrody: nowa karta, +max HP, +max
+energii.
 
 ## Zdarzenia nocne
 
-✅ **70 zasobów zdarzeń**:
+✅ **146 zasobów zdarzeń**:
 
-- 39 kart bazowych, pogodowych i omenów;
-- 15 zdarzeń biomowych;
-- 6 zdarzeń Plagi;
-- 4 zdarzenia Zaćmienia;
-- 3 zdarzenia Powodzi;
-- 3 zdarzenia Pęknięcia.
+- 34 karty bazowe, pogodowe i omeny (`data/cards/events/`);
+- 76 zdarzeń biomowych (`events/biome/` — atmosferyczne + skażone, gated fog of war);
+- 11 zdarzeń Plagi;
+- 9 zdarzeń Zaćmienia;
+- 8 zdarzeń Powodzi;
+- 8 zdarzeń Pęknięcia.
 
 ✅ `NightEventPool` obsługuje wagi, cooldowny, limity wystąpień, fazy runu,
 sezony, odkryte biomy, katastrofę i potwory.
@@ -141,7 +155,8 @@ dopiero po potwierdzeniu przez gracza.
 
 ## Katastrofy i potwory
 
-✅ BUM następuje losowo o świcie dnia **22–27**.
+✅ BUM następuje losowo o świcie dnia **11–14** (omeny od dnia 8). Uwaga: przy
+mecie w dniu 50 Akt II zajmuje większość runu — to oś balansu do strojenia.
 
 ✅ BUM odwraca planszę, uruchamia sekwencję FX i uszkadza budynki o 35–80%.
 
@@ -165,9 +180,10 @@ ilustracje.
 
 ✅ Docelowy warunek zwycięstwa to przetrwanie do dnia 50.
 
-🟡 Kontrolne smoke testy z 2026-06-22: **31–33/50 wygranych**. Wszystkie
-porażki wydarzyły się po BUM. Akt I jest dla bota bardzo bezpieczny, a Akt II
-odpowiada za całą śmiertelność.
+🟡 Kontrolne smoke testy (2026-06-30): główny przebieg **0/50** dla naiwnego bota.
+Akt I jest dla niego bezpieczny (zgony ~0–1), całą śmiertelność bierze Akt II.
+Próbka klasowa rozjeżdża się szeroko (Zielarka ~10/30, Strateg ~5/30, reszta
+niżej). Świadomy gracz celuje wyżej niż bot.
 
 ## UI, animacje i FX
 
@@ -208,9 +224,10 @@ picia, przycisku i przegranej.
 
 🟡 Brak `coin.wav`; nagroda monety działa bez dźwięku.
 
-🔴 `assets/audio/LICENSES.txt` nadal jest szablonem. Przed publicznym wydaniem
-trzeba wpisać źródło, autora, licencję i datę dla każdego pliku oraz dodać
-creditsy w grze.
+🟡 `assets/audio/LICENSES.txt` to wypełniony manifest (23 pliki, źródło Suno Pro,
+zweryfikowany 1:1 z dyskiem i kluczami AudioManager); creditsy w grze działają
+(Menu → „Twórcy"). Przed publicznym wydaniem zostaje checklista prawna: potwierdzić
+aktualny regulamin Suno dla użytego planu i zachować dowód subskrypcji z dat generacji.
 
 ✅ Muzyka została przekonwertowana z WAV do OGG Vorbis (`q=6`): 123,46 MB
 → 12,13 MB bez zmiany długości utworów. Ambient i krótkie SFX pozostają w WAV.
@@ -231,7 +248,7 @@ creditsy w grze.
 
 ## Testy
 
-✅ Dziesięć testów headless:
+✅ Trzynaście testów headless:
 
 1. `smoke_test.gd`
 2. `fog_of_war_test.gd`
@@ -243,17 +260,21 @@ creditsy w grze.
 8. `save_load_test.gd`
 9. `meta_progression_test.gd`
 10. `audio_test.gd`
+11. `card_upgrade_test.gd`
+12. `hand_draw_test.gd`
+13. `biome_camp_test.gd`
 
 Pokrywają pełne runy, wszystkie klasy, 200 plansz, dane `.tres`, 100 wariantów
-kart UI, pory roku, fog of war, pulę nocy, oba rodzaje zapisu i konfigurację audio.
+kart UI, pory roku, fog of war, pulę nocy, oba rodzaje zapisu, konfigurację audio,
+ulepszenia kart, owned-only dobór ręki oraz flagę `gather_only` i modyfikatory kafla.
 
-🔴 Brak CI uruchamiającego testy po każdym pushu.
+✅ CI uruchamia wszystkie 13 testów + build Windows + release na tagach
+(`.github/workflows/godot-ci.yml`).
 
 ## Najbliższe priorytety
 
-1. Ręczne playtesty i balans klas oraz obu aktów.
-2. Presety eksportu Windows/Web i automatyczne testy CI.
-3. Uzupełnienie licencji audio i creditsów.
-4. Kompresja audio oraz ograniczenie rozmiaru repozytorium.
-5. Wersjonowanie zapisów.
-6. Dalsza meta-progresja i pełny zwiad nieodkrytych biomów.
+1. Balans Aktu II (BUM 11–14, meta 50 → długi Akt II; bot 0/50) i strojenie klas.
+2. Uzupełnienie licencji audio i creditsów.
+3. Wersjonowanie/migracja zapisów.
+4. Ograniczenie rozmiaru repozytorium.
+5. Dalsza meta-progresja (kolekcja, odblokowania) i pełny zwiad nieodkrytych biomów.

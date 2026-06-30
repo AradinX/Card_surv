@@ -23,33 +23,11 @@ const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_c
 const EVENT_ART_DIR := "res://assets/art/cards/illustrations/events"
 const MONSTER_ART_DIR := "res://assets/art/cards/illustrations/monsters"
 
+# Action cards resolve to a dedicated `action_<id>.png` first (see
+# _illustration_path); this map only covers the few ids whose art lives under a
+# different filename. find_water reuses the "Źródło" (spring_source) illustration.
 const ACTION_ART_ALIASES := {
-	"adrenaline": "action_rest",
-	"barter_materials": "action_explore",
-	"barter_wood": "action_chop_wood",
-	"mine_stone": "action_explore",
-	"big_hunt": "action_forage",
-	"campfire": "action_rest",
-	"deadfall_wood": "action_chop_wood",
-	"craft_tools": "action_craft_tools",
-	"expedition": "action_explore",
-	"explore": "action_explore",
-	"feast": "action_forage",
 	"find_water": "action_spring_source",
-	"first_aid": "action_treat_wounds",
-	"fishing": "action_forage",
-	"forage": "action_forage",
-	"gather_sticks": "action_chop_wood",
-	"gather_sticks_up": "action_chop_wood",
-	"gather_wood": "action_chop_wood",
-	"haul_wood": "action_chop_wood",
-	"herbs": "action_treat_wounds",
-	"hunt": "action_forage",
-	"rest": "action_rest",
-	"scavenge": "action_explore",
-	"scout": "action_scout",
-	"snare_trap": "action_forage",
-	"woodcraft": "action_chop_wood",
 }
 
 const MONSTER_ART_ALIASES := {
