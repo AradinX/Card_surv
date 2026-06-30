@@ -7,6 +7,7 @@ script = ExtResource("1_script")
 energy_cost = 2
 food_gain = 1
 water_gain = 1
+gather_only = true
 id = "fishing"
 display_name = "Wędkowanie"
 description = "Spędź kilka godzin nad wodą."

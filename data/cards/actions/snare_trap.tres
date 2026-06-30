@@ -8,6 +8,7 @@ energy_cost = 1
 wood_cost = 1
 hunger_delta = 1
 food_gain = 1
+gather_only = true
 id = "snare_trap"
 display_name = "Sidła"
 description = "Zastaw wnyki na zwierzynę."

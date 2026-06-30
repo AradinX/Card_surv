@@ -106,9 +106,9 @@ func start_new_run() -> void:
 	)
 	var biome_pool := CardLibrary.load_biomes_from_dir(BIOMES_DIR)
 	var event_cards := CardLibrary.load_cards_from_dir(EVENT_CARDS_DIR)
-	# Reward pool = action cards only; buildings live in the always-available
-	# build catalog (no longer drawn from the deck or won as rewards).
-	var card_pool := CardLibrary.load_cards_from_dir(ACTION_CARDS_DIR)
+	# Reward pool = action cards only (minus gather_only, which stay pinned to
+	# their biome); buildings live in the always-available build catalog.
+	var card_pool := CardLibrary.load_reward_pool_from_dir(ACTION_CARDS_DIR)
 	var building_catalog: Array[BuildingCardData] = []
 	for resource in CardLibrary.load_cards_from_dir(BUILDINGS_DIR):
 		if resource is BuildingCardData:
@@ -135,7 +135,7 @@ func start_tutorial_run() -> void:
 	)
 	var biome_pool := CardLibrary.load_biomes_from_dir(BIOMES_DIR)
 	var event_cards := CardLibrary.load_cards_from_dir(EVENT_CARDS_DIR)
-	var card_pool := CardLibrary.load_cards_from_dir(ACTION_CARDS_DIR)
+	var card_pool := CardLibrary.load_reward_pool_from_dir(ACTION_CARDS_DIR)
 	var building_catalog: Array[BuildingCardData] = []
 	for resource in CardLibrary.load_cards_from_dir(BUILDINGS_DIR):
 		if resource is BuildingCardData:
@@ -168,7 +168,7 @@ func continue_run() -> void:
 	survival.log_message.connect(_on_run_log_message)
 
 	var event_cards := CardLibrary.load_cards_from_dir(EVENT_CARDS_DIR)
-	var card_pool := CardLibrary.load_cards_from_dir(ACTION_CARDS_DIR)
+	var card_pool := CardLibrary.load_reward_pool_from_dir(ACTION_CARDS_DIR)
 	var building_catalog: Array[BuildingCardData] = []
 	for resource in CardLibrary.load_cards_from_dir(BUILDINGS_DIR):
 		if resource is BuildingCardData:

@@ -23,6 +23,7 @@ id = "mountains"
 display_name = "Góry"
 description = "Surowe skały bogate w kamień. Zima przychodzi tu pierwsza."
 building_slots = 2
+camp_warmth_loss = 1
 gather_cards = [ExtResource("2_scav"), ExtResource("7_water")]
 extra_event_cards = [ExtResource("4_cold"), ExtResource("5_storm"), ExtResource("9_thin"), ExtResource("11_echo"), ExtResource("12_eagle"), ExtResource("13_clearair"), ExtResource("14_snowdust")]
 corrupted_display_name = "Wyjące Góry"

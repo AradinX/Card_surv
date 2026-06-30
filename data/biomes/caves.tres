@@ -23,6 +23,7 @@ id = "caves"
 display_name = "Jaskinie"
 description = "Mroczne korytarze z rudą i podziemnym źródłem. Strop bywa zdradliwy."
 building_slots = 2
+camp_warmth_loss = 1
 gather_cards = [ExtResource("2_scav"), ExtResource("3_water")]
 extra_event_cards = [ExtResource("4_rockfall"), ExtResource("5_dark"), ExtResource("8_cache"), ExtResource("11_drip"), ExtResource("12_crystal"), ExtResource("13_silence"), ExtResource("14_bats")]
 corrupted_display_name = "Zatrute Jaskinie"

@@ -814,7 +814,14 @@ func _update_forecast() -> void:
 	var warmth_net: int = f["warmth_net"]
 	var warmth_txt := ("%+d" % warmth_net) if warmth_net != 0 else "0"
 	_forecast_label.text = ""
-	_end_day_button.tooltip_text = "Po nocy:\nSytość -%d\nNawodnienie -%d\nCiepło %s (noc -%d, budynki +%d)\nZapasy: %d jedzenia, %d wody" % [
+	var sickness_line := ""
+	var sickness_chance: float = f.get("camp_sickness_chance", 0.0)
+	if sickness_chance > 0.0:
+		sickness_line = "\nRyzyko choroby w tym biomie: %d%% (-%d zdrowia)" % [
+			int(round(sickness_chance * 100.0)),
+			int(f.get("camp_sickness_damage", 0)),
+		]
+	_end_day_button.tooltip_text = "Po nocy:\nSytość -%d\nNawodnienie -%d\nCiepło %s (noc -%d, budynki +%d)\nZapasy: %d jedzenia, %d wody%s" % [
 		f["hunger_decay"],
 		f["thirst_decay"],
 		warmth_txt,
@@ -822,6 +829,7 @@ func _update_forecast() -> void:
 		f["passive_warmth"],
 		f["food"],
 		f["water"],
+		sickness_line,
 	]
 
 

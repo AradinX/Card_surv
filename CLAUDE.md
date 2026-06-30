@@ -1482,6 +1482,41 @@ Ten sam test sprawdza tez, ze spokojny draft dla Kucharza i Lowcy zawiera
 przynajmniej jedna karte z ich osi klasowej, wiec archetyp powinien byc czuc
 juz w nagrodach, a nie dopiero po przypadkowym trafieniu payoffu.
 
+### Domknięcie przecieku gather + modyfikatory kafla (gdzie obozować) (2026-06-30)
+
+Dwie powiązane zmiany zwiększające wagę decyzji „gdzie stać / gdzie spać":
+
+- **Flaga `gather_only` + szczelna pula nagród.** `ActionCardData` ma teraz
+  `gather_only: bool`. Karty zbierania przypięte do biomu (Poluj, Wędkowanie,
+  Sidła, Suchy chrust) były fizycznie w `data/cards/actions/` top-level, więc
+  wpadały do puli nagród awansu i dało się je wylosować → wejść do talii → grać
+  z ręki na DOWOLNYM kaflu (łamiąc ekonomię „surowiec tam, gdzie biom").
+  Dodano jeden punkt filtrowania `CardLibrary.load_reward_pool_from_dir()`
+  (pomija `gather_only`), użyty przez start runu, wznowienie, tutorial i bota
+  smoke — pula nie może się już rozjechać między miejscami. Karty dual-use
+  z talii startowych (forage/find_water/scavenge/gather_wood/gather_sticks)
+  zostają bez zmian; flagujemy tylko 4 czyste karty biomu (0 w taliach).
+  Mechanizm zbierania (rząd „okolica") czyta `biome.gather_cards` niezależnie
+  od talii — bez zmian.
+- **Modyfikatory kafla per biom (`BiomeData.camp_*`).** Kafel, na którym gracz
+  KOŃCZY dzień, narzuca nocną presję zależną od biomu — „gdzie obozować" staje
+  się decyzją, nie tylko „skąd surowiec": **Góry/Jaskinie** `camp_warmth_loss`
+  (+1 utraty ciepła nocą), **Pustkowie** `camp_thirst_loss` (+1 pragnienia),
+  **Bagno** `camp_sickness_chance`/`camp_sickness_damage` (30% szans na chorobę
+  = -2 zdrowia). Biomy bezpieczne (Las/Łąki/Rzeka/Wybrzeże) są neutralne, więc
+  obozowanie nie jest karane wszędzie. **Schron** (night_protection) na TYM
+  kaflu łagodzi: -1 do utraty ciepła i połowa szansy choroby — realny powód, by
+  budować szałas tam, gdzie się śpi. Wpięte w `_resolve_needs` (ciepło/
+  pragnienie/choroba, choroba zapisywana jako przyczyna „Choroba") oraz
+  uczciwie w `end_of_day_forecast` (prognoza zawiera nocne spadki kafla, a
+  tooltip „Koniec dnia" pokazuje ryzyko choroby).
+- Testy: nowy `tests/biome_camp_test.gd` (flaga na 4 kartach, pula wyklucza
+  dokładnie je, modyfikatory na 4 trudnych biomach + neutralny Las). Cała
+  trzynastka zielona; smoke bez crashy (główny run 0/50 = istniejąca ściana
+  Aktu II, Akt I zgony 1 — bez regresji). `card_view._illustration_path` woli
+  teraz dedykowany `action_<id>.png` (fallback do aliasu) — pod podmianę artu.
+  Do CI dopięto `card_upgrade_test`, `hand_draw_test` i `biome_camp_test`.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -1505,6 +1540,7 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/meta_progress
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/audio_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/card_upgrade_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/hand_draw_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/biome_camp_test.gd
 ```
 
 - `smoke_test` — naiwny bot rozgrywa 50 pełnych runów na planszy (karty
@@ -1526,6 +1562,9 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/hand_draw_tes
 - `hand_draw_test` — owned-only survival draw: każdy świt używa tylko kart
   z talii gracza, ma przynajmniej jedną kartę ECONOMY/SUSTAIN gdy talia to
   wspiera i unika 3× tej samej karty.
+- `biome_camp_test` — flaga `gather_only` na kartach biomu, pula nagród
+  wyklucza dokładnie je oraz modyfikatory kafla (`camp_*`) na trudnych biomach
+  i neutralność biomów bezpiecznych.
 
 Poza tym testujemy ręcznie przez rozegranie runu w edytorze.
 

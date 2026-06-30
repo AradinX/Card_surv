@@ -24,6 +24,7 @@ id = "wasteland"
 display_name = "Pustkowie"
 description = "Spalona, jałowa ziemia usiana gruzem. Kamienia w bród, jedzenia jak na lekarstwo."
 building_slots = 3
+camp_thirst_loss = 1
 gather_cards = [ExtResource("2_scav"), ExtResource("18_scrapwood")]
 extra_event_cards = [ExtResource("4_dust"), ExtResource("5_scarcity"), ExtResource("8_lucky"), ExtResource("9_cache"), ExtResource("12_mirage"), ExtResource("13_bones"), ExtResource("14_scrapglint"), ExtResource("15_heat")]
 corrupted_display_name = "Spopielone Pustkowie"

@@ -6,6 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 3
 food_gain = 3
+gather_only = true
 id = "hunt"
 display_name = "Poluj"
 description = "Wyrusz na polowanie w głąb lasu."

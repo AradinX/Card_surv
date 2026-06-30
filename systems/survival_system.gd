@@ -681,6 +681,10 @@ func end_of_day_forecast() -> Dictionary:
 		+ _act2_rule("act2_warmth_decay_delta")
 	if state.season == RunState.Season.WINTER:
 		warmth_decay += WINTER_EXTRA_WARMTH_DECAY
+	# Honest forecast: include the penalties of the tile the player is camped on.
+	var camp := _camp_modifiers()
+	thirst_decay += int(camp["thirst_loss"])
+	warmth_decay += int(camp["warmth_loss"])
 	var passive_warmth := 0
 	for tile in state.board:
 		for built in tile.buildings:
@@ -696,6 +700,8 @@ func end_of_day_forecast() -> Dictionary:
 		"water": state.water,
 		"food_value": int(round(FOOD_HUNGER_VALUE * state.character_class.food_hunger_multiplier)),
 		"water_value": WATER_THIRST_VALUE,
+		"camp_sickness_chance": float(camp["sickness_chance"]),
+		"camp_sickness_damage": int(camp["sickness_damage"]),
 	}
 
 
@@ -2261,11 +2267,41 @@ func _wear_night_protection(message: String) -> void:
 				return
 
 
+## True if a standing shelter (night_protection) sits on the tile the player is
+## camped on tonight. Used to soften that tile's biome camp penalties — a reason
+## to build a hut where you sleep, not just anywhere.
+func _current_tile_has_shelter() -> bool:
+	for built in current_tile().buildings:
+		if built.data.special == "night_protection" and not built.is_ruined:
+			return true
+	return false
+
+
+## Night penalties from the biome the player is camped on (the tile they ended the
+## day on). Cold biomes drain extra warmth, dry ones extra thirst, foul ones risk
+## sickness. A shelter on the camped tile halves the warmth loss and sickness risk.
+func _camp_modifiers() -> Dictionary:
+	var biome := current_tile().biome
+	var warmth_loss: int = biome.camp_warmth_loss
+	var sickness_chance: float = biome.camp_sickness_chance
+	if _current_tile_has_shelter():
+		warmth_loss = maxi(warmth_loss - 1, 0)
+		sickness_chance *= 0.5
+	return {
+		"warmth_loss": warmth_loss,
+		"thirst_loss": biome.camp_thirst_loss,
+		"sickness_chance": sickness_chance,
+		"sickness_damage": biome.camp_sickness_damage,
+	}
+
+
 func _resolve_needs() -> void:
 	# Spoilage first, so spoiled food can't be eaten tonight.
 	_resolve_spoilage()
 	var needs_snapshot := _action_state_snapshot()
 	var night_crises := 0
+	# Where the player camped tonight: harsh biomes add extra night pressure.
+	var camp := _camp_modifiers()
 	var stat_passives := _standing_building_stat_passives()
 	var passive_summary := _stat_passive_summary(stat_passives)
 	if passive_summary != "":
@@ -2309,6 +2345,10 @@ func _resolve_needs() -> void:
 		thirst_decay += SUMMER_EXTRA_THIRST_DECAY
 		log_message.emit("Letni upał wysusza cię szybciej. -%d nawodnienia." %
 			SUMMER_EXTRA_THIRST_DECAY)
+	if int(camp["thirst_loss"]) > 0:
+		thirst_decay += int(camp["thirst_loss"])
+		log_message.emit("Sucha okolica obozu odbiera dodatkowe nawodnienie. -%d nawodnienia." %
+			int(camp["thirst_loss"]))
 	state.thirst = clampi(
 		state.thirst + int(stat_passives.get("thirst", 0)) - thirst_decay,
 		0,
@@ -2335,6 +2375,10 @@ func _resolve_needs() -> void:
 		warmth_decay += WINTER_EXTRA_WARMTH_DECAY
 		log_message.emit("Zimowa noc odbiera dodatkowe ciepło. -%d ciepła." %
 			WINTER_EXTRA_WARMTH_DECAY)
+	if int(camp["warmth_loss"]) > 0:
+		warmth_decay += int(camp["warmth_loss"])
+		log_message.emit("Zimny biom obozu wychładza cię nocą. -%d ciepła." %
+			int(camp["warmth_loss"]))
 	state.warmth = clampi(
 		state.warmth + int(stat_passives.get("warmth", 0)) - warmth_decay,
 		0,
@@ -2349,6 +2393,16 @@ func _resolve_needs() -> void:
 		night_crises += 1
 		_record_damage(warmth_dmg, "Mróz")
 		log_message.emit("Ciepło spadło do 0: tracisz zdrowie z zimna (-%d zdrowia)." % warmth_dmg)
+
+	# Camp sickness: foul biomes (Bagno) can flare a disease overnight. A shelter
+	# on the camped tile halves the odds (folded into camp["sickness_chance"]).
+	var sickness_chance: float = camp["sickness_chance"]
+	var sickness_damage: int = int(camp["sickness_damage"])
+	if sickness_chance > 0.0 and sickness_damage > 0 and _rng.randf() < sickness_chance:
+		var sick_dmg := _deprivation_damage(sickness_damage) if state.bum_happened else sickness_damage
+		state.health = maxi(state.health - sick_dmg, 0)
+		_record_damage(sick_dmg, "Choroba")
+		log_message.emit("Wyziewy obozu wywołują chorobę nocą (-%d zdrowia)." % sick_dmg)
 
 	if night_crises > 0:
 		var penalty := night_crises * NIGHT_CRISIS_ENERGY_PENALTY

@@ -39,3 +39,9 @@ var special: String = "none"
 ## Optional one-step upgrade: res:// path of the ActionCardData this card becomes
 ## when the player picks its upgrade reward (swaps in the deck). "" = no upgrade.
 @export var upgrade_id: String = ""
+
+## Biome gather actions are pinned to their tile (1x/day) and must NOT enter the
+## level-up reward pool. Marking a card gather_only keeps strong tile-locked
+## gathers (Poluj/Wedkowanie/...) out of the reward draft, so those resources stay
+## tied to the biome that produces them (anti-camping economy).
+@export var gather_only: bool = false

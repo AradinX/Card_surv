@@ -62,6 +62,9 @@ jobs:
             save_load_test.gd
             meta_progression_test.gd
             audio_test.gd
+            card_upgrade_test.gd
+            hand_draw_test.gd
+            biome_camp_test.gd
           )
 
           commit_name="$(git log -1 --pretty=%s)"

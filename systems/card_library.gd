@@ -13,6 +13,19 @@ static func load_cards_from_dir(dir_path: String) -> Array[CardData]:
 	return cards
 
 
+## Reward pool = action cards that are NOT gather_only. Biome gather actions stay
+## pinned to their tile and must never be won as a level-up reward (keeps strong
+## resources tied to their biome). Single choke point used by run start, resume,
+## tutorial and the smoke bot, so the exclusion can't drift between call sites.
+static func load_reward_pool_from_dir(dir_path: String) -> Array[CardData]:
+	var pool: Array[CardData] = []
+	for card in load_cards_from_dir(dir_path):
+		if card is ActionCardData and (card as ActionCardData).gather_only:
+			continue
+		pool.append(card)
+	return pool
+
+
 static func load_biomes_from_dir(dir_path: String) -> Array[BiomeData]:
 	var biomes: Array[BiomeData] = []
 	for resource in load_resources_from_dir(dir_path):

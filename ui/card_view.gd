@@ -193,6 +193,13 @@ func _illustration_path(card: CardData) -> String:
 	if card is EventCardData:
 		return "%s/%s.png" % [EVENT_ART_DIR, card.id]
 	if card is ActionCardData:
+		# Prefer a dedicated illustration if one exists; otherwise fall back to the
+		# shared alias art. This makes new per-card art plug-and-play: drop in
+		# action_<id>.png and it overrides the alias/shared art automatically, with
+		# no code change and no regression before the file exists.
+		var dedicated := "%s/action_%s.png" % [ACTION_ART_DIR, card.id]
+		if ResourceLoader.exists(dedicated):
+			return dedicated
 		return "%s/%s.png" % [
 			ACTION_ART_DIR, ACTION_ART_ALIASES.get(card.id, "action_%s" % card.id)
 		]

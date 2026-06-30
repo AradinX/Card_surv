@@ -17,7 +17,7 @@ func _init() -> void:
 	var character_class: CharacterClassData = load("res://data/classes/cook.tres")
 	var biome_pool := CardLibrary.load_biomes_from_dir("res://data/biomes")
 	var event_cards := CardLibrary.load_cards_from_dir("res://data/cards/events")
-	var card_pool := CardLibrary.load_cards_from_dir("res://data/cards/actions")
+	var card_pool := CardLibrary.load_reward_pool_from_dir("res://data/cards/actions")
 	var building_catalog: Array[BuildingCardData] = []
 	for res in CardLibrary.load_cards_from_dir("res://data/buildings"):
 		if res is BuildingCardData:
