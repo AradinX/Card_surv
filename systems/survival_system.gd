@@ -31,18 +31,33 @@ signal run_ended(won: bool, days_survived: int)
 ## Full run: Act I (build up) -> BUM mid-run -> Act II (survive the disaster).
 ## Target length per README — Dzień 50.
 const WIN_DAY := 50
-## BUM strikes at dawn of a day rolled from this range at run start. Playtesters
-## had a full board by ~day 10, so the cataclysm hits earlier (Act I ~2 weeks).
-const BUM_DAY_MIN := 11
-const BUM_DAY_MAX := 14
+## BUM strikes at dawn of a day rolled from this range at run start. With
+## building preparation in place, Act I has room to become a real build-up phase.
+const BUM_DAY_MIN := 18
+const BUM_DAY_MAX := 30
 ## Each building rolls this damage percent range when BUM strikes. A building
 ## survives (stays usable) only if it takes <=50% (ruin threshold), so this range
 ## leaves roughly a third of buildings standing into Act II instead of wiping all.
 const BUM_DAMAGE_PERCENT_MIN := 35
 const BUM_DAMAGE_PERCENT_MAX := 80
-## Scripted dawn omens start on this day (foreshadowing), so they always show
-## before BUM (which strikes day 14-18) regardless of the rolled BUM day.
-const OMEN_START_DAY := 8
+const BUM_SECURED_TILE_LIMIT := 2
+const BUM_SECURE_BASE_ENERGY_COST := 3
+const BUM_SECURE_EXTRA_ENERGY_COST := 1
+const BUM_SECURE_BASE_HUNGER_COST := 2
+const BUM_SECURE_EXTRA_HUNGER_COST := 1
+const BUM_SECURE_BASE_THIRST_COST := 2
+const BUM_SECURE_EXTRA_THIRST_COST := 1
+const BUM_SECURE_BASE_MATERIALS_COST := 6
+const BUM_SECURE_EXTRA_MATERIALS_COST := 4
+const BUM_SECURE_DAMAGE_REDUCTION := 30
+const BUM_DEFENSE_DAMAGE_REDUCTION_PER_POINT := 4
+const BUM_DEFENSE_DAMAGE_REDUCTION_MAX := 20
+const BUM_DURABILITY_BASELINE_HP := 8
+const BUM_DURABILITY_DAMAGE_REDUCTION_MAX := 8
+const BUM_MIN_EFFECTIVE_DAMAGE_PERCENT := 10
+const ACT1_SECURED_WEAR_CHANCE_PERCENT := 60
+## Scripted dawn omens start this many days before the sealed BUM day.
+const BUM_OMEN_LEAD_DAYS := 6
 const REPAIR_ENERGY_COST := 1
 ## HP restored by the "repair_tile" card verb (no wood, no slot interaction).
 const REPAIR_TILE_AMOUNT := 3
@@ -443,6 +458,84 @@ func repair(building_index: int) -> void:
 	board_changed.emit(state)
 
 
+func secured_tile_count() -> int:
+	var count := 0
+	for tile in state.board:
+		if tile.bum_secured:
+			count += 1
+	return count
+
+
+func secure_current_tile_cost() -> Dictionary:
+	var secured := secured_tile_count()
+	return {
+		"energy": BUM_SECURE_BASE_ENERGY_COST + secured * BUM_SECURE_EXTRA_ENERGY_COST,
+		"food": BUM_SECURE_BASE_HUNGER_COST + secured * BUM_SECURE_EXTRA_HUNGER_COST,
+		"thirst": BUM_SECURE_BASE_THIRST_COST + secured * BUM_SECURE_EXTRA_THIRST_COST,
+		"wood": 0,
+		"materials": BUM_SECURE_BASE_MATERIALS_COST + secured * BUM_SECURE_EXTRA_MATERIALS_COST,
+	}
+
+
+func secure_current_tile_summary() -> String:
+	var cost := secure_current_tile_cost()
+	var parts: PackedStringArray = []
+	_append_cost_part(parts, int(cost["energy"]), "energii")
+	_append_cost_part(parts, int(cost["food"]), "sytości")
+	_append_cost_part(parts, int(cost["thirst"]), "nawodnienia")
+	_append_cost_part(parts, int(cost["wood"]), "drewna")
+	_append_cost_part(parts, int(cost["materials"]), "kamienia")
+	return ", ".join(parts)
+
+
+## Returns "" when the current tile/base region can be prepared for BUM.
+func can_secure_current_tile() -> String:
+	if not _day_active:
+		return "Dzień dobiegł końca."
+	if state.bum_happened:
+		return "Po BUM jest już za późno na fortyfikacje."
+	if current_tile().buildings.is_empty():
+		return "Najpierw postaw tu przynajmniej jeden budynek."
+	if current_tile().bum_secured:
+		return "Ten rejon jest już zabezpieczony."
+	if secured_tile_count() >= BUM_SECURED_TILE_LIMIT:
+		return "Limit zabezpieczonych rejonów: %d." % BUM_SECURED_TILE_LIMIT
+	var cost := secure_current_tile_cost()
+	if state.energy < int(cost["energy"]):
+		return "Za mało energii (potrzeba %d)." % int(cost["energy"])
+	if state.hunger <= int(cost["food"]):
+		return "Za mało sytości (potrzeba %d i minimum 1 zapasu po pracy)." % int(cost["food"])
+	if state.thirst <= int(cost["thirst"]):
+		return "Za mało nawodnienia (potrzeba %d i minimum 1 zapasu po pracy)." % int(cost["thirst"])
+	if state.wood < int(cost["wood"]):
+		return "Za mało drewna (potrzeba %d)." % int(cost["wood"])
+	if state.materials < int(cost["materials"]):
+		return "Za mało kamienia (potrzeba %d)." % int(cost["materials"])
+	return ""
+
+
+func secure_current_tile() -> void:
+	var block_reason := can_secure_current_tile()
+	if block_reason != "":
+		log_message.emit(block_reason)
+		return
+	var cost := secure_current_tile_cost()
+	state.energy -= int(cost["energy"])
+	state.hunger -= int(cost["food"])
+	state.thirst -= int(cost["thirst"])
+	state.wood -= int(cost["wood"])
+	state.materials -= int(cost["materials"])
+	current_tile().bum_secured = true
+	log_message.emit("Zabezpieczasz rejon: %s (%s; -%d%% obrażeń BUM, %d%% szans na zużycie HP w Akcie I)." % [
+		_tile_name(current_tile()),
+		secure_current_tile_summary(),
+		BUM_SECURE_DAMAGE_REDUCTION,
+		ACT1_SECURED_WEAR_CHANCE_PERCENT,
+	])
+	stats_changed.emit(state)
+	board_changed.emit(state)
+
+
 ## Card verb "repair_tile": patch the most-damaged standing (non-ruined) building
 ## on the current tile by `amount` HP — no wood, no energy beyond the card itself.
 func _repair_current_tile(amount: int) -> void:
@@ -583,7 +676,7 @@ func use_building(building_index: int) -> void:
 	_apply_building_wear(built, BUILDING_ACTION_WEAR, "Użycie zużywa %s (-%d HP)." % [
 		built.data.display_name,
 		BUILDING_ACTION_WEAR,
-	])
+	], current_tile())
 	stats_changed.emit(state)
 	board_changed.emit(state)
 	if drawn > 0:
@@ -1160,7 +1253,7 @@ func _start_day() -> void:
 	if not state.bum_happened and state.disaster != null:
 		if state.day >= state.bum_day:
 			_trigger_bum()
-		elif state.day >= OMEN_START_DAY:
+		elif is_bum_omen_window():
 			_log_omen()
 	# Hard cap at max energy (no overflow). The active disaster can sap a flat
 	# amount in Act II (Zaćmienie: dark, restless nights).
@@ -1812,19 +1905,36 @@ func _trigger_bum() -> void:
 	log_message.emit("=== BUM ===")
 	log_message.emit("Niebo pęka. %s" % state.disaster.description)
 
+	var bum_defense_reduction := _bum_defense_damage_reduction()
 	for tile in state.board:
 		tile.is_corrupted = true
 		for built in tile.buildings:
 			var max_hp := building_max_hp(built.data)
-			var percent := _rng.randi_range(
+			var raw_percent := _rng.randi_range(
 				BUM_DAMAGE_PERCENT_MIN, BUM_DAMAGE_PERCENT_MAX
+			)
+			var defense_reduction := bum_defense_reduction
+			var secure_reduction := BUM_SECURE_DAMAGE_REDUCTION if tile.bum_secured else 0
+			var durability_reduction := _bum_durability_damage_reduction(max_hp)
+			var percent := maxi(
+				raw_percent - defense_reduction - secure_reduction - durability_reduction,
+				BUM_MIN_EFFECTIVE_DAMAGE_PERCENT
 			)
 			built.hp = maxi(built.hp - roundi(max_hp * percent / 100.0), 0)
 			_check_ruin(built)
+			var reduction_text := _bum_reduction_text(
+				defense_reduction, secure_reduction, durability_reduction
+			)
 			if not built.is_ruined:
-				log_message.emit("%s: uszkodzenia %d%% (HP %d/%d)." % [
-					built.data.display_name, percent, built.hp, max_hp
+				log_message.emit("%s: BUM %d%% -> %d%%%s (HP %d/%d)." % [
+					built.data.display_name, raw_percent, percent,
+					reduction_text, built.hp, max_hp
 				])
+			else:
+				log_message.emit("%s nie wytrzymuje: BUM %d%% -> %d%%%s." % [
+					built.data.display_name, raw_percent, percent, reduction_text
+				])
+		tile.bum_secured = false
 
 	_rebuild_event_deck()
 
@@ -1833,6 +1943,41 @@ func _trigger_bum() -> void:
 		log_message.emit(state.disaster.act2_rule_text)
 	bum_struck.emit(state.disaster)
 	board_changed.emit(state)
+
+
+func _bum_defense_damage_reduction() -> int:
+	var defense := 0
+	for tile in state.board:
+		for built in tile.buildings:
+			if not built.is_ruined:
+				defense += built.data.defense
+	return mini(
+		defense * BUM_DEFENSE_DAMAGE_REDUCTION_PER_POINT,
+		BUM_DEFENSE_DAMAGE_REDUCTION_MAX
+	)
+
+
+func _bum_durability_damage_reduction(max_hp: int) -> int:
+	return clampi(
+		max_hp - BUM_DURABILITY_BASELINE_HP,
+		0,
+		BUM_DURABILITY_DAMAGE_REDUCTION_MAX
+	)
+
+
+func _bum_reduction_text(
+	defense_reduction: int, secure_reduction: int, durability_reduction: int
+) -> String:
+	var parts: PackedStringArray = []
+	if defense_reduction > 0:
+		parts.append("obrona bazy -%d%%" % defense_reduction)
+	if secure_reduction > 0:
+		parts.append("zabezpieczenie -%d%%" % secure_reduction)
+	if durability_reduction > 0:
+		parts.append("wytrzymałość -%d%%" % durability_reduction)
+	if parts.is_empty():
+		return ""
+	return " (%s)" % ", ".join(parts)
 
 
 func _rebuild_event_deck() -> void:
@@ -1865,9 +2010,16 @@ func _event_pool() -> Array[CardData]:
 func _night_phase() -> int:
 	if state.bum_happened:
 		return NightEventPool.Phase.ACT2
-	if state.day >= OMEN_START_DAY:
+	if is_bum_omen_window():
 		return NightEventPool.Phase.OMEN
 	return NightEventPool.Phase.ACT1
+
+
+func is_bum_omen_window() -> bool:
+	return not state.bum_happened \
+		and state.disaster != null \
+		and state.bum_day > 0 \
+		and state.day >= state.bum_day - BUM_OMEN_LEAD_DAYS
 
 
 ## Per-disaster foreshadowing lines (keyed by DisasterData.id). Plague reads as
@@ -1978,13 +2130,36 @@ func building_max_hp(building: BuildingCardData) -> int:
 	return building.max_hp + state.character_class.building_hp_bonus
 
 
-func _apply_building_wear(built: BuildingState, amount: int, message: String = "") -> void:
+func _apply_building_wear(
+	built: BuildingState, amount: int, message: String = "", tile: TileState = null
+) -> bool:
 	if built == null or built.is_ruined or amount <= 0:
-		return
+		return false
+	if _secured_tile_absorbs_wear(tile, built):
+		return false
 	built.hp = maxi(built.hp - amount, 0)
 	if message != "":
 		log_message.emit(message)
 	_check_ruin(built)
+	return true
+
+
+func _secured_tile_absorbs_wear(tile: TileState, built: BuildingState) -> bool:
+	if tile == null:
+		tile = _tile_for_building(built)
+	if tile == null or state.bum_happened or not tile.bum_secured:
+		return false
+	if _rng.randi_range(0, 99) < ACT1_SECURED_WEAR_CHANCE_PERCENT:
+		return false
+	log_message.emit("Zabezpieczony rejon chroni %s przed zużyciem." % built.data.display_name)
+	return true
+
+
+func _tile_for_building(built: BuildingState) -> TileState:
+	for tile in state.board:
+		if built in tile.buildings:
+			return tile
+	return null
 
 
 func _resolve_scheduled_building_wear() -> void:
@@ -1995,11 +2170,11 @@ func _resolve_scheduled_building_wear() -> void:
 				continue
 			var building_id := built.data.id
 			if NIGHTLY_WEAR_BUILDING_IDS.has(building_id):
-				_apply_building_wear(built, DAILY_BUILDING_WEAR)
-				wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
+				if _apply_building_wear(built, DAILY_BUILDING_WEAR, "", tile):
+					wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
 			elif state.day % 2 == 0 and EVERY_OTHER_DAY_WEAR_BUILDING_IDS.has(building_id):
-				_apply_building_wear(built, DAILY_BUILDING_WEAR)
-				wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
+				if _apply_building_wear(built, DAILY_BUILDING_WEAR, "", tile):
+					wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
 	if not wear_logs.is_empty():
 		log_message.emit("Zużycie budynków: %s." % "; ".join(wear_logs))
 
@@ -2035,8 +2210,8 @@ func _resolve_stat_passive_building_wear(stat_key: String) -> void:
 					value = built.data.warmth_delta
 			if value == 0:
 				continue
-			_apply_building_wear(built, BUILDING_PASSIVE_WEAR)
-			wear_logs.append("%s -%d HP" % [built.data.display_name, BUILDING_PASSIVE_WEAR])
+			if _apply_building_wear(built, BUILDING_PASSIVE_WEAR, "", tile):
+				wear_logs.append("%s -%d HP" % [built.data.display_name, BUILDING_PASSIVE_WEAR])
 	if not wear_logs.is_empty():
 		log_message.emit("Praca budynków zużywa: %s." % "; ".join(wear_logs))
 
@@ -2101,8 +2276,8 @@ func _resolve_building_passives(apply_stat_passives: bool = true) -> void:
 			if summary != "":
 				building_logs.append("%s %s" % [data.display_name, summary])
 				if _should_passive_wear(data, apply_stat_passives):
-					_apply_building_wear(built, BUILDING_PASSIVE_WEAR)
-					wear_logs.append("%s -%d HP" % [data.display_name, BUILDING_PASSIVE_WEAR])
+					if _apply_building_wear(built, BUILDING_PASSIVE_WEAR, "", tile):
+						wear_logs.append("%s -%d HP" % [data.display_name, BUILDING_PASSIVE_WEAR])
 			if data.special == "unlock_crafting":
 				var maintenance_log := _resolve_workshop_maintenance()
 				if maintenance_log != "":
@@ -2262,7 +2437,7 @@ func _wear_night_protection(message: String) -> void:
 	for tile in state.board:
 		for built in tile.buildings:
 			if built.data.special == "night_protection" and not built.is_ruined:
-				_apply_building_wear(built, BUILDING_PASSIVE_WEAR, message)
+				_apply_building_wear(built, BUILDING_PASSIVE_WEAR, message, tile)
 				board_changed.emit(state)
 				return
 

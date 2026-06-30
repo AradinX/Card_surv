@@ -198,6 +198,10 @@ func _play_day(
 
 		# ...then patch up the local settlement (repairs, ruin tear-downs)...
 		for i in survival.current_tile().buildings.size():
+			if survival.is_bum_omen_window() and survival.can_secure_current_tile() == "":
+				survival.secure_current_tile()
+				played = true
+				break
 			if survival.can_repair(i) == "":
 				survival.repair(i)
 				played = true

@@ -7,13 +7,12 @@ katastrofa **BUM** → przetrwanie do dnia 50), wszystko jest kartą (akcje,
 budynki, zdarzenia, potwory, kafle biomów), klasy postaci, meta-progresja
 „różnorodność zamiast siły".
 
-Stan obecny: gra toczy się na planszy 6 kafli biomów (kroki 1–3 vertical
-slice'a z README sekcja 10) — mapa węzłów z etapu 2 została zastąpiona
-i usunięta (historia w gicie). Run = przetrwaj do dnia 30 w dwóch aktach:
-Akt I (budowa), BUM w dniu 13–16 (Plaga: flip kafli, uszkodzenia budynków),
-Akt II (potwory nocą, naprawy, ruiny, obrona). 4 statystyki, budynki jako
-karty, akcje biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3
-(deckbuilding w runie, w puli nagród też budynki).
+Stan obecny: gra toczy się na planszy 6 kafli biomów — mapa węzłów z etapu 2
+została zastąpiona i usunięta (historia w gicie). Run = przetrwaj do dnia 50
+w dwóch aktach: Akt I (budowa, eksploracja i zabezpieczanie wybranych rejonów),
+BUM w dniu 18–30 (flip kafli, obrażenia budynków, zużycie zabezpieczeń), Akt II
+(potwory nocą, naprawy, ruiny, obrona). 4 statystyki, budynki z katalogu, akcje
+biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3.
 
 ## Stan projektu / Changelog
 
@@ -1640,9 +1639,9 @@ menu -> **run (cała wyprawa na jednym ekranie)** -> wynik
    potwór (rani gracza i losowy budynek; Szałas/defense łagodzą) →
    sytość/nawodnienie spadają i automatyczne jedzenie/picie →
    głód/odwodnienie/zamarzanie biją w zdrowie → śmierć (przegrana) /
-   dzień 30 przeżyty (wygrana) / kolejny dzień.
-   O świcie dnia BUM (13–16): flip planszy, uszkodzenia budynków,
-   przebudowa talii zdarzeń.
+   dzień 50 przeżyty (wygrana) / kolejny dzień.
+   O świcie dnia BUM (18–30): flip planszy, uszkodzenia budynków,
+   zużycie zabezpieczeń rejonów i przebudowa talii zdarzeń.
 4. Noc (docelowo): po kliknięciu `Zakończ dzień` pojawia się duża karta
    zdarzenia z aktywnej, wagowanej puli; gracz klika `OK`, dopiero wtedy
    efekt i podsumowanie nocy są rozliczane oraz logowane.
@@ -1657,14 +1656,15 @@ budynki magazynowe podnoszą cap (Spiżarnia +6 jedz., Magazyn +8 drewna, Filtr/
 Studnia +4 wody, Warsztat +6 mat.) — nadwyżka ponad cap przepada (koniec
 hoardingu). Szałas -2 obrażeń z chronionych zdarzeń i od potworów, narzędzia +1
 do zysku jedzenia/drewna, XP: +1 karta/akcja biomu, +3 budynek, próg
-8 + 4×(poziom−1), wygrana w dniu 30. **Budynki: budowane z katalogu w trybie
+8 + 4×(poziom−1), wygrana w dniu 50. **Budynki: budowane z katalogu w trybie
 „Budowanie" (karty + potwierdzenie, nie z talii); po BUM dostępne, ale z dopłatą
 +3 energii / +5 drewna / +5 materiałów.** BUM:
-dzień 13–16, uszkodzenia budynków **35–80%** (ruina poniżej 50% maks. HP — więc
-budynek ocaleje, jeśli oberwie ≤50%: ~35% szans na budynek, część przetrwa do
-Aktu II; odbudowa nadal droga),
+dzień 18–30, uszkodzenia budynków **35–80%** z redukcją za obronę bazy,
+zabezpieczony rejon i wysokie max HP (ruina poniżej 50% maks. HP),
 naprawa 1 energia + 1 drewno/2 HP, rozbiórka ruiny 1 energia
-+ zwrot połowy surowców, Palisada defense 2 (kafel). Potwory Plagi (po buffie):
++ zwrot połowy surowców, Palisada defense 2 (kafel). Zabezpieczenie rejonu:
+limit 2 kafli, koszt energii/sytości/nawodnienia/kamienia, -30% obrażeń BUM i
+60% szans na zużycie HP budynków w Akcie I. Potwory Plagi (po buffie):
 Zgnilec 3/3, Zarażony wilk 4/0, Krucza chmara 2/2, Rój szczurów 0/3. Punkt
 odniesienia (2026-06-19, po starcie 3/3 + deprywacji Akt I −1): naiwny bot
 wygrywa **~80%** (śr. ~29 dni), zgony skupione w Akcie II (~10/50, Akt I ~0).
@@ -1730,6 +1730,20 @@ w systemach).
   pory roku, drugi typ katastrofy (Pęknięcie/Zaćmienie — szkielet danych
   `DisasterData` już to umożliwia, system losuje z puli), ulepszanie kart
   (wtedy wraca jako nagroda awansu), docelowy run do dnia 50.
+
+### Zabezpieczenie rejonów przed BUM (2026-07-01)
+
+- Keystone: przetrwanie BUM ma wynikać z przygotowania, nie z losowego wipe'u.
+  BUM jest teraz później w Akcie I (18–30), a gracz może zabezpieczyć maks. 2
+  rejony.
+- Zabezpieczenie jest decyzją kafla, nie budynku: przycisk pojawia się w prawym
+  dolnym rogu aktualnego rejonu, karta budynku wróciła do klasycznego `Napraw`.
+- Koszt jest celowo ciężki: energia, sytość, nawodnienie i głównie kamień.
+  Rejon daje -30% obrażeń BUM dla budynków i tylko 60% szans na zużycie HP
+  budynków w Akcie I; przy BUM flaga zabezpieczenia jest zużywana.
+- UI: zabezpieczony rejon ma ramkę, tooltip kafla opisuje efekt, tooltip
+  przycisku pokazuje koszt, limit i powód blokady. Samouczek i pomoc opisują
+  tę decyzję jako przygotowanie do Aktu II.
 
 ## Konwencje
 

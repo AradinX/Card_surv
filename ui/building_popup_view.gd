@@ -86,6 +86,7 @@ func set_content(data: Dictionary) -> void:
 	_use_button.tooltip_text = str(data.get("use_tooltip", ""))
 
 	_repair_button.disabled = bool(data.get("repair_disabled", false))
+	_repair_button.text = str(data.get("repair_button_text", "Napraw"))
 	_repair_button.tooltip_text = str(data.get("repair_tooltip", ""))
 
 	_demolish_button.disabled = bool(data.get("demolish_disabled", false))

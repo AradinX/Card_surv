@@ -6,6 +6,7 @@ extends Button
 ## built building, with its HP), all driven from the tile state.
 signal building_pressed(building_index: int, anchor_rect: Rect2)
 signal card_dropped(payload: Dictionary)
+signal secure_region_pressed(anchor_rect: Rect2)
 
 const NORMAL_BG_DIR := "res://assets/art/biomes/backgrounds/normal"
 const CORRUPTED_BG_DIR := "res://assets/art/biomes/backgrounds/corrupted"
@@ -13,6 +14,8 @@ const UNKNOWN_BG := "res://assets/art/biomes/discovery/biome_unknown.png"
 const TILE_FRAME := "res://assets/art/biomes/frames/biome_tile_frame.png"
 const CORRUPTION_FRAME := "res://assets/art/biomes/overlays/biome_corruption_overlay.png"
 const TITLE_PLATE := "res://assets/art/biomes/frames/biome_title_plate.png"
+const SECURE_REGION_ICON := "res://assets/art/ui/icons/icon_secure_region.png"
+const SECURE_REGION_ICON_FALLBACK := "res://assets/art/ui/icons/icon_repair_round.png"
 ## Marker on the current tile. Defaults to the universal medallion; per-class
 ## medallions (marker_<class_id>.png) override it when present — see
 ## set_marker_for_class(), called once by run.gd at run start.
@@ -91,13 +94,14 @@ const SLOT_STAGGER := [16, 0, 9]
 
 @onready var _background: TextureRect = $Background
 @onready var _state_overlay: ColorRect = $StateOverlay
+@onready var _secure_region_frame: Panel = $SecureRegionFrame
 @onready var _frame: TextureRect = $Frame
 @onready var _player_marker: TextureRect = $PlayerMarker
 @onready var _title_plate: TextureRect = $TitlePlate
 @onready var _title_label: Label = $TitlePlate/TitleLabel
 @onready var _slots_label: Label = $TitlePlate/SlotsLabel
 @onready var _slots_row: HBoxContainer = $SlotsRow
-@onready var _buildings_button: TextureButton = $BuildingsButton
+@onready var _secure_region_button: TextureButton = $BuildingsButton
 
 var _reveal_tween: Tween
 var _reveal_layers: Dictionary = {}
@@ -109,7 +113,14 @@ static var _dissolve_shader: Shader
 
 func _ready() -> void:
 	_slots_row.mouse_filter = Control.MOUSE_FILTER_PASS
-	_buildings_button.visible = false
+	_configure_secure_region_frame()
+	_configure_secure_region_button()
+
+
+func secure_region_button_rect() -> Rect2:
+	if _secure_region_button != null and _secure_region_button.visible:
+		return _secure_region_button.get_global_rect()
+	return get_global_rect()
 
 
 func set_accept_card_drops(enabled: bool) -> void:
@@ -212,6 +223,9 @@ func setup(
 	block_reason: String,
 	tile_tooltip: String,
 	building_tooltips: Array[String] = [],
+	secure_visible: bool = false,
+	secure_disabled: bool = true,
+	secure_tooltip: String = "",
 ) -> void:
 	if not tile.is_discovered:
 		_setup_unknown_tile(tile, is_current, block_reason, tile_tooltip)
@@ -239,7 +253,10 @@ func setup(
 	_player_marker.tooltip_text = _marker_tooltip if is_current else ""
 	_player_marker.mouse_filter = Control.MOUSE_FILTER_PASS if is_current \
 		else Control.MOUSE_FILTER_IGNORE
-	_buildings_button.visible = false
+	_secure_region_frame.visible = tile.bum_secured
+	_secure_region_button.visible = secure_visible
+	_secure_region_button.disabled = secure_disabled
+	_secure_region_button.tooltip_text = secure_tooltip
 	_state_overlay.color = _overlay_color(is_current, block_reason, tile.is_corrupted)
 	if _drop_highlight:
 		_state_overlay.color = Color(0.45, 0.72, 0.24, 0.24)
@@ -272,7 +289,9 @@ func _setup_unknown_tile(
 	_player_marker.tooltip_text = _marker_tooltip if is_current else ""
 	_player_marker.mouse_filter = Control.MOUSE_FILTER_PASS if is_current \
 		else Control.MOUSE_FILTER_IGNORE
-	_buildings_button.visible = false
+	_secure_region_frame.visible = false
+	_secure_region_button.visible = false
+	_secure_region_button.tooltip_text = ""
 	_state_overlay.color = _unknown_overlay_color(block_reason, tile.is_corrupted)
 	if _drop_highlight:
 		_state_overlay.color = Color(0.45, 0.72, 0.24, 0.24)
@@ -282,6 +301,34 @@ func _setup_unknown_tile(
 func _fit_title_plate_text() -> void:
 	_fit_label_font(_title_label, 14, 9, 2)
 	_fit_label_font(_slots_label, 11, 8, 1)
+
+
+func _configure_secure_region_frame() -> void:
+	if _secure_region_frame == null:
+		return
+	_secure_region_frame.visible = false
+	_secure_region_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.95, 0.82, 0.42, 0.05)
+	box.border_color = Color(0.98, 0.78, 0.28, 0.92)
+	box.set_border_width_all(3)
+	box.set_corner_radius_all(7)
+	_secure_region_frame.add_theme_stylebox_override("panel", box)
+
+
+func _configure_secure_region_button() -> void:
+	if _secure_region_button == null:
+		return
+	var icon_path := SECURE_REGION_ICON if ResourceLoader.exists(SECURE_REGION_ICON) else SECURE_REGION_ICON_FALLBACK
+	if ResourceLoader.exists(icon_path):
+		var icon := load(icon_path)
+		_secure_region_button.texture_normal = icon
+		_secure_region_button.texture_hover = icon
+		_secure_region_button.texture_pressed = icon
+	_secure_region_button.visible = false
+	_secure_region_button.pressed.connect(func() -> void:
+		secure_region_pressed.emit(_secure_region_button.get_global_rect())
+	)
 
 
 func _fit_label_font(label: Label, max_size: int, min_size: int, max_lines: int) -> void:

@@ -6,18 +6,21 @@ zdarzenie. W połowie runu następuje **BUM**: plansza zostaje skażona, budynki
 ulegają uszkodzeniu, a do puli nocy trafiają potwory. Celem jest przetrwanie
 do dnia 50.
 
-> **Stan projektu: 2026-06-30.** Grywalny, kompletny funkcjonalnie vertical
+> **Stan projektu: 2026-07-01.** Grywalny, kompletny funkcjonalnie vertical
 > slice z pełnym 50-dniowym runem. Główna linia rozwoju to wersja Godot;
 > `web/` zawiera starszy, równoległy prototyp przeglądarkowy.
 
 ## Co jest w grze
 
 - pełny run do **dnia 50** w dwóch aktach;
-- BUM losowane na dzień **11–14**;
+- BUM losowane na dzień **18–30**;
 - plansza 3×2 losowana z puli **8 biomów**, fog of war i ruch za energię;
 - cztery potrzeby: zdrowie, sytość, nawodnienie i ciepło;
 - **19 budynków** stawianych z katalogu na slotach biomów;
 - naprawy, ruiny, rozbiórka i kosztowna odbudowa po BUM;
+- zabezpieczanie maksymalnie **2 rejonów** przed BUM: koszt energii, sytości,
+  nawodnienia i kamienia za mniejsze obrażenia BUM oraz mniejsze zużycie HP
+  budynków w Akcie I;
 - **4 katastrofy**: Plaga, Zaćmienie, Powódź i Pęknięcie;
 - **15 potworów** przypisanych do katastrof;
 - cztery pory roku z osobnymi modyfikatorami i pogodą;
@@ -58,9 +61,12 @@ Szczegółowy spis zawartości i aktualnych braków znajduje się w
 4. Efekt nocy jest rozliczany dopiero po potwierdzeniu przez gracza.
 5. Potrzeby spadają, zapasy są automatycznie zużywane i zaczyna się kolejny dzień.
 
-Akt I służy eksploracji i przygotowaniu osady. BUM odwraca kafle na skażone
-wersje i losowo uszkadza budynki. W Akcie II dochodzą reguły katastrofy,
-potwory, cięższa ekonomia i odbudowa po zniszczeniach.
+Akt I służy eksploracji i przygotowaniu osady. Gracz może zabezpieczyć wybrane
+rejony przyciskiem na aktualnym kaflu; zabezpieczenie jest drogie i limitowane,
+ale zmniejsza obrażenia BUM oraz sprawia, że budynki w tym rejonie mają tylko
+60% szans na utratę HP przy zużyciu w Akcie I. BUM odwraca kafle na skażone
+wersje, uszkadza budynki i zużywa zabezpieczenia. W Akcie II dochodzą reguły
+katastrofy, potwory, cięższa ekonomia i odbudowa po zniszczeniach.
 
 ## Klasy i meta-progresja
 
@@ -112,6 +118,7 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/audio_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/card_upgrade_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/hand_draw_test.gd
 Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/biome_camp_test.gd
+Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/bum_preparation_test.gd
 ```
 
 Aktualny zestaw obejmuje:
@@ -125,13 +132,13 @@ Aktualny zestaw obejmuje:
 - koszt, odblokowanie i zapis/odczyt meta-progresji;
 - katalogi audio, busy oraz start odtwarzaczy muzyki i SFX;
 - ulepszenia kart (podmiana w talii), owned-only dobór ręki oraz flagę
-  `gather_only` i modyfikatory kafla (camp).
+  `gather_only`, modyfikatory kafla (camp) i przygotowanie rejonów pod BUM.
 
-Kontrolne pomiary smoke testu (2026-06-30): główny przebieg **0/50** dla
-naiwnego bota — Akt I jest dla niego bezpieczny (zgony ~0–1), a cała śmiertelność
-przypada na Akt II (ściana katastrofy, zgodnie z założeniem). Próbka klasowa
-rozjeżdża się szeroko (Zielarka ~10/30, Strateg ~5/30, reszta niżej). To sygnał
-balansu do strojenia, nie twarda bramka — świadomy gracz celuje wyżej niż bot.
+Kontrolne pomiary smoke testu (2026-07-01): główny przebieg **1/50** dla
+naiwnego bota, średnio 24,5 dnia; zgony: Akt I 18, Akt II 31. Drogi koszt
+zabezpieczania rejonów mocno karze autopilota, więc to sygnał balansu i AI bota
+do dalszego strojenia, nie twarda bramka — świadomy gracz powinien wybierać
+zabezpieczenia ostrożniej.
 
 ## Architektura
 
@@ -154,8 +161,8 @@ nocy/BUM oraz prezentację efektów.
 
 ## Aktualne priorytety
 
-1. Balans Aktu II — przy BUM w dniu 11–14 i mecie w dniu 50 to ~36 dni
-   katastrofy (bot 0/50); pacing/odbudowa wymagają strojenia.
+1. Balans Aktu II po przesunięciu BUM na dzień 18–30 i dodaniu zabezpieczeń
+   rejonów; pacing/odbudowa wymagają kolejnych ręcznych playtestów.
 2. Ręczny playtest skrajnie różnych klas (spread Zielarka↔Informatyk).
 3. Uzupełnienie źródeł i licencji audio oraz ekran creditsów.
 4. Wersjonowanie/migracja zapisów (zmiana schematu `RunState` psuje stare zapisy).
@@ -169,7 +176,8 @@ eksportu `Windows` jest śledzony w `export_presets.cfg`.
 ## Znane ograniczenia
 
 - balans klas jest szeroki: Zielarka i Skaut są znacznie łatwiejsze od Informatyka;
-- Akt II to ściana — przy obecnym oknie BUM (11–14) zajmuje większość runu;
+- Akt II nadal może być ścianą, ale obecne okno BUM (18–30) daje dłuższy Akt I
+  na przygotowanie i wybór zabezpieczonych rejonów;
 - autozapis działa na granicy dni, bez ręcznych slotów zapisu;
 - brak drabinki trudności i kolekcji kart (ulepszanie kart już działa);
 - karty zwiadu nie oferują jeszcze pełnego podglądu nieodkrytego kafla;

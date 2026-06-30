@@ -1,6 +1,6 @@
 # Inwentarz „Dzień 50” — co jest, czego brakuje
 
-Żywy spis zawartości gry. Stan: **2026-06-30**.
+Żywy spis zawartości gry. Stan: **2026-07-01**.
 
 **Legenda:** ✅ działa w grze · 🟡 działa częściowo lub wymaga polishu · 🔴 brak.
 
@@ -16,7 +16,7 @@
 | Meta-progresja klas | ✅ |
 | Grafiki kart, biomów i potworów | ✅ |
 | Muzyka, ambient i podstawowe SFX | ✅ |
-| Automatyczne testy Godot | ✅ 13 testów |
+| Automatyczne testy Godot | ✅ 14 testów |
 | Balans klas i aktów | 🟡 |
 | Eksport/CI | ✅ |
 | Dokumentacja licencji audio | 🟡 (manifest gotowy, weryfikacja prawna przed wydaniem) |
@@ -106,6 +106,8 @@ podglądu/oznaczania nieodkrytych kafli przed ruchem.
 - spowolnienie psucia;
 - przeróbka drewna na materiały;
 - naprawa, ruina i rozbiórka;
+- zabezpieczenie rejonu przed BUM: limit 2 kafli, wysoki koszt energii,
+  sytości, nawodnienia i kamienia, obrys na planszy oraz tooltip z efektem;
 - dopłata za zwykłą budowę po BUM;
 - tańsze warianty odbudowy dostępne tylko w Akcie II.
 
@@ -155,10 +157,11 @@ dopiero po potwierdzeniu przez gracza.
 
 ## Katastrofy i potwory
 
-✅ BUM następuje losowo o świcie dnia **11–14** (omeny od dnia 8). Uwaga: przy
-mecie w dniu 50 Akt II zajmuje większość runu — to oś balansu do strojenia.
+✅ BUM następuje losowo o świcie dnia **18–30** (omeny 6 dni wcześniej). Dłuższy
+Akt I daje czas na zbudowanie bazy i świadome zabezpieczenie wybranych rejonów.
 
 ✅ BUM odwraca planszę, uruchamia sekwencję FX i uszkadza budynki o 35–80%.
+Zabezpieczony rejon obniża rzut obrażeń o 30%, po czym zabezpieczenie znika.
 
 ✅ Cztery katastrofy:
 
@@ -180,10 +183,10 @@ ilustracje.
 
 ✅ Docelowy warunek zwycięstwa to przetrwanie do dnia 50.
 
-🟡 Kontrolne smoke testy (2026-06-30): główny przebieg **0/50** dla naiwnego bota.
-Akt I jest dla niego bezpieczny (zgony ~0–1), całą śmiertelność bierze Akt II.
-Próbka klasowa rozjeżdża się szeroko (Zielarka ~10/30, Strateg ~5/30, reszta
-niżej). Świadomy gracz celuje wyżej niż bot.
+🟡 Kontrolne smoke testy (2026-07-01): główny przebieg **1/50** dla naiwnego bota,
+średnio 24,5 dnia; zgony: Akt I 18, Akt II 31. Po dodaniu kosztownego
+zabezpieczania rejonów autopilot częściej ginie przed BUM, więc balans i logika
+bota wymagają dalszego strojenia.
 
 ## UI, animacje i FX
 
@@ -191,6 +194,10 @@ niżej). Świadomy gracz celuje wyżej niż bot.
 
 ✅ HUD Aktu I/Aktu II, paski statystyk, dziennik, katalog budowy, popup kafla,
 panel awansu, samouczek, ustawienia i galeria klas.
+
+✅ Kafel zabezpieczonego rejonu ma ramkę na planszy, przycisk zabezpieczenia
+pojawia się w prawym dolnym rogu aktualnego kafla, a tooltipy opisują koszt,
+blokady i efekt.
 
 ✅ Wpięte FX:
 
@@ -248,7 +255,7 @@ aktualny regulamin Suno dla użytego planu i zachować dowód subskrypcji z dat 
 
 ## Testy
 
-✅ Trzynaście testów headless:
+✅ Czternaście testów headless:
 
 1. `smoke_test.gd`
 2. `fog_of_war_test.gd`
@@ -263,17 +270,20 @@ aktualny regulamin Suno dla użytego planu i zachować dowód subskrypcji z dat 
 11. `card_upgrade_test.gd`
 12. `hand_draw_test.gd`
 13. `biome_camp_test.gd`
+14. `bum_preparation_test.gd`
 
 Pokrywają pełne runy, wszystkie klasy, 200 plansz, dane `.tres`, 100 wariantów
 kart UI, pory roku, fog of war, pulę nocy, oba rodzaje zapisu, konfigurację audio,
-ulepszenia kart, owned-only dobór ręki oraz flagę `gather_only` i modyfikatory kafla.
+ulepszenia kart, owned-only dobór ręki, flagę `gather_only`, modyfikatory kafla
+oraz przygotowanie rejonów na BUM.
 
-✅ CI uruchamia wszystkie 13 testów + build Windows + release na tagach
+✅ CI uruchamia testy + build Windows + release na tagach
 (`.github/workflows/godot-ci.yml`).
 
 ## Najbliższe priorytety
 
-1. Balans Aktu II (BUM 11–14, meta 50 → długi Akt II; bot 0/50) i strojenie klas.
+1. Balans Aktu II po BUM 18–30, zabezpieczeniach rejonów i droższej decyzji
+   przygotowawczej.
 2. Uzupełnienie licencji audio i creditsów.
 3. Wersjonowanie/migracja zapisów.
 4. Ograniczenie rozmiaru repozytorium.

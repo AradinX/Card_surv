@@ -22,7 +22,7 @@ const PAGES := [
 	},
 	{
 		"title": "BUM — katastrofa",
-		"body": "Około połowy snu uderza katastrofa (Plaga lub Zaćmienie). Kafle gniją albo marzną, budynki padają w ruinę, a nocą pojawiają się potwory.\n\nPlaga = wojna o jedzenie, Zaćmienie = wojna o ciepło. Odbuduj się INACZEJ: po BUM dostępne są specjalne budynki Aktu II (Bastion, Lazaret). Powodzenia!",
+		"body": "BUM uderza później w Akcie I. Kafle gniją albo marzną, budynki dostają ciężkie obrażenia, a nocą pojawiają się potwory.\n\nPrzed BUM możesz zabezpieczyć maksymalnie dwa rejony przyciskiem na aktualnym kaflu. Kosztuje to energię, sytość, nawodnienie i dużo kamienia, ale zmniejsza obrażenia BUM i zużycie budynków w Akcie I. Po BUM odbuduj się INACZEJ: specjalne budynki Aktu II, naprawy i rozbiórka ruin.",
 	},
 ]
 
@@ -40,6 +40,10 @@ const TUTORIAL_PAGES := [
 		"body": "Wejdź w Budowanie i sprawdź, co możesz postawić na aktualnym biomie. Budynki mają koszt, HP i efekt.\n\nPrzykład: Ognisko pomaga z ciepłem nocą, Studnia daje wodę, Spiżarnia pomaga z jedzeniem. Po zbudowaniu kliknij budynek na kaflu, żeby zobaczyć jego opis i akcje.",
 	},
 	{
+		"title": "Zabezpieczenie rejonu",
+		"body": "Gdy na aktualnym kaflu stoi budynek, w prawym dolnym rogu kafla pojawia się przycisk zabezpieczenia rejonu.\n\nTo ciężka decyzja przygotowawcza przed BUM: płacisz energią, sytością, nawodnieniem i kamieniem. W zamian budynki w tym rejonie dostają mniejsze obrażenia BUM i mają tylko część szansy na codzienne lub użytkowe zużycie HP w Akcie I. Limit zabezpieczonych rejonów jest niski, więc wybieraj bazę świadomie.",
+	},
+	{
 		"title": "Akcje budynków",
 		"body": "Niektóre budynki działają pasywnie nocą, a część ma akcję za energię.\n\nPrzykład: przy Ognisku możesz dodatkowo się ogrzać, Warsztat może wykonać narzędzia, Studnia pozwala nabrać wodę. Użycie budynku zużywa jego HP, więc nie klikaj wszystkiego bez potrzeby.",
 	},
@@ -53,7 +57,7 @@ const TUTORIAL_PAGES := [
 	},
 	{
 		"title": "BUM",
-		"body": "Po kilku dniach uderzy katastrofa: kafle się skażą, budynki dostaną obrażenia, a do nocy wejdą potwory.\n\nPo BUM odbudowa jest droższa. Naprawiaj kluczowe budynki, rozbieraj ruiny i pilnuj ciepła, wody oraz jedzenia. Jeśli umierasz, ekran wyniku pokaże raport z ostatnich logów.",
+		"body": "BUM jest losowany w dalszej części Aktu I. Zanim uderzy, log zacznie pokazywać omeny.\n\nZabezpieczone rejony mają większą szansę dowieźć kluczowe budynki do Aktu II. Po BUM odbudowa jest droższa, więc naprawiaj to, co przetrwało, rozbieraj ruiny i pilnuj ciepła, wody oraz jedzenia.",
 	},
 ]
 

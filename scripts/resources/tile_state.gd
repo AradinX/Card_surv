@@ -7,4 +7,7 @@ extends Resource
 @export var biome: BiomeData
 @export var is_discovered: bool = false
 @export var is_corrupted: bool = false
+## Act I fortification of this tile/base region. It reduces BUM damage for all
+## buildings here and gives them a chance to avoid regular wear before BUM.
+@export var bum_secured: bool = false
 @export var buildings: Array[BuildingState] = []

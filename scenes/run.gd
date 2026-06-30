@@ -121,13 +121,14 @@ const TUTORIAL_TOP_STATS := 2
 const TUTORIAL_HAND_CARDS := 3
 const TUTORIAL_BUILD_BUTTON := 4
 const TUTORIAL_BUILD_CAMPFIRE := 5
-const TUTORIAL_CLICK_BUILDING := 6
-const TUTORIAL_USE_BUILDING := 7
-const TUTORIAL_END_DAY := 8
-const TUTORIAL_NIGHT_EVENT := 9
-const TUTORIAL_DISCOVER_TILE := 10
-const TUTORIAL_REPAIR_BUILDING := 11
-const TUTORIAL_DONE := 12
+const TUTORIAL_SECURE_REGION := 6
+const TUTORIAL_CLICK_BUILDING := 7
+const TUTORIAL_USE_BUILDING := 8
+const TUTORIAL_END_DAY := 9
+const TUTORIAL_NIGHT_EVENT := 10
+const TUTORIAL_DISCOVER_TILE := 11
+const TUTORIAL_REPAIR_BUILDING := 12
+const TUTORIAL_DONE := 13
 
 @onready var _background: ColorRect = $Background
 @onready var _background_art: TextureRect = $BackgroundArt
@@ -465,62 +466,67 @@ func _tutorial_step_copy() -> Dictionary:
 	match _tutorial_step:
 		TUTORIAL_BIOME_CARDS:
 			return {
-				"title": "1/12 Karty biomu",
+				"title": "1/13 Karty biomu",
 				"body": "To s\u0105 akcje dost\u0119pne na aktualnym biomie. Na lesie mo\u017cesz pozyska\u0107 drewno. Przeci\u0105gnij kart\u0119 R\u0105b drewno na kartk\u0119 log\u00f3w albo na obecny kafel."
 			}
 		TUTORIAL_LOGS:
 			return {
-				"title": "2/12 Logi",
+				"title": "2/13 Logi",
 				"body": "Tutaj pojawia si\u0119 zapis przebiegu runu. Log pokazuje faktyczne koszty, zdobyte zasoby, modyfikatory pory roku oraz efekty budynk\u00f3w."
 			}
 		TUTORIAL_TOP_STATS:
 			return {
-				"title": "3/12 Pasek stanu",
+				"title": "3/13 Pasek stanu",
 				"body": "Pasek u g\u00f3ry pokazuje dzie\u0144, poziom, zdrowie, syto\u015b\u0107, nawodnienie, ciep\u0142o, energi\u0119 oraz zapasy. Najed\u017a kursorem na por\u0119 roku, aby zobaczy\u0107 jej bonusy i kary. " + night_line
 			}
 		TUTORIAL_HAND_CARDS:
 			return {
-				"title": "4/12 Karty w r\u0119ce",
+				"title": "4/13 Karty w r\u0119ce",
 				"body": "To talia akcji dobrana na bie\u017c\u0105cy dzie\u0144. Zagraj \u0179r\u00f3d\u0142o, aby uzupe\u0142ni\u0107 wod\u0119, oraz Zbieractwo, aby zdoby\u0107 jedzenie i poprawi\u0107 syto\u015b\u0107."
 			}
 		TUTORIAL_BUILD_BUTTON:
 			return {
-				"title": "5/12 Budowanie",
+				"title": "5/13 Budowanie",
 				"body": "Przejd\u017a do trybu budowania. Lista poka\u017ce konstrukcje dost\u0119pne na obecnym biomie wraz z kosztem energii, drewna i kamienia."
 			}
 		TUTORIAL_BUILD_CAMPFIRE:
 			return {
-				"title": "6/12 Ognisko",
+				"title": "6/13 Ognisko",
 				"body": "Zbuduj Ognisko, przeci\u0105gaj\u0105c jego kart\u0119 na obecny biom albo na kartk\u0119 log\u00f3w. Ognisko dodaje ciep\u0142o podczas nocy, ale stopniowo traci HP."
+			}
+		TUTORIAL_SECURE_REGION:
+			return {
+				"title": "7/13 Zabezpieczenie rejonu",
+				"body": "Przycisk w prawym dolnym rogu aktualnego kafla pozwala zabezpieczy\u0107 ca\u0142y rejon przed BUM. To kosztowna decyzja: energia, syto\u015b\u0107, nawodnienie i kamie\u0144 za mniejsze obra\u017cenia BUM oraz mniej zu\u017cycia budynk\u00f3w w Akcie I. Nie musisz robi\u0107 tego teraz."
 			}
 		TUTORIAL_CLICK_BUILDING:
 			return {
-				"title": "7/12 Budynek na kaflu",
+				"title": "8/13 Budynek na kaflu",
 				"body": "Budynek jest teraz widoczny na kaflu. Kliknij jego ikon\u0119, aby otworzy\u0107 szczeg\u00f3\u0142y: HP, efekt pasywny, akcj\u0119, napraw\u0119 i rozbi\u00f3rk\u0119."
 			}
 		TUTORIAL_USE_BUILDING:
 			return {
-				"title": "8/12 Akcja budynku",
+				"title": "9/13 Akcja budynku",
 				"body": "Cz\u0119\u015b\u0107 budynk\u00f3w ma aktywne akcje wykonywane za energi\u0119. U\u017cyj akcji Ogrzej si\u0119. Pami\u0119taj: niekt\u00f3re konstrukcje trac\u0105 HP przez u\u017cycie, prac\u0119 lub nocne zu\u017cycie."
 			}
 		TUTORIAL_END_DAY:
 			return {
-				"title": "9/12 Koniec dnia",
+				"title": "10/13 Koniec dnia",
 				"body": "Najed\u017a na Koniec dnia, aby sprawdzi\u0107 prognoz\u0119 nocy: spadki potrzeb, zapasy i wp\u0142yw budynk\u00f3w. Nast\u0119pnie zako\u0144cz dzie\u0144."
 			}
 		TUTORIAL_NIGHT_EVENT:
 			return {
-				"title": "10/12 Noc",
+				"title": "11/13 Noc",
 				"body": "Karta nocy pokazuje wydarzenie, a notatka obok podsumowuje efekty dodatnie i ujemne. W tym miejscu wida\u0107 r\u00f3wnie\u017c, jak budynki wp\u0142ywaj\u0105 na wynik nocy. Po przeczytaniu kliknij Dalej w panelu nocy."
 			}
 		TUTORIAL_DISCOVER_TILE:
 			return {
-				"title": "11/12 Odkrywanie",
+				"title": "12/13 Odkrywanie",
 				"body": "Drugiego dnia odkryj s\u0105siedni, nieznany kafel. Odkrywanie kosztuje energi\u0119 i mo\u017ce doda\u0107 zagro\u017cenia danego biomu do nocnej puli wydarze\u0144."
 			}
 		TUTORIAL_REPAIR_BUILDING:
 			return {
-				"title": "12/12 Naprawa",
+				"title": "13/13 Naprawa",
 				"body": "Po nocy ognisko mo\u017ce mie\u0107 mniej HP. Otw\u00f3rz szczeg\u00f3\u0142y budynku i u\u017cyj naprawy, aby zobaczy\u0107 koszt oraz przywr\u00f3ci\u0107 wytrzyma\u0142o\u015b\u0107."
 			}
 		TUTORIAL_DONE:
@@ -596,6 +602,11 @@ func _tutorial_target_rect() -> Rect2:
 			return _node_rect(_build_toggle_button)
 		TUTORIAL_BUILD_CAMPFIRE:
 			return _node_rect(_build_scroll)
+		TUTORIAL_SECURE_REGION:
+			var tile_button := _current_tile_button()
+			if tile_button is BiomeTileView:
+				return (tile_button as BiomeTileView).secure_region_button_rect()
+			return _current_tile_rect()
 		TUTORIAL_CLICK_BUILDING:
 			return _current_tile_rect()
 		TUTORIAL_USE_BUILDING:
@@ -657,6 +668,7 @@ func _tutorial_step_requires_next() -> bool:
 	return _tutorial_step in [
 		TUTORIAL_LOGS,
 		TUTORIAL_TOP_STATS,
+		TUTORIAL_SECURE_REGION,
 		TUTORIAL_DONE,
 	]
 
@@ -667,6 +679,8 @@ func _on_tutorial_next_pressed() -> void:
 			_tutorial_set_step(TUTORIAL_TOP_STATS)
 		TUTORIAL_TOP_STATS:
 			_tutorial_set_step(TUTORIAL_HAND_CARDS)
+		TUTORIAL_SECURE_REGION:
+			_tutorial_set_step(TUTORIAL_CLICK_BUILDING)
 		TUTORIAL_NIGHT_EVENT:
 			_hide_night_event()
 			_survival.resolve_night()
@@ -690,7 +704,7 @@ func _tutorial_on_card_played(source: String, card_id: String) -> void:
 					_tutorial_set_step(TUTORIAL_BUILD_BUTTON)
 		TUTORIAL_BUILD_CAMPFIRE:
 			if source == "build" and card_id == "building_campfire":
-				_tutorial_set_step(TUTORIAL_CLICK_BUILDING)
+				_tutorial_set_step(TUTORIAL_SECURE_REGION)
 		_:
 			pass
 
@@ -718,6 +732,7 @@ func _create_tile_buttons() -> void:
 		var button := BIOME_TILE_VIEW_SCENE.instantiate() as BiomeTileView
 		button.pressed.connect(_on_tile_pressed.bind(i))
 		button.building_pressed.connect(_on_building_slot_pressed.bind(i))
+		button.secure_region_pressed.connect(_on_secure_region_pressed.bind(i))
 		button.card_dropped.connect(_on_card_dropped.bind("tile", i))
 		_board_grid.add_child(button)
 		_tile_buttons.append(button)
@@ -739,6 +754,29 @@ func _on_building_slot_pressed(building_index: int, anchor_rect: Rect2, tile_ind
 	_building_popup_requested = false
 	_building_bar.visible = false
 	_show_building_info(building_index, anchor_rect)
+
+
+func _on_secure_region_pressed(_anchor_rect: Rect2, tile_index: int) -> void:
+	if tile_index != _survival.state.current_tile:
+		return
+	var block := _survival.can_secure_current_tile()
+	if block != "":
+		_on_log_message(block)
+		_refresh_tiles(_survival.state)
+		return
+	var title := "Zabezpieczyć rejon?"
+	var text := "Koszt: %s\n\nEfekt: budynki na tym kaflu dostają -%d%% obrażeń BUM i tylko %d%% szans na zużycie HP w Akcie I. Limit: %d rejony. Zabezpieczenie zużywa się przy BUM." % [
+		_survival.secure_current_tile_summary(),
+		SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
+		SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
+		SurvivalSystem.BUM_SECURED_TILE_LIMIT,
+	]
+	_confirm_action(title, text, "Zabezpiecz", func() -> void:
+		_survival.secure_current_tile()
+		AudioManager.play_sfx("build")
+		_spawn_tile_fx(BUILD_PLACE_FX, false)
+		_refresh_tiles(_survival.state)
+	)
 
 
 func _request_move(tile_index: int, after_move: Callable = Callable()) -> void:
@@ -866,10 +904,44 @@ func _refresh_tiles(state: RunState) -> void:
 				else "Przejdź (koszt: %d energii)" % SurvivalSystem.MOVE_ENERGY_COST
 		var building_tooltips: Array[String] = []
 		for built in tile.buildings:
-			building_tooltips.append(_building_tooltip(built))
-		button.setup(tile, i == state.current_tile, block_reason, tooltip, building_tooltips)
+			building_tooltips.append(_building_tooltip(built, tile))
+		if tile.bum_secured and not state.bum_happened:
+			tooltip += "\n\nZabezpieczony rejon: -%d%% obrażeń BUM, %d%% szans na zużycie HP w Akcie I. Zabezpieczenie zużyje się przy BUM." % [
+				SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
+				SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
+			]
+		var secure_visible := i == state.current_tile \
+			and tile.is_discovered \
+			and not state.bum_happened \
+			and not tile.bum_secured \
+			and not tile.buildings.is_empty()
+		var secure_block := _survival.can_secure_current_tile() if secure_visible else ""
+		var secure_tooltip := _secure_region_button_tooltip(secure_block) if secure_visible else ""
+		button.setup(
+			tile,
+			i == state.current_tile,
+			block_reason,
+			tooltip,
+			building_tooltips,
+			secure_visible,
+			secure_block != "",
+			secure_tooltip
+		)
 		button.set_accept_card_drops(i == state.current_tile)
 	_refresh_building_actions()
+
+
+func _secure_region_button_tooltip(block_reason: String) -> String:
+	var lines: PackedStringArray = [
+		"Zabezpiecz rejon",
+		"Koszt: %s" % _survival.secure_current_tile_summary(),
+		"Efekt: -%d%% obrażeń BUM dla budynków tutaj." % SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
+		"W Akcie I budynki mają tylko %d%% szans na zużycie HP." % SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
+		"Limit: %d zabezpieczone rejony." % SurvivalSystem.BUM_SECURED_TILE_LIMIT,
+	]
+	if block_reason != "":
+		lines.append(block_reason)
+	return "\n".join(lines)
 
 
 func _resource_caps() -> Dictionary:
@@ -959,6 +1031,7 @@ func _building_info_data(building_index: int) -> Dictionary:
 	var repair_text := ""
 	var repair_disabled := false
 	var repair_tooltip := ""
+	var repair_button_text := "Napraw"
 	if built.is_ruined:
 		repair_text = "Naprawa: niedostępna dla ruin."
 		repair_disabled = true
@@ -999,6 +1072,7 @@ func _building_info_data(building_index: int) -> Dictionary:
 		"use_text": "Użyto" if action_used else (str(action.get("title", "Użyj")) if not action.is_empty() else "Użyj"),
 		"use_tooltip": block if block != "" else summary,
 		"repair_text": repair_text,
+		"repair_button_text": repair_button_text,
 		"repair_disabled": repair_disabled,
 		"repair_tooltip": repair_tooltip,
 		"demolish_text": demolish_text,
@@ -1069,27 +1143,35 @@ func _demolish_refund_summary(built) -> String:
 	return "+%d drewna, +%d kamienia" % [wood_refund, stone_refund]
 
 
-func _building_tooltip(built) -> String:
+func _building_tooltip(built, tile: TileState = null) -> String:
+	if tile == null:
+		tile = _survival.current_tile()
 	var data: BuildingCardData = built.data
 	var parts: PackedStringArray = [
 		data.display_name,
 		"HP %d/%d" % [built.hp, _survival.building_max_hp(data)],
 	]
+	if tile.bum_secured and not _survival.state.bum_happened:
+		parts.append("Rejon zabezpieczony")
 	var production := _building_effect_parts(data)
 	if not production.is_empty():
 		parts.append("Efekty: %s" % ", ".join(production))
 	if data.special != "":
 		parts.append("Specjalne: %s" % _building_special_description(data.special))
-	var action := _building_action_for_tooltip(built)
+	var action := _building_action_for_tooltip(built, tile)
 	if action != "":
 		parts.append("Akcja: %s" % action)
 	return "\n".join(parts)
 
 
-func _building_action_for_tooltip(built) -> String:
+func _building_action_for_tooltip(built, tile: TileState = null) -> String:
 	if built.is_ruined:
 		return ""
-	var buildings := _survival.current_tile().buildings
+	if tile == null:
+		tile = _survival.current_tile()
+	if tile != _survival.current_tile():
+		return ""
+	var buildings := tile.buildings
 	var idx := buildings.find(built)
 	if idx < 0:
 		return ""
