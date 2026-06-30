@@ -1460,15 +1460,27 @@ spoza talii gracza:
   przez nagrody/ulepszenia, nie dostac jako gosc;
 - anty-clump zostal tylko jako ochrona przed 3x ten sam `id` w rece.
 - nagrody awansu nie sa juz plaskim `3 z calej puli`: po opcjonalnym ulepszeniu
-  draft probuje dac 1 karte pod slabsza strone talii (ECONOMY/SUSTAIN), 1 karte
-  synergii/tempa i 1 wildcard.
+  draft najpierw reaguje na realny kryzys (np. woda przy pragnieniu), potem
+  probuje dodac tor klasy; spokojny poranek mocniej pokazuje archetyp i
+  tempo/synergie zamiast kolejnej anonimowej ekonomii;
+- kazda klasa ma wlasne biasy nagrod: Kucharz czesciej widzi FOOD/CONVERT/WARMTH,
+  Budowlaniec WOOD/MATERIALS/REPAIR, Lowca ENERGY/NIGHT/FOOD itd.; to ma robic
+  z awansu decyzje "jak moja klasa przetrwa", nie tylko "co ma najwyzsza cyfre";
+- `ECONOMY` zostalo rozbite dla nagrod na konkretne potrzeby: FOOD/WATER/WOOD/
+  MATERIALS/HEALTH/WARMTH/ENERGY/REPAIR/NIGHT/CONVERT/SYNERGY;
+- nocne kryzysy sa ostrzejsze: jesli glod/pragnienie/cieplo spadna do 0,
+  jutro tracisz energie; schron moze zlagodzic mroz o 1, ale sam dostaje zuzycie.
 
 `tests/hand_draw_test.gd` sprawdza teraz: brak kart spoza posiadanej talii, co
 najmniej jedna karta survivalowa gdy talia to wspiera, brak potrojnych zlepek.
 `tests/card_upgrade_test.gd` dodatkowo lapie strukturę draftu nagrod: komplet
-3 unikalnych opcji i obecnosc linii synergii. Do pomiaru balansu trzeba ponownie
+3 unikalnych opcji, obecnosc linii synergii i reakcje na kryzys wody. Do pomiaru balansu trzeba ponownie
 odpalic smoke; oczekiwany efekt to wiecej survivalowego tarcia w Akcie I bez
 powrotu kompletnie martwych rak.
+
+Ten sam test sprawdza tez, ze spokojny draft dla Kucharza i Lowcy zawiera
+przynajmniej jedna karte z ich osi klasowej, wiec archetyp powinien byc czuc
+juz w nagrodach, a nie dopiero po przypadkowym trafieniu payoffu.
 
 ## Jak uruchomić
 

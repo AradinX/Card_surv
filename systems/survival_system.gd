@@ -113,12 +113,39 @@ const REWARD_CHOICES := 3
 const REWARD_HEAL := 1
 const MAX_ENERGY_CAP := 10
 enum HandRole { ECONOMY, SUSTAIN, TEMPO, PAYOFF }
+enum RewardNeed {
+	FOOD,
+	WATER,
+	WOOD,
+	MATERIALS,
+	HEALTH,
+	WARMTH,
+	ENERGY,
+	REPAIR,
+	NIGHT,
+	CONVERT,
+	SYNERGY,
+}
 const HAND_SYNERGY_SPECIALS := ["momentum", "rhythm", "combo_food"]
 const HAND_SURVIVAL_ROLES := [HandRole.ECONOMY, HandRole.SUSTAIN]
 const REWARD_SYNERGY_SPECIALS := [
 	"momentum", "rhythm", "combo_food",
 	"draw_two", "free_move", "repair_tile", "ward_night", "set_trap",
 ]
+const CLASS_REWARD_BIASES := {
+	"cook": [RewardNeed.FOOD, RewardNeed.CONVERT, RewardNeed.WARMTH],
+	"builder": [RewardNeed.WOOD, RewardNeed.MATERIALS, RewardNeed.REPAIR],
+	"herbalist": [RewardNeed.HEALTH, RewardNeed.WARMTH, RewardNeed.CONVERT],
+	"hunter": [RewardNeed.ENERGY, RewardNeed.NIGHT, RewardNeed.FOOD],
+	"nomad": [RewardNeed.WATER, RewardNeed.FOOD, RewardNeed.ENERGY],
+	"planner": [RewardNeed.SYNERGY, RewardNeed.ENERGY, RewardNeed.CONVERT],
+	"scout": [RewardNeed.ENERGY, RewardNeed.MATERIALS, RewardNeed.WATER],
+	"soldier": [RewardNeed.NIGHT, RewardNeed.HEALTH, RewardNeed.WARMTH],
+	"informatyk": [RewardNeed.ENERGY, RewardNeed.SYNERGY, RewardNeed.CONVERT],
+}
+const LOW_NEED_THRESHOLD := 4
+const LOW_STOCK_THRESHOLD := 1
+const NIGHT_CRISIS_ENERGY_PENALTY := 1
 
 var state: RunState
 var hand: Array[CardData] = []
@@ -868,9 +895,9 @@ func available_upgrades() -> Array[CardData]:
 	return out
 
 
-## Up to REWARD_CHOICES cards for the level-up choice: at most one is an upgrade of
-## an owned card, then the draft gets one survival-need lane, one synergy lane and
-## a wildcard. This keeps a broad pool from feeling completely flat.
+## Up to REWARD_CHOICES cards for the level-up choice: at most one is an upgrade,
+## then the draft steers toward current crisis first. Calm moments lean into
+## class flavor plus tempo/synergy, so broad rewards do not flatten archetypes.
 func roll_card_rewards() -> Array[CardData]:
 	var result: Array[CardData] = []
 	var upgrades := available_upgrades()
@@ -878,7 +905,15 @@ func roll_card_rewards() -> Array[CardData]:
 		result.append(upgrades[_rng.randi_range(0, upgrades.size() - 1)])
 	var pool := _card_pool.duplicate()
 	_remove_reward_ids(pool, result)
-	_append_reward_by_role(result, pool, _reward_need_role())
+	var has_crisis := _has_current_reward_crisis()
+	if has_crisis:
+		_append_reward_by_need(result, pool, _current_reward_need())
+	_append_reward_by_need(result, pool, _class_reward_need(result))
+	if state.bum_happened:
+		_append_reward_by_need(result, pool, _disaster_reward_need())
+	if not has_crisis:
+		_append_synergy_reward(result, pool)
+		_append_reward_by_need(result, pool, _deck_gap_reward_need())
 	_append_synergy_reward(result, pool)
 	_append_random_reward(result, pool)
 	while result.size() < REWARD_CHOICES and not pool.is_empty():
@@ -893,12 +928,14 @@ func _remove_reward_ids(pool: Array[CardData], result: Array[CardData]) -> void:
 				pool.remove_at(i)
 
 
-func _append_reward_by_role(result: Array[CardData], pool: Array[CardData], role: int) -> void:
+func _append_reward_by_need(result: Array[CardData], pool: Array[CardData], need: int) -> void:
 	if result.size() >= REWARD_CHOICES:
+		return
+	if _result_has_reward_need(result, need):
 		return
 	var matching: Array[int] = []
 	for i in pool.size():
-		if _card_role(pool[i]) == role:
+		if _card_matches_reward_need(pool[i], need):
 			matching.append(i)
 	if matching.is_empty():
 		return
@@ -908,6 +945,8 @@ func _append_reward_by_role(result: Array[CardData], pool: Array[CardData], role
 
 func _append_synergy_reward(result: Array[CardData], pool: Array[CardData]) -> void:
 	if result.size() >= REWARD_CHOICES:
+		return
+	if _result_has_reward_need(result, RewardNeed.SYNERGY):
 		return
 	var matching: Array[int] = []
 	for i in pool.size():
@@ -919,24 +958,138 @@ func _append_synergy_reward(result: Array[CardData], pool: Array[CardData]) -> v
 	result.append(pool.pop_at(pool_idx))
 
 
+func _result_has_reward_need(result: Array[CardData], need: int) -> bool:
+	for card in result:
+		if _card_matches_reward_need(card, need):
+			return true
+	return false
+
+
 func _append_random_reward(result: Array[CardData], pool: Array[CardData]) -> void:
 	if result.size() >= REWARD_CHOICES or pool.is_empty():
 		return
 	result.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
 
 
-func _reward_need_role() -> int:
-	var economy := _deck_role_count(HandRole.ECONOMY)
-	var sustain := _deck_role_count(HandRole.SUSTAIN)
-	return HandRole.ECONOMY if economy <= sustain else HandRole.SUSTAIN
+func _has_current_reward_crisis() -> bool:
+	return state.thirst <= LOW_NEED_THRESHOLD \
+		or state.water <= LOW_STOCK_THRESHOLD \
+		or state.hunger <= LOW_NEED_THRESHOLD \
+		or state.food <= LOW_STOCK_THRESHOLD \
+		or state.warmth <= LOW_NEED_THRESHOLD \
+		or state.health <= LOW_NEED_THRESHOLD \
+		or _has_damaged_building() \
+		or state.wood <= LOW_STOCK_THRESHOLD \
+		or state.materials <= LOW_STOCK_THRESHOLD
 
 
-func _deck_role_count(role: int) -> int:
+func _current_reward_need() -> int:
+	if state.thirst <= LOW_NEED_THRESHOLD or state.water <= LOW_STOCK_THRESHOLD:
+		return RewardNeed.WATER
+	if state.hunger <= LOW_NEED_THRESHOLD or state.food <= LOW_STOCK_THRESHOLD:
+		return RewardNeed.FOOD
+	if state.warmth <= LOW_NEED_THRESHOLD:
+		return RewardNeed.WARMTH
+	if state.health <= LOW_NEED_THRESHOLD:
+		return RewardNeed.HEALTH
+	if _has_damaged_building():
+		return RewardNeed.REPAIR
+	if state.wood <= LOW_STOCK_THRESHOLD:
+		return RewardNeed.WOOD
+	if state.materials <= LOW_STOCK_THRESHOLD:
+		return RewardNeed.MATERIALS
+	return _deck_gap_reward_need()
+
+
+func _deck_gap_reward_need() -> int:
+	var needs := [
+		RewardNeed.FOOD,
+		RewardNeed.WATER,
+		RewardNeed.WOOD,
+		RewardNeed.MATERIALS,
+		RewardNeed.HEALTH,
+		RewardNeed.WARMTH,
+		RewardNeed.CONVERT,
+	]
+	var best_need: int = needs[0]
+	var best_count := 9999
+	for need in needs:
+		var count := _deck_need_count(need)
+		if count < best_count:
+			best_count = count
+			best_need = need
+	return best_need
+
+
+func _disaster_reward_need() -> int:
+	if state.bum_happened and state.disaster != null:
+		match state.disaster.id:
+			"plague":
+				return RewardNeed.FOOD if _deck_need_count(RewardNeed.FOOD) <= _deck_need_count(RewardNeed.HEALTH) else RewardNeed.HEALTH
+			"flood":
+				return RewardNeed.WARMTH if _deck_need_count(RewardNeed.WARMTH) <= _deck_need_count(RewardNeed.WATER) else RewardNeed.WATER
+			"eclipse":
+				return RewardNeed.WARMTH if _deck_need_count(RewardNeed.WARMTH) <= _deck_need_count(RewardNeed.ENERGY) else RewardNeed.ENERGY
+			"rift":
+				return RewardNeed.REPAIR if _deck_need_count(RewardNeed.REPAIR) <= _deck_need_count(RewardNeed.MATERIALS) else RewardNeed.MATERIALS
+	return RewardNeed.SYNERGY
+
+
+func _class_reward_need(result: Array[CardData] = []) -> int:
+	if state.character_class == null:
+		return RewardNeed.SYNERGY
+	var biases: Array = CLASS_REWARD_BIASES.get(state.character_class.id, [])
+	for need in biases:
+		if not _result_has_reward_need(result, int(need)):
+			return int(need)
+	return int(biases[0]) if not biases.is_empty() else RewardNeed.SYNERGY
+
+
+func _deck_need_count(need: int) -> int:
 	var count := 0
 	for card in state.deck:
-		if _card_role(card) == role:
+		if _card_matches_reward_need(card, need):
 			count += 1
 	return count
+
+
+func _card_matches_reward_need(card: CardData, need: int) -> bool:
+	if not (card is ActionCardData):
+		return false
+	var action := card as ActionCardData
+	match need:
+		RewardNeed.FOOD:
+			return action.food_gain > 0 or action.hunger_delta > 0
+		RewardNeed.WATER:
+			return action.water_gain > 0 or action.thirst_delta > 0
+		RewardNeed.WOOD:
+			return action.wood_gain > 0
+		RewardNeed.MATERIALS:
+			return action.materials_gain > 0
+		RewardNeed.HEALTH:
+			return action.health_delta > 0
+		RewardNeed.WARMTH:
+			return action.warmth_delta > 0
+		RewardNeed.ENERGY:
+			return action.energy_delta > 0 or action.special in ["momentum", "rhythm", "free_move", "draw_two"]
+		RewardNeed.REPAIR:
+			return action.special == "repair_tile" or action.wood_gain > 0 or action.materials_gain > 0
+		RewardNeed.NIGHT:
+			return action.special in ["ward_night", "set_trap"] or action.warmth_delta > 0
+		RewardNeed.CONVERT:
+			return action.food_cost > 0 or action.wood_cost > 0 or action.materials_cost > 0 \
+				or action.health_delta < 0 or action.hunger_delta < 0 or action.thirst_delta < 0
+		RewardNeed.SYNERGY:
+			return _is_reward_synergy(action)
+	return false
+
+
+func _has_damaged_building() -> bool:
+	for tile in state.board:
+		for built in tile.buildings:
+			if not built.is_ruined and built.hp < building_max_hp(built.data):
+				return true
+	return false
 
 
 func _is_reward_synergy(card: ActionCardData) -> bool:
@@ -2099,10 +2252,20 @@ func _has_night_protection() -> bool:
 	return false
 
 
+func _wear_night_protection(message: String) -> void:
+	for tile in state.board:
+		for built in tile.buildings:
+			if built.data.special == "night_protection" and not built.is_ruined:
+				_apply_building_wear(built, BUILDING_PASSIVE_WEAR, message)
+				board_changed.emit(state)
+				return
+
+
 func _resolve_needs() -> void:
 	# Spoilage first, so spoiled food can't be eaten tonight.
 	_resolve_spoilage()
 	var needs_snapshot := _action_state_snapshot()
+	var night_crises := 0
 	var stat_passives := _standing_building_stat_passives()
 	var passive_summary := _stat_passive_summary(stat_passives)
 	if passive_summary != "":
@@ -2134,6 +2297,7 @@ func _resolve_needs() -> void:
 	if state.hunger <= 0:
 		var hunger_dmg := _deprivation_damage(STARVATION_DAMAGE)
 		state.health = maxi(state.health - hunger_dmg, 0)
+		night_crises += 1
 		_record_damage(hunger_dmg, "Głód")
 		log_message.emit("Sytość spadła do 0: tracisz zdrowie z głodu (-%d zdrowia)." % hunger_dmg)
 
@@ -2159,6 +2323,7 @@ func _resolve_needs() -> void:
 	if state.thirst <= 0:
 		var thirst_dmg := _deprivation_damage(DEHYDRATION_DAMAGE)
 		state.health = maxi(state.health - thirst_dmg, 0)
+		night_crises += 1
 		_record_damage(thirst_dmg, "Odwodnienie")
 		log_message.emit("Nawodnienie spadło do 0: tracisz zdrowie z odwodnienia (-%d zdrowia)." % thirst_dmg)
 
@@ -2177,9 +2342,18 @@ func _resolve_needs() -> void:
 	)
 	if state.warmth <= 0:
 		var warmth_dmg := _deprivation_damage(FREEZING_DAMAGE)
+		if _has_night_protection():
+			warmth_dmg = maxi(warmth_dmg - 1, 0)
+			_wear_night_protection("Schron bierze na siebie czesc mrozu (-1 HP).")
 		state.health = maxi(state.health - warmth_dmg, 0)
+		night_crises += 1
 		_record_damage(warmth_dmg, "Mróz")
 		log_message.emit("Ciepło spadło do 0: tracisz zdrowie z zimna (-%d zdrowia)." % warmth_dmg)
+
+	if night_crises > 0:
+		var penalty := night_crises * NIGHT_CRISIS_ENERGY_PENALTY
+		state.next_day_energy_delta -= penalty
+		log_message.emit("Nocny kryzys wyczerpuje cie. Jutro -%d energii." % penalty)
 
 	if food_eaten > 0 or water_drunk > 0:
 		needs_consumed.emit(food_eaten, water_drunk)

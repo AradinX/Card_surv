@@ -37,6 +37,7 @@ func _init() -> void:
 		return
 	var upgrade: CardData = upgrades[0]
 
+	_set_stable_survival_state(survival)
 	var rolled := survival.roll_card_rewards()
 	if rolled.size() != SurvivalSystem.REWARD_CHOICES:
 		push_error("expected %d reward choices, got %d" % [
@@ -54,6 +55,36 @@ func _init() -> void:
 			synergy_seen = true
 	if not synergy_seen:
 		push_error("expected at least one synergy/tempo reward lane")
+		failures += 1
+
+	survival.state.thirst = 2
+	survival.state.water = 0
+	var crisis_rewards := survival.roll_card_rewards()
+	var water_seen := false
+	for card in crisis_rewards:
+		if survival._card_matches_reward_need(card, SurvivalSystem.RewardNeed.WATER):
+			water_seen = true
+	if not water_seen:
+		push_error("expected water reward while thirst/water crisis is active")
+		failures += 1
+
+	var cook_rewards := _stable_rewards_for_class(
+		"res://data/classes/cook.tres", biome_pool, event_cards, card_pool, disaster_pool, catalog
+	)
+	if not _rewards_match_any_need(
+		cook_rewards,
+		[SurvivalSystem.RewardNeed.FOOD, SurvivalSystem.RewardNeed.CONVERT, SurvivalSystem.RewardNeed.WARMTH]
+	):
+		push_error("cook rewards should show a cook-flavored lane")
+		failures += 1
+	var hunter_rewards := _stable_rewards_for_class(
+		"res://data/classes/hunter.tres", biome_pool, event_cards, card_pool, disaster_pool, catalog
+	)
+	if not _rewards_match_any_need(
+		hunter_rewards,
+		[SurvivalSystem.RewardNeed.ENERGY, SurvivalSystem.RewardNeed.NIGHT, SurvivalSystem.RewardNeed.FOOD]
+	):
+		push_error("hunter rewards should show a hunter-flavored lane")
 		failures += 1
 
 	# The upgrade target must NOT already be owned (it's a fresh variant).
@@ -97,3 +128,38 @@ func _init() -> void:
 	if failures == 0:
 		print("Card upgrade test OK: swap in place + normal append verified")
 	quit(0 if failures == 0 else 1)
+
+
+func _stable_rewards_for_class(
+	class_path: String,
+	biome_pool: Array[BiomeData],
+	event_cards: Array[CardData],
+	card_pool: Array[CardData],
+	disaster_pool: Array[DisasterData],
+	catalog: Array[BuildingCardData],
+) -> Array[CardData]:
+	var survival := SurvivalSystem.new()
+	survival.start(load(class_path), biome_pool, event_cards, card_pool, disaster_pool, catalog)
+	survival._rng.seed = 9001
+	_set_stable_survival_state(survival)
+	return survival.roll_card_rewards()
+
+
+func _set_stable_survival_state(survival: SurvivalSystem) -> void:
+	survival.state.food = 4
+	survival.state.water = 4
+	survival.state.wood = 4
+	survival.state.materials = 4
+	survival.state.hunger = 8
+	survival.state.thirst = 8
+	survival.state.warmth = 8
+	survival.state.health = survival.state.max_health
+
+
+func _rewards_match_any_need(rewards: Array[CardData], needs: Array) -> bool:
+	var probe := SurvivalSystem.new()
+	for card in rewards:
+		for need in needs:
+			if probe._card_matches_reward_need(card, int(need)):
+				return true
+	return false
