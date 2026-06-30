@@ -1446,6 +1446,30 @@ najcieńszym (4).
   niższy: Strateg 15/30, Zielarka 11/30), Akt I zgony 2 (dzień 10). Cel osiągnięty
   bez trywializacji. `load_test` zaktualizowany (starter 9→11). Cała dwunastka zielona.
 
+### Korekta reki: owned-only survival draw (2026-06-30)
+
+Karty-goscie z reki kafelkowej byly dobra proteza na martwe rece, ale przesuwaly
+gre w strone deckbuilderowego preview zamiast survivalu. Usunieto pozyczanie kart
+spoza talii gracza:
+
+- reka switu jest teraz budowana wylacznie z `state.deck`;
+- najpierw idzie normalne losowanie z przetasowanej wlasnej talii;
+- potem lekka korekta survivalowa: tylko jesli reka nie ma ZADNEJ karty
+  ECONOMY/SUSTAIN, system podmienia jedna karte z pozostalego stosu;
+- TEMPO/PAYOFF nie sa gwarantowane, wiec combo i silne tempo trzeba nadal zbudowac
+  przez nagrody/ulepszenia, nie dostac jako gosc;
+- anty-clump zostal tylko jako ochrona przed 3x ten sam `id` w rece.
+- nagrody awansu nie sa juz plaskim `3 z calej puli`: po opcjonalnym ulepszeniu
+  draft probuje dac 1 karte pod slabsza strone talii (ECONOMY/SUSTAIN), 1 karte
+  synergii/tempa i 1 wildcard.
+
+`tests/hand_draw_test.gd` sprawdza teraz: brak kart spoza posiadanej talii, co
+najmniej jedna karta survivalowa gdy talia to wspiera, brak potrojnych zlepek.
+`tests/card_upgrade_test.gd` dodatkowo lapie strukturę draftu nagrod: komplet
+3 unikalnych opcji i obecnosc linii synergii. Do pomiaru balansu trzeba ponownie
+odpalic smoke; oczekiwany efekt to wiecej survivalowego tarcia w Akcie I bez
+powrotu kompletnie martwych rak.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
@@ -1487,8 +1511,9 @@ Godot_v4.5.1-stable_win64_console.exe --headless --path . -s tests/hand_draw_tes
   odtwarzaczy; realny problem sterownika sprawdzamy dodatkowo bez `--headless`.
 - `card_upgrade_test` — nagroda-ulepszenie podmienia bazową kartę w talii w
   miejscu (rozmiar bez zmian), a zwykła karta dopisuje.
-- `hand_draw_test` — ręka kafelkowa: każdy świt ma ≥3 role, brak 3× tej samej
-  karty, a slot wildcard czasem podbiera kartę-gościa spoza talii.
+- `hand_draw_test` — owned-only survival draw: każdy świt używa tylko kart
+  z talii gracza, ma przynajmniej jedną kartę ECONOMY/SUSTAIN gdy talia to
+  wspiera i unika 3× tej samej karty.
 
 Poza tym testujemy ręcznie przez rozegranie runu w edytorze.
 

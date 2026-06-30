@@ -1,7 +1,7 @@
 extends SceneTree
-## Role-bucketed opening hand (variant A): every dawn the hand must cover at least
-## 3 distinct roles (when the deck supports it), never stack 3 cards of the same id,
-## and the wildcard slot must sometimes lend a not-yet-owned "guest" card.
+## Survival opening hand: every dawn is dealt from the owned deck only, with a
+## light correction only when the opening hand has no ECONOMY/SUSTAIN at all.
+## The hand should avoid 3x the same id without lending not-yet-owned cards.
 ##
 ## Run:
 ##   godot --headless --path . -s tests/hand_draw_test.gd
@@ -31,13 +31,16 @@ func _init() -> void:
 	var owned := {}
 	for c in survival.state.deck:
 		owned[c.id] = true
-	var deck_roles := {}
+	var deck_has_economy := false
+	var deck_has_sustain := false
 	for c in survival.state.deck:
-		deck_roles[survival._card_role(c)] = true
-	var deck_role_count: int = deck_roles.size()
+		if survival._card_role(c) == SurvivalSystem.HandRole.ECONOMY:
+			deck_has_economy = true
+		if survival._card_role(c) == SurvivalSystem.HandRole.SUSTAIN:
+			deck_has_sustain = true
+	var deck_has_survival := deck_has_economy or deck_has_sustain
 
 	var limit := survival._hand_limit()
-	var guest_seen := false
 	var dawns := 0
 
 	for day in 12:
@@ -59,18 +62,22 @@ func _init() -> void:
 				push_error("dawn %d: %d copies of '%s' in hand" % [day, int(id_counts[id]), id])
 				failures += 1
 
-		# At least 3 distinct roles when the deck can supply them.
+		# The correction prevents a totally non-survival opening, but it does not
+		# force both ECONOMY and SUSTAIN every dawn.
 		var hand_roles := {}
 		for c in hand:
 			hand_roles[survival._card_role(c)] = true
-		if hand_roles.size() < mini(3, deck_role_count):
-			push_error("dawn %d: only %d distinct roles in hand" % [day, hand_roles.size()])
+		var has_survival := hand_roles.has(SurvivalSystem.HandRole.ECONOMY) \
+			or hand_roles.has(SurvivalSystem.HandRole.SUSTAIN)
+		if deck_has_survival and not has_survival:
+			push_error("dawn %d: missing any survival role despite owned support" % day)
 			failures += 1
 
-		# Guest detection: a hand card the player does not own.
+		# No guests: every hand card must belong to the player's deck.
 		for c in hand:
 			if not owned.has(c.id):
-				guest_seen = true
+				push_error("dawn %d: guest card appeared: '%s'" % [day, c.id])
+				failures += 1
 
 		# Keep the run alive so we sample enough dawns (this tests draws, not survival).
 		survival.state.hunger = RunState.MAX_HUNGER
@@ -79,10 +86,6 @@ func _init() -> void:
 		survival.end_day()
 		survival.resolve_night()
 
-	if not guest_seen:
-		push_error("no guest card appeared across %d dawns (expected with Act I chance)" % dawns)
-		failures += 1
-
 	if failures == 0:
-		print("Hand draw test OK: %d dawns, >=3 roles each, no triples, guest seen" % dawns)
+		print("Hand draw test OK: %d dawns, owned-only, survival safety, no triples" % dawns)
 	quit(0 if failures == 0 else 1)

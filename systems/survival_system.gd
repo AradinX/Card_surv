@@ -112,6 +112,13 @@ const XP_COST_GROWTH := 4
 const REWARD_CHOICES := 3
 const REWARD_HEAL := 1
 const MAX_ENERGY_CAP := 10
+enum HandRole { ECONOMY, SUSTAIN, TEMPO, PAYOFF }
+const HAND_SYNERGY_SPECIALS := ["momentum", "rhythm", "combo_food"]
+const HAND_SURVIVAL_ROLES := [HandRole.ECONOMY, HandRole.SUSTAIN]
+const REWARD_SYNERGY_SPECIALS := [
+	"momentum", "rhythm", "combo_food",
+	"draw_two", "free_move", "repair_tile", "ward_night", "set_trap",
+]
 
 var state: RunState
 var hand: Array[CardData] = []
@@ -862,17 +869,82 @@ func available_upgrades() -> Array[CardData]:
 
 
 ## Up to REWARD_CHOICES cards for the level-up choice: at most one is an upgrade of
-## an owned card (so deck evolution competes with raw new cards), the rest random
-## from the reward pool (actions and buildings alike).
+## an owned card, then the draft gets one survival-need lane, one synergy lane and
+## a wildcard. This keeps a broad pool from feeling completely flat.
 func roll_card_rewards() -> Array[CardData]:
 	var result: Array[CardData] = []
 	var upgrades := available_upgrades()
 	if not upgrades.is_empty():
 		result.append(upgrades[_rng.randi_range(0, upgrades.size() - 1)])
 	var pool := _card_pool.duplicate()
+	_remove_reward_ids(pool, result)
+	_append_reward_by_role(result, pool, _reward_need_role())
+	_append_synergy_reward(result, pool)
+	_append_random_reward(result, pool)
 	while result.size() < REWARD_CHOICES and not pool.is_empty():
-		result.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
+		_append_random_reward(result, pool)
 	return result
+
+
+func _remove_reward_ids(pool: Array[CardData], result: Array[CardData]) -> void:
+	for reward in result:
+		for i in range(pool.size() - 1, -1, -1):
+			if pool[i].id == reward.id:
+				pool.remove_at(i)
+
+
+func _append_reward_by_role(result: Array[CardData], pool: Array[CardData], role: int) -> void:
+	if result.size() >= REWARD_CHOICES:
+		return
+	var matching: Array[int] = []
+	for i in pool.size():
+		if _card_role(pool[i]) == role:
+			matching.append(i)
+	if matching.is_empty():
+		return
+	var pool_idx: int = matching[_rng.randi_range(0, matching.size() - 1)]
+	result.append(pool.pop_at(pool_idx))
+
+
+func _append_synergy_reward(result: Array[CardData], pool: Array[CardData]) -> void:
+	if result.size() >= REWARD_CHOICES:
+		return
+	var matching: Array[int] = []
+	for i in pool.size():
+		if pool[i] is ActionCardData and _is_reward_synergy(pool[i] as ActionCardData):
+			matching.append(i)
+	if matching.is_empty():
+		return
+	var pool_idx: int = matching[_rng.randi_range(0, matching.size() - 1)]
+	result.append(pool.pop_at(pool_idx))
+
+
+func _append_random_reward(result: Array[CardData], pool: Array[CardData]) -> void:
+	if result.size() >= REWARD_CHOICES or pool.is_empty():
+		return
+	result.append(pool.pop_at(_rng.randi_range(0, pool.size() - 1)))
+
+
+func _reward_need_role() -> int:
+	var economy := _deck_role_count(HandRole.ECONOMY)
+	var sustain := _deck_role_count(HandRole.SUSTAIN)
+	return HandRole.ECONOMY if economy <= sustain else HandRole.SUSTAIN
+
+
+func _deck_role_count(role: int) -> int:
+	var count := 0
+	for card in state.deck:
+		if _card_role(card) == role:
+			count += 1
+	return count
+
+
+func _is_reward_synergy(card: ActionCardData) -> bool:
+	if _card_role(card) == HandRole.PAYOFF:
+		return true
+	if REWARD_SYNERGY_SPECIALS.has(card.special):
+		return true
+	return card.energy_delta > 0
 
 
 func claim_card(card: CardData) -> void:
@@ -1008,15 +1080,6 @@ func _draw_cards(count: int) -> void:
 
 ## --- Role-bucketed opening hand (variant A) ---
 ##
-## Roles drive a "guaranteed variety" opening hand so three look-alike cards never
-## clog the hand. A card's role is derived from its fields (no per-card data).
-enum HandRole { ECONOMY, SUSTAIN, TEMPO, PAYOFF }
-
-const HAND_GUEST_CHANCE_ACT1 := 0.5
-const HAND_GUEST_CHANCE_ACT2 := 0.25
-const HAND_SYNERGY_SPECIALS := ["momentum", "rhythm", "combo_food"]
-
-
 func _card_role(card: CardData) -> int:
 	if not (card is ActionCardData):
 		return HandRole.TEMPO
@@ -1040,91 +1103,91 @@ func _rng_shuffle(arr: Array) -> void:
 		arr[j] = tmp
 
 
-## Build the opening hand: cover ECONOMY + SUSTAIN + TEMPO (if owned), then a
-## wildcard slot that may borrow a not-yet-owned "guest" from the reward pool.
-## Leftover owned cards become the mid-day draw pile (_day_deck). Sets `hand`.
+## Build the opening hand from owned cards only. First deal a normal shuffled hand,
+## then make a small survival correction only if the hand has no economy/sustain
+## at all. This avoids dead openings without making every dawn feel solved.
 func _deal_bucketed_hand(deck_cards: Array[CardData]) -> void:
 	var limit := _hand_limit()
-	var buckets := {
-		HandRole.ECONOMY: [], HandRole.SUSTAIN: [],
-		HandRole.TEMPO: [], HandRole.PAYOFF: [],
-	}
-	for card in deck_cards:
-		buckets[_card_role(card)].append(card)
-	for role in buckets:
-		_rng_shuffle(buckets[role])
-
+	var draw_pool := deck_cards.duplicate()
+	_rng_shuffle(draw_pool)
 	var picked: Array[CardData] = []
-	# Guarantee coverage of the three core roles (leave the last slot for wildcard).
-	for role in [HandRole.ECONOMY, HandRole.SUSTAIN, HandRole.TEMPO]:
-		if picked.size() < limit - 1 and not buckets[role].is_empty():
-			picked.append(buckets[role].pop_back())
-	# Wildcard / payoff slot: try a guest from the unlock pool first.
-	if picked.size() < limit:
-		var guest := _maybe_guest_card(picked)
-		if guest != null:
-			picked.append(guest)
+	while picked.size() < limit and not draw_pool.is_empty():
+		picked.append(draw_pool.pop_back())
 
-	# Fill any remaining slots from leftover owned cards (avoid duplicate ids).
-	var leftover: Array[CardData] = []
-	for role in buckets:
-		for card in buckets[role]:
-			leftover.append(card)
-	_rng_shuffle(leftover)
-	while picked.size() < limit and not leftover.is_empty():
-		picked.append(_pop_non_duplicate(leftover, picked))
-
+	_ensure_survival_hand(picked, draw_pool)
+	_reduce_hand_triples(picked, draw_pool)
 	hand = picked
-	_day_deck = Deck.new(leftover, _rng)
+	_day_deck = Deck.new(draw_pool, _rng)
 
 
-## Reward-pool action cards the player does NOT yet own (guest candidates).
-func _guest_candidates() -> Array[CardData]:
-	var owned := {}
-	for card in state.deck:
-		owned[card.id] = true
-	var out: Array[CardData] = []
-	for card in _card_pool:
-		if card is ActionCardData and not owned.has(card.id):
-			out.append(card)
-	return out
+func _ensure_survival_hand(picked: Array[CardData], draw_pool: Array[CardData]) -> void:
+	if _hand_has_any_role(picked, HAND_SURVIVAL_ROLES):
+		return
+	var candidate_idx := _find_any_role_index(draw_pool, HAND_SURVIVAL_ROLES)
+	if candidate_idx < 0:
+		return
+	var replace_idx := _find_survival_replacement_index(picked)
+	if replace_idx < 0:
+		return
+	var replaced := picked[replace_idx]
+	picked[replace_idx] = draw_pool.pop_at(candidate_idx)
+	draw_pool.append(replaced)
 
 
-func _hand_guest_chance() -> float:
-	return HAND_GUEST_CHANCE_ACT2 if state.bum_happened else HAND_GUEST_CHANCE_ACT1
+func _hand_has_any_role(cards: Array[CardData], roles: Array) -> bool:
+	for card in cards:
+		if roles.has(_card_role(card)):
+			return true
+	return false
 
 
-## With a (phase-scaled) chance, lend one not-yet-owned card to today's hand —
-## preferring a role the hand is still missing (variety), especially PAYOFF.
-## The guest is for this day only; it never joins state.deck.
-func _maybe_guest_card(current_hand: Array[CardData]) -> CardData:
-	if _rng.randf() > _hand_guest_chance():
-		return null
-	var candidates := _guest_candidates()
-	if candidates.is_empty():
-		return null
-	_rng_shuffle(candidates)
-	var present_roles := {}
-	for card in current_hand:
-		present_roles[_card_role(card)] = true
-	for card in candidates:
-		if not present_roles.has(_card_role(card)):
-			log_message.emit("Improwizacja: na dziś masz w ręku %s (gość)." % card.display_name)
-			return card
-	log_message.emit("Improwizacja: na dziś masz w ręku %s (gość)." % candidates[0].display_name)
-	return candidates[0]
+func _find_any_role_index(cards: Array[CardData], roles: Array) -> int:
+	for i in cards.size():
+		if roles.has(_card_role(cards[i])):
+			return i
+	return -1
 
 
-func _pop_non_duplicate(pool: Array, picked: Array) -> CardData:
-	for i in pool.size():
-		var duplicate := false
-		for chosen in picked:
-			if chosen.id == pool[i].id:
-				duplicate = true
-				break
-		if not duplicate:
-			return pool.pop_at(i)
-	return pool.pop_back()
+func _find_survival_replacement_index(cards: Array[CardData]) -> int:
+	for i in cards.size():
+		if not HAND_SURVIVAL_ROLES.has(_card_role(cards[i])):
+			return i
+	return cards.size() - 1 if not cards.is_empty() else -1
+
+
+func _reduce_hand_triples(picked: Array[CardData], draw_pool: Array[CardData]) -> void:
+	var counts := _card_id_counts(picked)
+	for id in counts.keys():
+		while int(counts[id]) >= 3:
+			var duplicate_idx := _find_duplicate_index(picked, str(id))
+			var replacement_idx := _find_non_duplicate_pool_index(draw_pool, counts)
+			if duplicate_idx < 0 or replacement_idx < 0:
+				return
+			var replaced := picked[duplicate_idx]
+			picked[duplicate_idx] = draw_pool.pop_at(replacement_idx)
+			draw_pool.append(replaced)
+			counts = _card_id_counts(picked)
+
+
+func _card_id_counts(cards: Array[CardData]) -> Dictionary:
+	var counts := {}
+	for card in cards:
+		counts[card.id] = int(counts.get(card.id, 0)) + 1
+	return counts
+
+
+func _find_duplicate_index(cards: Array[CardData], id: String) -> int:
+	for i in range(cards.size() - 1, -1, -1):
+		if cards[i].id == id:
+			return i
+	return -1
+
+
+func _find_non_duplicate_pool_index(cards: Array[CardData], current_counts: Dictionary) -> int:
+	for i in cards.size():
+		if int(current_counts.get(cards[i].id, 0)) < 2:
+			return i
+	return -1
 
 
 func _cards_by_ids(ids: Array[String]) -> Array[CardData]:

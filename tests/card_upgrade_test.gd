@@ -37,6 +37,25 @@ func _init() -> void:
 		return
 	var upgrade: CardData = upgrades[0]
 
+	var rolled := survival.roll_card_rewards()
+	if rolled.size() != SurvivalSystem.REWARD_CHOICES:
+		push_error("expected %d reward choices, got %d" % [
+			SurvivalSystem.REWARD_CHOICES, rolled.size()
+		])
+		failures += 1
+	var rolled_ids := {}
+	var synergy_seen := false
+	for card in rolled:
+		if rolled_ids.has(card.id):
+			push_error("duplicate reward option '%s'" % card.id)
+			failures += 1
+		rolled_ids[card.id] = true
+		if card is ActionCardData and survival._is_reward_synergy(card as ActionCardData):
+			synergy_seen = true
+	if not synergy_seen:
+		push_error("expected at least one synergy/tempo reward lane")
+		failures += 1
+
 	# The upgrade target must NOT already be owned (it's a fresh variant).
 	for owned in survival.state.deck:
 		if owned.id == upgrade.id:
