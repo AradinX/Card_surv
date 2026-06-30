@@ -1,16 +1,18 @@
-[gd_resource type="Resource" script_class="DeckData" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="DeckData" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/deck_data.gd" id="1_script"]
-[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="2_explore"]
-[ext_resource type="Resource" path="res://data/cards/actions/signature/nomad_signature.tres" id="3_sig"]
+[ext_resource type="Resource" path="res://data/cards/actions/signature/nomad_signature.tres" id="2_sig"]
+[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="3_explore"]
 [ext_resource type="Resource" path="res://data/cards/actions/scout.tres" id="4_scout"]
 [ext_resource type="Resource" path="res://data/cards/actions/forage.tres" id="5_forage"]
 [ext_resource type="Resource" path="res://data/cards/actions/dried_meat.tres" id="6_meat"]
 [ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="7_water"]
 [ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="8_rest"]
 [ext_resource type="Resource" path="res://data/cards/actions/herbs.tres" id="9_herbs"]
-[ext_resource type="Resource" path="res://data/cards/actions/bandage.tres" id="10_bandage"]
+[ext_resource type="Resource" path="res://data/cards/actions/bandage.tres" id="10_band"]
+[ext_resource type="Resource" path="res://data/cards/actions/deadfall_wood.tres" id="11_dead"]
+[ext_resource type="Resource" path="res://data/cards/actions/knapping.tres" id="12_knap"]
 
 [resource]
 script = ExtResource("1_script")
-cards = [ExtResource("2_explore"), ExtResource("3_sig"), ExtResource("4_scout"), ExtResource("5_forage"), ExtResource("6_meat"), ExtResource("7_water"), ExtResource("8_rest"), ExtResource("9_herbs"), ExtResource("10_bandage")]
+cards = [ExtResource("2_sig"), ExtResource("3_explore"), ExtResource("4_scout"), ExtResource("5_forage"), ExtResource("6_meat"), ExtResource("7_water"), ExtResource("8_rest"), ExtResource("9_herbs"), ExtResource("10_band"), ExtResource("11_dead"), ExtResource("12_knap")]

@@ -59,17 +59,25 @@ talie startowe / pula nagród / zbieranie biomu / ulepszenia). **Audyt kart widm
 | Zgniłe jagody (`rotten_forage`) | zbieranie skażone | +2 J (−1 zdr) |
 | Zbieractwo: Spiżarka (`forage_up`) | ulepszenie | +2 J (+ combo) |
 
-### ⛏️ MATERIAŁY (kamień)
+### ⛏️ MATERIAŁY (kamień) — gałąź WYRÓWNANA (2026-06-30): pula 4→6 producentów
 | Karta | Kanał | Zysk |
 |---|---|---|
-| Szukaj kamienia (`scavenge`) | starter Skauta + zbieranie (Góry/Pustkowie/Jaskinie/Wybrzeże) | +1 M |
-| Ciesielka (`woodcraft`) | starter Budowlańca + pula — *wymiana* | +1 M (−1 D) |
-| Obróbka kamienia (`knapping`) | pula — *wymiana* | +2 M (−2 D) |
+| Wydobycie kamienia (`mine_stone`) | pula (raw) | +2 M (−2 E) |
+| Szukaj kamienia (`scavenge`) | starter Skaut/Łowca/Wojskowy/Zielarka + zbieranie (Góry/Pustkowie/Jaskinie/Wybrzeże) | +1 M |
+| Ciesielka (`woodcraft`) | starter Budowlaniec/Informatyk/Strateg + pula — *wymiana* | +1 M (−1 D) |
+| Obróbka kamienia (`knapping`) | starter Kucharz/Wędrowiec + pula — *wymiana* | +2 M (−2 D) |
+| Wymiana: kamień (`barter_materials`) | pula — *wymiana* | +2 M (−1 J) |
 | Zacisnąć zęby (`push_through`) | pula — *wymiana* | +3 M (−2 zdr) |
 | Prefabrykaty (`builder_signature`) | starter Budowlańca | +2 M (−2 D) |
 | Rozpoznanie (`scout_signature`) | starter Skauta | +1 M (+ explore) |
 | Skażony złom (`salvage_scrap`) | zbieranie skażone | +1 M (−1 zdr) |
 | Zwiad: Rekonesans (`scout_up`) | ulepszenie | +1 M (+ draw 2) |
+
+> **Wzbogacenie talii (2026-06-30):** wcześniej 8/9 klas nie miało w talii
+> startowej ŻADNEJ karty drewna, 7/9 — kamienia, więc gwarantowany slot „ekonomia"
+> ręki kafelkowej dawał im tylko jedzenie/wodę. Teraz **każda klasa ma w starcie
+> producenta drewna I kamienia** (talie 9→11 kart), więc drewno/kamień realnie
+> trafiają do ręki, a progresja jest mniej ukierunkowana na nagrodę „dodaj kartę".
 
 ---
 
@@ -107,21 +115,27 @@ gulasz (`cook_signature`), Skażona zwierzyna (`tainted_hunt`), Zgniłe jagody
 
 ## 4. Podstawowe (na starcie w talii) vs dodatkowe (odblokowywane)
 
-### Talie startowe per klasa (9 kart każda; pierwsza to sygnaturka klasy)
+### Talie startowe per klasa (11 kart każda; **pogrubione** = dodane 2026-06-30)
+Pierwsza karta to sygnaturka klasy. Każda talia dostała +1 producenta drewna oraz
++1 kartę różnorodności/kamienia, żeby drewno/kamień trafiały do ręki i progresja
+była mniej ukierunkowana na nagrodę „dodaj kartę".
+
 | Klasa | Talia startowa |
 |---|---|
-| **Kucharz** | cook_signature, forage, find_water, rest, first_aid, scout, craft_tools, herbs, explore |
-| **Budowlaniec** | builder_signature, gather_sticks ×2, woodcraft, craft_tools, first_aid, forage, find_water, rest |
-| **Zielarka** | herbalist_signature, herbs, huddle, first_aid, forage, dried_meat, find_water, rest, scout |
-| **Łowca** | hunter_signature, expedition, explore, scout ×2, herbs ×2, find_water, rest |
-| **Wędrowiec** | nomad_signature, explore, scout, forage, dried_meat, find_water, rest, herbs, bandage |
-| **Strateg** | planner_signature, scout ×2, explore, forage, find_water, rest, herbs, first_aid |
-| **Skaut** | scout_signature, scavenge, forage, dried_meat, find_water, rest, first_aid, herbs, scout |
-| **Wojskowy** | soldier_signature, adrenaline, feast, first_aid, herbs, forage, find_water, rest, scout |
-| **Informatyk** | informatyk_signature, forage ×2, find_water, rest, first_aid, herbs, scout, explore |
+| **Kucharz** | cook_signature, forage, find_water, rest, first_aid, scout, craft_tools, herbs, explore, **gather_wood**, **knapping** |
+| **Budowlaniec** | builder_signature, gather_sticks ×2, woodcraft, craft_tools, first_aid, forage, find_water, rest, **haul_wood**, **momentum** |
+| **Zielarka** | herbalist_signature, herbs, huddle, first_aid, forage, dried_meat, find_water, rest, scout, **deadfall_wood**, **scavenge** |
+| **Łowca** | hunter_signature, expedition, explore, scout ×2, herbs ×2, find_water, rest, **deadfall_wood**, **scavenge** |
+| **Wędrowiec** | nomad_signature, explore, scout, forage, dried_meat, find_water, rest, herbs, bandage, **deadfall_wood**, **knapping** |
+| **Strateg** | planner_signature, scout ×2, explore, forage, find_water, rest, herbs, first_aid, **gather_wood**, **woodcraft** |
+| **Skaut** | scout_signature, scavenge, forage, dried_meat, find_water, rest, first_aid, herbs, scout, **deadfall_wood**, **dash** |
+| **Wojskowy** | soldier_signature, adrenaline, feast, first_aid, herbs, forage, find_water, rest, scout, **haul_wood**, **scavenge** |
+| **Informatyk** | informatyk_signature, forage ×2, find_water, rest, first_aid, herbs, scout, explore, **gather_sticks**, **woodcraft** |
 
 > Wspólny rdzeń niemal każdej klasy: `forage`, `find_water`, `rest`, `first_aid`,
-> `herbs`, `scout`. Klasy różnią się sygnaturką + 1–2 kartami profilowymi.
+> `herbs`, `scout` + odtąd drewno i kamień. Klasy różnią się sygnaturką, kartami
+> profilowymi oraz dodatkiem różnorodności (Budowlaniec dostał synergię `momentum`,
+> Skaut czasownik `dash`).
 
 ### Dodatkowe — TYLKO z puli nagród awansu (nigdy na starcie)
 Te 28 kart nie są w żadnej talii startowej ani w zbieraniu biomu — pojawiają się

@@ -160,6 +160,15 @@ func _play_day(
 					continue
 				if ac.hunger_delta < 0 and survival.state.hunger + ac.hunger_delta <= 2:
 					continue
+				# Don't spend energy mining raw wood/stone while a survival need is
+				# pressing — a reasonable player handles food/water first.
+				var only_raw_mats := (ac.wood_gain > 0 or ac.materials_gain > 0) \
+					and ac.food_gain == 0 and ac.water_gain == 0 \
+					and ac.health_delta <= 0 and ac.hunger_delta <= 0 \
+					and ac.thirst_delta <= 0 and ac.warmth_delta <= 0 and ac.energy_delta <= 0 \
+					and ac.special == "none"
+				if only_raw_mats and (survival.state.hunger < 4 or survival.state.thirst < 4):
+					continue
 			survival.play_card(i)
 			played = true
 			break

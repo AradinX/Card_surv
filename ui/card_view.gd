@@ -25,7 +25,9 @@ const MONSTER_ART_DIR := "res://assets/art/cards/illustrations/monsters"
 
 const ACTION_ART_ALIASES := {
 	"adrenaline": "action_rest",
+	"barter_materials": "action_explore",
 	"barter_wood": "action_chop_wood",
+	"mine_stone": "action_explore",
 	"big_hunt": "action_forage",
 	"campfire": "action_rest",
 	"deadfall_wood": "action_chop_wood",

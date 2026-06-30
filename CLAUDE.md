@@ -1420,6 +1420,32 @@ kafelkowy z gwarancją różnorodności**:
 - `tests/hand_draw_test.gd`: co świt ręka ma ≥3 role (gdy talia je ma), brak 3×
   tego samego id, i gość pojawia się w oknie Aktu I. Cała dwunastka testów zielona.
 
+### Wyrównanie kamienia + wzbogacenie talii startowych (2026-06-30)
+
+Audyt (`KARTY_PODZIAL.md` + skrypt) potwierdził skargę „dużo energii, mało
+drewna/kamienia w ręku" i znalazł głębszą przyczynę: **8/9 talii startowych nie
+miało ŻADNEJ karty drewna, 7/9 — kamienia**, więc gwarantowany slot „ekonomia"
+ręki kafelkowej dawał im wyłącznie jedzenie/wodę (drewno/kamień tylko ze zbierania
+biomu i nagród). W puli energia była 2. najliczniejszym efektem (9), a kamień
+najcieńszym (4).
+
+- **Kamień w puli 4→6:** `mine_stone` (Wydobycie, −2E/+2M, raw) i `barter_materials`
+  (Wymiana: kamień, −1J/+2M, domyka kwartet wymian jedzenie/woda/drewno/kamień).
+  Aliasy artu → `action_explore`.
+- **Talie startowe 9→11 (wszystkie 9 klas):** każda dostała +1 producenta drewna
+  (haul_wood/deadfall_wood/gather_wood/gather_sticks) + 1 kartę różnorodności/kamienia
+  (scavenge/knapping/woodcraft — albo czasownik: Budowlaniec `momentum`, Skaut `dash`).
+  Teraz **każda klasa ma w starcie drewno I kamień** → realnie trafiają do ręki, a
+  progresja jest mniej ukierunkowana na nagrodę „dodaj kartę" (startujesz bogatszy).
+- **Energia zostawiona** — to rola TEMPO/PAYOFF (~1 slot w ręce kafelkowej), więc
+  strukturalnie nie zalewa ręki; balans robimy dosypaniem drewna/kamienia, nie cięciem.
+- **Bot:** dodano regułę „nie dłub w drewnie/kamieniu, gdy sytość/nawodnienie < 4"
+  (rozsądny gracz robi potrzeby pierwsze) — inaczej naiwny bot przepalał energię na
+  surowiec i ginął w Akcie I.
+- **Balans (smoke):** gra NIE zrobiła się łatwiejsza (win-rate per klasa podobny/
+  niższy: Strateg 15/30, Zielarka 11/30), Akt I zgony 2 (dzień 10). Cel osiągnięty
+  bez trywializacji. `load_test` zaktualizowany (starter 9→11). Cała dwunastka zielona.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

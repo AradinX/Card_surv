@@ -1,14 +1,16 @@
-[gd_resource type="Resource" script_class="DeckData" load_steps=9 format=3]
+[gd_resource type="Resource" script_class="DeckData" load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/deck_data.gd" id="1_script"]
-[ext_resource type="Resource" path="res://data/cards/actions/expedition.tres" id="2_exped"]
-[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="3_explore"]
-[ext_resource type="Resource" path="res://data/cards/actions/scout.tres" id="4_scout"]
-[ext_resource type="Resource" path="res://data/cards/actions/signature/hunter_signature.tres" id="5_sig"]
+[ext_resource type="Resource" path="res://data/cards/actions/signature/hunter_signature.tres" id="2_sig"]
+[ext_resource type="Resource" path="res://data/cards/actions/expedition.tres" id="3_exp"]
+[ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="4_explore"]
+[ext_resource type="Resource" path="res://data/cards/actions/scout.tres" id="5_scout"]
 [ext_resource type="Resource" path="res://data/cards/actions/herbs.tres" id="6_herbs"]
 [ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="7_water"]
 [ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="8_rest"]
+[ext_resource type="Resource" path="res://data/cards/actions/deadfall_wood.tres" id="9_dead"]
+[ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="10_scav"]
 
 [resource]
 script = ExtResource("1_script")
-cards = [ExtResource("2_exped"), ExtResource("3_explore"), ExtResource("4_scout"), ExtResource("4_scout"), ExtResource("5_sig"), ExtResource("6_herbs"), ExtResource("6_herbs"), ExtResource("7_water"), ExtResource("8_rest")]
+cards = [ExtResource("2_sig"), ExtResource("3_exp"), ExtResource("4_explore"), ExtResource("5_scout"), ExtResource("5_scout"), ExtResource("6_herbs"), ExtResource("6_herbs"), ExtResource("7_water"), ExtResource("8_rest"), ExtResource("9_dead"), ExtResource("10_scav")]

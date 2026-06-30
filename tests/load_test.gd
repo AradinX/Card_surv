@@ -14,8 +14,8 @@ func _init() -> void:
 		print("starter_deck: %d cards" % deck.cards.size())
 		# Buildings live in the always-available catalog now, so the starter
 		# deck is action cards only.
-		if deck.cards.size() != 9:
-			push_error("starter deck should have 9 cards")
+		if deck.cards.size() != 11:
+			push_error("starter deck should have 11 cards")
 			failures += 1
 		for card in deck.cards:
 			if card == null or not (card is ActionCardData):
