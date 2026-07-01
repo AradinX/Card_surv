@@ -74,9 +74,9 @@ func _init() -> void:
 		var other_defense_reduction: int = survival.call(
 			"_bum_defense_damage_reduction", survival.state.board[tile_index]
 		)
-		if other_defense_reduction != 0:
-			push_error("BUM defense should be per-tile, got %d on another tile." %
-				other_defense_reduction)
+		if other_defense_reduction != current_defense_reduction:
+			push_error("BUM defense should stack globally, got %d on another tile, expected %d." %
+				[other_defense_reduction, current_defense_reduction])
 			quit(1)
 			return
 		break

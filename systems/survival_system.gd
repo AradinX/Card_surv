@@ -173,7 +173,6 @@ const XP_BASE_COST := 8
 const XP_COST_GROWTH := 4
 const REWARD_CHOICES := 3
 const REWARD_HEAL := 1
-const MAX_ENERGY_CAP := 10
 enum HandRole { ECONOMY, SUSTAIN, TEMPO, PAYOFF }
 enum RewardNeed {
 	FOOD,
@@ -277,7 +276,7 @@ func start(
 	# Class max-stat tweaks (tanky/frail, more/less energy).
 	state.max_health = maxi(state.max_health + character_class.health_bonus, 1)
 	state.health = state.max_health
-	state.max_energy = clampi(state.max_energy + character_class.max_energy_bonus, 1, MAX_ENERGY_CAP)
+	state.max_energy = maxi(state.max_energy + character_class.max_energy_bonus, 1)
 	state.energy = state.max_energy
 	# Class starting resource bonuses (clamped to [0, base storage cap]).
 	state.food = clampi(state.food + character_class.start_food, 0, RunState.MAX_FOOD)
@@ -1028,11 +1027,8 @@ func has_pending_reward() -> bool:
 func claim_max_energy() -> void:
 	if not has_pending_reward():
 		return
-	if state.max_energy >= MAX_ENERGY_CAP:
-		log_message.emit("Maksymalna energia ma limit %d. Wybierz inną nagrodę." % MAX_ENERGY_CAP)
-		return
 	state.pending_rewards -= 1
-	state.max_energy = mini(state.max_energy + 1, MAX_ENERGY_CAP)
+	state.max_energy += 1
 	state.energy = mini(state.energy + 1, state.max_energy)
 	log_message.emit("Nagroda: +1 maks. energii (%d)." % state.max_energy)
 	stats_changed.emit(state)

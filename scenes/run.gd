@@ -2619,11 +2619,8 @@ func _show_reward_panel() -> void:
 	_level_title.text = "Awans! Poziom %d — wybierz nagrodę%s" % [state.level, suffix]
 	_reward_buttons.visible = true
 	_clear_card_choices()
-	_energy_button.disabled = state.max_energy >= SurvivalSystem.MAX_ENERGY_CAP
-	if _energy_button.disabled:
-		_energy_button.tooltip_text = "Limit maksymalnej energii: %d" % SurvivalSystem.MAX_ENERGY_CAP
-	else:
-		_energy_button.tooltip_text = ""
+	_energy_button.disabled = false
+	_energy_button.tooltip_text = ""
 	_level_overlay.visible = true
 
 
@@ -2642,10 +2639,7 @@ func _on_reward_health() -> void:
 func _on_reward_card() -> void:
 	var rewards := _survival.roll_card_rewards()
 	if rewards.is_empty():
-		if _survival.state.max_energy >= SurvivalSystem.MAX_ENERGY_CAP:
-			_survival.claim_max_health()
-		else:
-			_survival.claim_max_energy()
+		_survival.claim_max_energy()
 		_show_reward_panel()
 		return
 	_reward_buttons.visible = false

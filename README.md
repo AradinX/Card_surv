@@ -7,8 +7,7 @@ ulegają uszkodzeniu, a do puli nocy trafiają potwory. Celem jest przetrwanie
 do dnia 50.
 
 > **Stan projektu: 2026-07-01.** Grywalny, kompletny funkcjonalnie vertical
-> slice z pełnym 50-dniowym runem. Główna linia rozwoju to wersja Godot;
-> `web/` zawiera starszy, równoległy prototyp przeglądarkowy.
+> slice z pełnym 50-dniowym runem. Główna linia rozwoju to wersja Godot.
 
 ## Co jest w grze
 
@@ -152,7 +151,6 @@ scenes/     menu, ekran runu i wynik
 ui/         reużywalne widoki kart, biomów, pasków i overlayów
 tests/      testy headless uruchamiane przez Godot -s
 assets/     grafika, FX i audio
-web/        starszy, niezależny prototyp przeglądarkowy
 ```
 
 Największe moduły to `systems/survival_system.gd` i `scenes/run.gd`.

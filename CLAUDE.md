@@ -107,15 +107,6 @@ biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3.
   6,4) — lekko ponad bazowe ~86%, bo nagrody to czysta korzyść; trudność
   doważy BUM.
 
-### Port przeglądarkowy (Higgsfield) — równoległy artefakt (2026-06-12)
-
-- Grywalny web-port konceptu (slice + akt BUM, run 30 dni) zbudowany
-  pipeline'em Higgsfield.ai: https://simple-warbler-784.higgsfield.gg/
-- Źródła i artefakty projektowe w `web/` (katalog ma `.gdignore` — Godot
-  go nie skanuje); szczegóły w `web/README.md` i `web/design/`.
-- To prototyp równoległy do gry w Godot — wersja Godot pozostaje główną
-  linią rozwoju; rozbieżności balansu opisane w `web/README.md`.
-
 ### Assety: wygenerowany zestaw ramek kart (2026-06-12)
 
 - Płaskie deterministyczne ramki kart odrzucone; nowy zestaw 5 ramek
@@ -205,7 +196,7 @@ biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3.
   (identyczne z `concept_biome_*_board_slots*.png` w tym samym katalogu).
   Świadome duplikaty zostają: próbki `*_act1_candidate.png` (approval
   history) i `move_arrow.png` w `board/markers/` + `board/player_marker/`.
-- `docs/` dostał `.gdignore` (jak `web/`) — Godot nie importuje już
+- `docs/` dostał `.gdignore` — Godot nie importuje już
   podglądów z dokumentacji.
 - Skorygowane nieaktualne ścieżki/wymiary w `generated_asset_samples.md`:
   maska 800x520 → 754x483 @ (135, 307); `building_well_card` →
