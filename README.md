@@ -13,13 +13,13 @@ do dnia 50.
 ## Co jest w grze
 
 - pełny run do **dnia 50** w dwóch aktach;
-- BUM losowane na dzień **18–30**;
+- BUM losowane na dzień **20–26**;
 - plansza 3×2 losowana z puli **8 biomów**, fog of war i ruch za energię;
 - cztery potrzeby: zdrowie, sytość, nawodnienie i ciepło;
 - **19 budynków** stawianych z katalogu na slotach biomów;
 - naprawy, ruiny, rozbiórka i kosztowna odbudowa po BUM;
-- zabezpieczanie maksymalnie **2 rejonów** przed BUM: koszt energii, sytości,
-  nawodnienia i kamienia za mniejsze obrażenia BUM oraz mniejsze zużycie HP
+- zabezpieczanie maksymalnie **2 rejonów** przed BUM: głównie koszt kamienia,
+  potem energii i drewna, za mniejsze obrażenia BUM oraz mniejsze zużycie HP
   budynków w Akcie I;
 - **4 katastrofy**: Plaga, Zaćmienie, Powódź i Pęknięcie;
 - **15 potworów** przypisanych do katastrof;
@@ -134,8 +134,8 @@ Aktualny zestaw obejmuje:
 - ulepszenia kart (podmiana w talii), owned-only dobór ręki oraz flagę
   `gather_only`, modyfikatory kafla (camp) i przygotowanie rejonów pod BUM.
 
-Kontrolne pomiary smoke testu (2026-07-01): główny przebieg **1/50** dla
-naiwnego bota, średnio 24,5 dnia; zgony: Akt I 18, Akt II 31. Drogi koszt
+Kontrolne pomiary smoke testu (2026-07-01): główny przebieg **0/50** dla
+naiwnego bota, średnio 24,2 dnia; zgony: Akt I 17, Akt II 33. Drogi koszt
 zabezpieczania rejonów mocno karze autopilota, więc to sygnał balansu i AI bota
 do dalszego strojenia, nie twarda bramka — świadomy gracz powinien wybierać
 zabezpieczenia ostrożniej.
@@ -161,7 +161,7 @@ nocy/BUM oraz prezentację efektów.
 
 ## Aktualne priorytety
 
-1. Balans Aktu II po przesunięciu BUM na dzień 18–30 i dodaniu zabezpieczeń
+1. Balans Aktu II po przesunięciu BUM na dzień 20–26 i dodaniu zabezpieczeń
    rejonów; pacing/odbudowa wymagają kolejnych ręcznych playtestów.
 2. Ręczny playtest skrajnie różnych klas (spread Zielarka↔Informatyk).
 3. Uzupełnienie źródeł i licencji audio oraz ekran creditsów.
@@ -176,7 +176,7 @@ eksportu `Windows` jest śledzony w `export_presets.cfg`.
 ## Znane ograniczenia
 
 - balans klas jest szeroki: Zielarka i Skaut są znacznie łatwiejsze od Informatyka;
-- Akt II nadal może być ścianą, ale obecne okno BUM (18–30) daje dłuższy Akt I
+- Akt II nadal może być ścianą, ale obecne okno BUM (20–26) daje dłuższy Akt I
   na przygotowanie i wybór zabezpieczonych rejonów;
 - autozapis działa na granicy dni, bez ręcznych slotów zapisu;
 - brak drabinki trudności i kolekcji kart (ulepszanie kart już działa);

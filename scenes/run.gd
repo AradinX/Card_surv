@@ -93,6 +93,7 @@ const LOW_THIRST_FX := "res://assets/art/fx/ui/fx_low_thirst_vignette.png"
 const BUILD_PLACE_FX := "res://assets/art/fx/buildings/fx_build_place.png"
 const REPAIR_FX := "res://assets/art/fx/buildings/fx_repair_sparkle.png"
 const COLLAPSE_FX := "res://assets/art/fx/buildings/fx_ruin_collapse.png"
+const SECURE_REGION_FX := "res://assets/art/fx/buildings/fx_secure_region.png"
 ## Low-HP danger vignette shows at or below this fraction of max health.
 const LOW_HP_FRACTION := 0.3
 const NEED_WARNING_FRACTION := 0.3
@@ -497,7 +498,7 @@ func _tutorial_step_copy() -> Dictionary:
 		TUTORIAL_SECURE_REGION:
 			return {
 				"title": "7/13 Zabezpieczenie rejonu",
-				"body": "Przycisk w prawym dolnym rogu aktualnego kafla pozwala zabezpieczy\u0107 ca\u0142y rejon przed BUM. To kosztowna decyzja: energia, syto\u015b\u0107, nawodnienie i kamie\u0144 za mniejsze obra\u017cenia BUM oraz mniej zu\u017cycia budynk\u00f3w w Akcie I. Nie musisz robi\u0107 tego teraz."
+				"body": "Przycisk w prawym dolnym rogu aktualnego kafla pozwala zabezpieczy\u0107 ca\u0142y rejon przed BUM. To kosztowna decyzja: du\u017co kamienia, energia i drewno za mniejsze obra\u017cenia BUM oraz mniej zu\u017cycia budynk\u00f3w w Akcie I. Nie musisz robi\u0107 tego teraz."
 			}
 		TUTORIAL_CLICK_BUILDING:
 			return {
@@ -774,7 +775,8 @@ func _on_secure_region_pressed(_anchor_rect: Rect2, tile_index: int) -> void:
 	_confirm_action(title, text, "Zabezpiecz", func() -> void:
 		_survival.secure_current_tile()
 		AudioManager.play_sfx("build")
-		_spawn_tile_fx(BUILD_PLACE_FX, false)
+		var fx_path := SECURE_REGION_FX if ResourceLoader.exists(SECURE_REGION_FX) else BUILD_PLACE_FX
+		_spawn_tile_fx(fx_path, false)
 		_refresh_tiles(_survival.state)
 	)
 

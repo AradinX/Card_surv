@@ -13,6 +13,7 @@ const CORRUPTED_BG_DIR := "res://assets/art/biomes/backgrounds/corrupted"
 const UNKNOWN_BG := "res://assets/art/biomes/discovery/biome_unknown.png"
 const TILE_FRAME := "res://assets/art/biomes/frames/biome_tile_frame.png"
 const CORRUPTION_FRAME := "res://assets/art/biomes/overlays/biome_corruption_overlay.png"
+const SECURE_REGION_FRAME := "res://assets/art/biomes/overlays/biome_secure_region_frame.png"
 const TITLE_PLATE := "res://assets/art/biomes/frames/biome_title_plate.png"
 const SECURE_REGION_ICON := "res://assets/art/ui/icons/icon_secure_region.png"
 const SECURE_REGION_ICON_FALLBACK := "res://assets/art/ui/icons/icon_repair_round.png"
@@ -94,7 +95,7 @@ const SLOT_STAGGER := [16, 0, 9]
 
 @onready var _background: TextureRect = $Background
 @onready var _state_overlay: ColorRect = $StateOverlay
-@onready var _secure_region_frame: Panel = $SecureRegionFrame
+@onready var _secure_region_frame: TextureRect = $SecureRegionFrame
 @onready var _frame: TextureRect = $Frame
 @onready var _player_marker: TextureRect = $PlayerMarker
 @onready var _title_plate: TextureRect = $TitlePlate
@@ -308,12 +309,10 @@ func _configure_secure_region_frame() -> void:
 		return
 	_secure_region_frame.visible = false
 	_secure_region_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(0.95, 0.82, 0.42, 0.05)
-	box.border_color = Color(0.98, 0.78, 0.28, 0.92)
-	box.set_border_width_all(3)
-	box.set_corner_radius_all(7)
-	_secure_region_frame.add_theme_stylebox_override("panel", box)
+	_secure_region_frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_secure_region_frame.stretch_mode = TextureRect.STRETCH_SCALE
+	if ResourceLoader.exists(SECURE_REGION_FRAME):
+		_secure_region_frame.texture = load(SECURE_REGION_FRAME)
 
 
 func _configure_secure_region_button() -> void:

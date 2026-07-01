@@ -106,8 +106,8 @@ podglądu/oznaczania nieodkrytych kafli przed ruchem.
 - spowolnienie psucia;
 - przeróbka drewna na materiały;
 - naprawa, ruina i rozbiórka;
-- zabezpieczenie rejonu przed BUM: limit 2 kafli, wysoki koszt energii,
-  sytości, nawodnienia i kamienia, obrys na planszy oraz tooltip z efektem;
+- zabezpieczenie rejonu przed BUM: limit 2 kafli, wysoki koszt kamienia,
+  energii i drewna, obrys na planszy oraz tooltip z efektem;
 - dopłata za zwykłą budowę po BUM;
 - tańsze warianty odbudowy dostępne tylko w Akcie II.
 
@@ -157,7 +157,7 @@ dopiero po potwierdzeniu przez gracza.
 
 ## Katastrofy i potwory
 
-✅ BUM następuje losowo o świcie dnia **18–30** (omeny 6 dni wcześniej). Dłuższy
+✅ BUM następuje losowo o świcie dnia **20–26** (omeny 6 dni wcześniej). Dłuższy
 Akt I daje czas na zbudowanie bazy i świadome zabezpieczenie wybranych rejonów.
 
 ✅ BUM odwraca planszę, uruchamia sekwencję FX i uszkadza budynki o 35–80%.
@@ -183,8 +183,8 @@ ilustracje.
 
 ✅ Docelowy warunek zwycięstwa to przetrwanie do dnia 50.
 
-🟡 Kontrolne smoke testy (2026-07-01): główny przebieg **1/50** dla naiwnego bota,
-średnio 24,5 dnia; zgony: Akt I 18, Akt II 31. Po dodaniu kosztownego
+🟡 Kontrolne smoke testy (2026-07-01): główny przebieg **0/50** dla naiwnego bota,
+średnio 24,2 dnia; zgony: Akt I 17, Akt II 33. Po dodaniu kosztownego
 zabezpieczania rejonów autopilot częściej ginie przed BUM, więc balans i logika
 bota wymagają dalszego strojenia.
 
@@ -282,7 +282,7 @@ oraz przygotowanie rejonów na BUM.
 
 ## Najbliższe priorytety
 
-1. Balans Aktu II po BUM 18–30, zabezpieczeniach rejonów i droższej decyzji
+1. Balans Aktu II po BUM 20–26, zabezpieczeniach rejonów i droższej decyzji
    przygotowawczej.
 2. Uzupełnienie licencji audio i creditsów.
 3. Wersjonowanie/migracja zapisów.

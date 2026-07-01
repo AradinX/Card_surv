@@ -22,7 +22,7 @@ const PAGES := [
 	},
 	{
 		"title": "BUM — katastrofa",
-		"body": "BUM uderza później w Akcie I. Kafle gniją albo marzną, budynki dostają ciężkie obrażenia, a nocą pojawiają się potwory.\n\nPrzed BUM możesz zabezpieczyć maksymalnie dwa rejony przyciskiem na aktualnym kaflu. Kosztuje to energię, sytość, nawodnienie i dużo kamienia, ale zmniejsza obrażenia BUM i zużycie budynków w Akcie I. Po BUM odbuduj się INACZEJ: specjalne budynki Aktu II, naprawy i rozbiórka ruin.",
+		"body": "BUM uderza później w Akcie I. Kafle gniją albo marzną, budynki dostają ciężkie obrażenia, a nocą pojawiają się potwory.\n\nPrzed BUM możesz zabezpieczyć maksymalnie dwa rejony przyciskiem na aktualnym kaflu. Kosztuje to dużo kamienia, energię i drewno, ale zmniejsza obrażenia BUM i zużycie budynków w Akcie I. Po BUM odbuduj się INACZEJ: specjalne budynki Aktu II, naprawy i rozbiórka ruin.",
 	},
 ]
 
@@ -41,7 +41,7 @@ const TUTORIAL_PAGES := [
 	},
 	{
 		"title": "Zabezpieczenie rejonu",
-		"body": "Gdy na aktualnym kaflu stoi budynek, w prawym dolnym rogu kafla pojawia się przycisk zabezpieczenia rejonu.\n\nTo ciężka decyzja przygotowawcza przed BUM: płacisz energią, sytością, nawodnieniem i kamieniem. W zamian budynki w tym rejonie dostają mniejsze obrażenia BUM i mają tylko część szansy na codzienne lub użytkowe zużycie HP w Akcie I. Limit zabezpieczonych rejonów jest niski, więc wybieraj bazę świadomie.",
+		"body": "Gdy na aktualnym kaflu stoi budynek, w prawym dolnym rogu kafla pojawia się przycisk zabezpieczenia rejonu.\n\nTo ciężka decyzja przygotowawcza przed BUM: płacisz głównie kamieniem, do tego energią i drewnem. W zamian budynki w tym rejonie dostają mniejsze obrażenia BUM i mają tylko część szansy na codzienne lub użytkowe zużycie HP w Akcie I. Limit zabezpieczonych rejonów jest niski, więc wybieraj bazę świadomie.",
 	},
 	{
 		"title": "Akcje budynków",

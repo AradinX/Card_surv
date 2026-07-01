@@ -10,7 +10,7 @@ budynki, zdarzenia, potwory, kafle biomów), klasy postaci, meta-progresja
 Stan obecny: gra toczy się na planszy 6 kafli biomów — mapa węzłów z etapu 2
 została zastąpiona i usunięta (historia w gicie). Run = przetrwaj do dnia 50
 w dwóch aktach: Akt I (budowa, eksploracja i zabezpieczanie wybranych rejonów),
-BUM w dniu 18–30 (flip kafli, obrażenia budynków, zużycie zabezpieczeń), Akt II
+BUM w dniu 20–26 (flip kafli, obrażenia budynków, zużycie zabezpieczeń), Akt II
 (potwory nocą, naprawy, ruiny, obrona). 4 statystyki, budynki z katalogu, akcje
 biomu, ruch za energię, XP i poziomy z nagrodami 1 z 3.
 
@@ -1640,7 +1640,7 @@ menu -> **run (cała wyprawa na jednym ekranie)** -> wynik
    sytość/nawodnienie spadają i automatyczne jedzenie/picie →
    głód/odwodnienie/zamarzanie biją w zdrowie → śmierć (przegrana) /
    dzień 50 przeżyty (wygrana) / kolejny dzień.
-   O świcie dnia BUM (18–30): flip planszy, uszkodzenia budynków,
+   O świcie dnia BUM (20–26): flip planszy, uszkodzenia budynków,
    zużycie zabezpieczeń rejonów i przebudowa talii zdarzeń.
 4. Noc (docelowo): po kliknięciu `Zakończ dzień` pojawia się duża karta
    zdarzenia z aktywnej, wagowanej puli; gracz klika `OK`, dopiero wtedy
@@ -1659,11 +1659,11 @@ do zysku jedzenia/drewna, XP: +1 karta/akcja biomu, +3 budynek, próg
 8 + 4×(poziom−1), wygrana w dniu 50. **Budynki: budowane z katalogu w trybie
 „Budowanie" (karty + potwierdzenie, nie z talii); po BUM dostępne, ale z dopłatą
 +3 energii / +5 drewna / +5 materiałów.** BUM:
-dzień 18–30, uszkodzenia budynków **35–80%** z redukcją za obronę bazy,
+dzień 20–26, uszkodzenia budynków **35–80%** z redukcją za obronę rejonu,
 zabezpieczony rejon i wysokie max HP (ruina poniżej 50% maks. HP),
 naprawa 1 energia + 1 drewno/2 HP, rozbiórka ruiny 1 energia
 + zwrot połowy surowców, Palisada defense 2 (kafel). Zabezpieczenie rejonu:
-limit 2 kafli, koszt energii/sytości/nawodnienia/kamienia, -30% obrażeń BUM i
+limit 2 kafli, koszt kamienia/energii/drewna, -30% obrażeń BUM i
 60% szans na zużycie HP budynków w Akcie I. Potwory Plagi (po buffie):
 Zgnilec 3/3, Zarażony wilk 4/0, Krucza chmara 2/2, Rój szczurów 0/3. Punkt
 odniesienia (2026-06-19, po starcie 3/3 + deprywacji Akt I −1): naiwny bot
@@ -1734,11 +1734,11 @@ w systemach).
 ### Zabezpieczenie rejonów przed BUM (2026-07-01)
 
 - Keystone: przetrwanie BUM ma wynikać z przygotowania, nie z losowego wipe'u.
-  BUM jest teraz później w Akcie I (18–30), a gracz może zabezpieczyć maks. 2
+  BUM jest teraz później w Akcie I (20–26), a gracz może zabezpieczyć maks. 2
   rejony.
 - Zabezpieczenie jest decyzją kafla, nie budynku: przycisk pojawia się w prawym
   dolnym rogu aktualnego rejonu, karta budynku wróciła do klasycznego `Napraw`.
-- Koszt jest celowo ciężki: energia, sytość, nawodnienie i głównie kamień.
+- Koszt jest celowo ciężki: głównie kamień, potem energia i drewno.
   Rejon daje -30% obrażeń BUM dla budynków i tylko 60% szans na zużycie HP
   budynków w Akcie I; przy BUM flaga zabezpieczenia jest zużywana.
 - UI: zabezpieczony rejon ma ramkę, tooltip kafla opisuje efekt, tooltip

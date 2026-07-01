@@ -52,8 +52,6 @@ func _init() -> void:
 		return
 	survival.state.max_energy = 20
 	survival.state.energy = 20
-	survival.state.hunger = 10
-	survival.state.thirst = 10
 	survival.state.wood = 20
 	survival.state.materials = 20
 
@@ -63,6 +61,25 @@ func _init() -> void:
 		push_error("Expected palisade and campfire to be built on the current tile.")
 		quit(1)
 		return
+	var current_defense_reduction: int = survival.call(
+		"_bum_defense_damage_reduction", survival.current_tile()
+	)
+	if current_defense_reduction <= 0:
+		push_error("Expected palisade defense to reduce BUM damage on its own tile.")
+		quit(1)
+		return
+	for tile_index in survival.state.board.size():
+		if tile_index == survival.state.current_tile:
+			continue
+		var other_defense_reduction: int = survival.call(
+			"_bum_defense_damage_reduction", survival.state.board[tile_index]
+		)
+		if other_defense_reduction != 0:
+			push_error("BUM defense should be per-tile, got %d on another tile." %
+				other_defense_reduction)
+			quit(1)
+			return
+		break
 
 	var secured_for_limit := 0
 	for tile_index in survival.state.board.size():

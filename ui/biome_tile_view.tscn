@@ -32,7 +32,7 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.02, 0.025, 0.02, 0.22)
 
-[node name="SecureRegionFrame" type="Panel" parent="."]
+[node name="SecureRegionFrame" type="TextureRect" parent="."]
 visible = false
 z_index = 1
 layout_mode = 1
@@ -42,6 +42,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+expand_mode = 1
+stretch_mode = 0
 
 [node name="Frame" type="TextureRect" parent="."]
 layout_mode = 1

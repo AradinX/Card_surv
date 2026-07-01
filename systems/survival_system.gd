@@ -33,8 +33,8 @@ signal run_ended(won: bool, days_survived: int)
 const WIN_DAY := 50
 ## BUM strikes at dawn of a day rolled from this range at run start. With
 ## building preparation in place, Act I has room to become a real build-up phase.
-const BUM_DAY_MIN := 18
-const BUM_DAY_MAX := 30
+const BUM_DAY_MIN := 20
+const BUM_DAY_MAX := 26
 ## Each building rolls this damage percent range when BUM strikes. A building
 ## survives (stays usable) only if it takes <=50% (ruin threshold), so this range
 ## leaves roughly a third of buildings standing into Act II instead of wiping all.
@@ -43,12 +43,10 @@ const BUM_DAMAGE_PERCENT_MAX := 80
 const BUM_SECURED_TILE_LIMIT := 2
 const BUM_SECURE_BASE_ENERGY_COST := 3
 const BUM_SECURE_EXTRA_ENERGY_COST := 1
-const BUM_SECURE_BASE_HUNGER_COST := 2
-const BUM_SECURE_EXTRA_HUNGER_COST := 1
-const BUM_SECURE_BASE_THIRST_COST := 2
-const BUM_SECURE_EXTRA_THIRST_COST := 1
-const BUM_SECURE_BASE_MATERIALS_COST := 6
-const BUM_SECURE_EXTRA_MATERIALS_COST := 4
+const BUM_SECURE_BASE_WOOD_COST := 2
+const BUM_SECURE_EXTRA_WOOD_COST := 1
+const BUM_SECURE_BASE_MATERIALS_COST := 8
+const BUM_SECURE_EXTRA_MATERIALS_COST := 5
 const BUM_SECURE_DAMAGE_REDUCTION := 30
 const BUM_DEFENSE_DAMAGE_REDUCTION_PER_POINT := 4
 const BUM_DEFENSE_DAMAGE_REDUCTION_MAX := 20
@@ -470,9 +468,9 @@ func secure_current_tile_cost() -> Dictionary:
 	var secured := secured_tile_count()
 	return {
 		"energy": BUM_SECURE_BASE_ENERGY_COST + secured * BUM_SECURE_EXTRA_ENERGY_COST,
-		"food": BUM_SECURE_BASE_HUNGER_COST + secured * BUM_SECURE_EXTRA_HUNGER_COST,
-		"thirst": BUM_SECURE_BASE_THIRST_COST + secured * BUM_SECURE_EXTRA_THIRST_COST,
-		"wood": 0,
+		"food": 0,
+		"thirst": 0,
+		"wood": BUM_SECURE_BASE_WOOD_COST + secured * BUM_SECURE_EXTRA_WOOD_COST,
 		"materials": BUM_SECURE_BASE_MATERIALS_COST + secured * BUM_SECURE_EXTRA_MATERIALS_COST,
 	}
 
@@ -481,8 +479,6 @@ func secure_current_tile_summary() -> String:
 	var cost := secure_current_tile_cost()
 	var parts: PackedStringArray = []
 	_append_cost_part(parts, int(cost["energy"]), "energii")
-	_append_cost_part(parts, int(cost["food"]), "sytości")
-	_append_cost_part(parts, int(cost["thirst"]), "nawodnienia")
 	_append_cost_part(parts, int(cost["wood"]), "drewna")
 	_append_cost_part(parts, int(cost["materials"]), "kamienia")
 	return ", ".join(parts)
@@ -503,10 +499,6 @@ func can_secure_current_tile() -> String:
 	var cost := secure_current_tile_cost()
 	if state.energy < int(cost["energy"]):
 		return "Za mało energii (potrzeba %d)." % int(cost["energy"])
-	if state.hunger <= int(cost["food"]):
-		return "Za mało sytości (potrzeba %d i minimum 1 zapasu po pracy)." % int(cost["food"])
-	if state.thirst <= int(cost["thirst"]):
-		return "Za mało nawodnienia (potrzeba %d i minimum 1 zapasu po pracy)." % int(cost["thirst"])
 	if state.wood < int(cost["wood"]):
 		return "Za mało drewna (potrzeba %d)." % int(cost["wood"])
 	if state.materials < int(cost["materials"]):
@@ -521,8 +513,6 @@ func secure_current_tile() -> void:
 		return
 	var cost := secure_current_tile_cost()
 	state.energy -= int(cost["energy"])
-	state.hunger -= int(cost["food"])
-	state.thirst -= int(cost["thirst"])
 	state.wood -= int(cost["wood"])
 	state.materials -= int(cost["materials"])
 	current_tile().bum_secured = true
@@ -1905,9 +1895,9 @@ func _trigger_bum() -> void:
 	log_message.emit("=== BUM ===")
 	log_message.emit("Niebo pęka. %s" % state.disaster.description)
 
-	var bum_defense_reduction := _bum_defense_damage_reduction()
 	for tile in state.board:
 		tile.is_corrupted = true
+		var bum_defense_reduction := _bum_defense_damage_reduction(tile)
 		for built in tile.buildings:
 			var max_hp := building_max_hp(built.data)
 			var raw_percent := _rng.randi_range(
@@ -1945,12 +1935,13 @@ func _trigger_bum() -> void:
 	board_changed.emit(state)
 
 
-func _bum_defense_damage_reduction() -> int:
+func _bum_defense_damage_reduction(tile: TileState) -> int:
 	var defense := 0
-	for tile in state.board:
-		for built in tile.buildings:
-			if not built.is_ruined:
-				defense += built.data.defense
+	if tile == null:
+		return 0
+	for built in tile.buildings:
+		if not built.is_ruined:
+			defense += built.data.defense
 	return mini(
 		defense * BUM_DEFENSE_DAMAGE_REDUCTION_PER_POINT,
 		BUM_DEFENSE_DAMAGE_REDUCTION_MAX
@@ -1970,7 +1961,7 @@ func _bum_reduction_text(
 ) -> String:
 	var parts: PackedStringArray = []
 	if defense_reduction > 0:
-		parts.append("obrona bazy -%d%%" % defense_reduction)
+		parts.append("obrona rejonu -%d%%" % defense_reduction)
 	if secure_reduction > 0:
 		parts.append("zabezpieczenie -%d%%" % secure_reduction)
 	if durability_reduction > 0:
