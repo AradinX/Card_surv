@@ -205,6 +205,8 @@ clip_text = true
 
 [node name="BuildingActionPopup" type="PanelContainer" parent="."]
 visible = false
+z_index = 210
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 1.0

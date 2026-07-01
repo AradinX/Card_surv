@@ -50,13 +50,17 @@ var _feedback_frame: Panel
 ## `cost_override` lets the caller show a context-dependent cost (e.g. the
 ## effective build cost incl. class discount + post-BUM surcharge) instead of the
 ## card's static base cost.
-func setup(card: CardData, block_reason: String, cost_override: String = "") -> void:
+func setup(
+		card: CardData,
+		block_reason: String,
+		cost_override: String = "",
+		effects_override: Variant = null) -> void:
 	_name_label.text = card.display_name
 	_cost_label.text = cost_override if cost_override != "" else _format_costs(card)
 	# Flavour on its own label (top), effects on a separate label (bottom) so the
 	# effect line can never be clipped by a long flavour or font auto-fit.
 	_desc_label.text = card.description
-	var effects := _effects_summary(card)
+	var effects := str(effects_override) if effects_override != null else _effects_summary(card)
 	if card is BuildingCardData:
 		effects += ("  ·  " if effects != "" else "") + "%d HP" % (card as BuildingCardData).max_hp
 	if _effect_label != null:
@@ -362,8 +366,9 @@ func _action_special_text(special: String) -> String:
 		"ward_night": return "warta: łagodzi tę noc"
 		"set_trap": return "wnyki: blokują atak potwora"
 		"momentum": return "kolejne karty dziś zwracają energię"
-		"rhythm": return "+1 energii za każdą kartę zagraną dziś"
+		"rhythm": return ""
 		"combo_food": return "+2 jedzenia, jeśli grałeś już jedzenie"
+		"next_move_cost": return "następny ruch dziś kosztuje +1 energii"
 		_: return ""
 
 

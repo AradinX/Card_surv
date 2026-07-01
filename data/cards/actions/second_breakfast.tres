@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 1
 food_gain = 2
-special = "combo_food"
+special = "next_move_cost"
 id = "second_breakfast"
 display_name = "Drugie śniadanie"
-description = "Dokładasz do zapasów — a jeśli już dziś zdobywałeś jedzenie, idzie wyjątkowo obficie."
+description = "Skubiesz coś po drodze. Szybko, ale kolejny ruch będzie cięższy."

@@ -263,8 +263,6 @@ func setup(
 	_secure_region_button.visible = secure_visible
 	_secure_region_button.disabled = secure_disabled
 	_secure_region_button.tooltip_text = secure_tooltip
-	if secure_visible:
-		_secure_region_button.move_to_front()
 	_state_overlay.color = _overlay_color(is_current, block_reason, tile.is_corrupted)
 	if _drop_highlight:
 		_state_overlay.color = Color(0.45, 0.72, 0.24, 0.24)
@@ -317,6 +315,7 @@ func _configure_secure_region_frame() -> void:
 		return
 	_secure_region_frame.visible = false
 	_secure_region_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_secure_region_frame.z_index = 0
 	_secure_region_frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_secure_region_frame.stretch_mode = TextureRect.STRETCH_SCALE
 	if secure_region_frame_texture != null:
@@ -336,7 +335,7 @@ func _configure_secure_region_button() -> void:
 		_secure_region_button.texture_pressed = icon_texture
 		_secure_region_button.texture_disabled = icon_texture
 	_secure_region_button.visible = false
-	_secure_region_button.z_index = 30
+	_secure_region_button.z_index = 1
 	_secure_region_button.pressed.connect(func() -> void:
 		secure_region_pressed.emit(_secure_region_button.get_global_rect())
 	)

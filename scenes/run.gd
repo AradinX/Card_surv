@@ -285,6 +285,8 @@ func _ready() -> void:
 	_end_day_button.pressed.connect(_on_end_day_pressed)
 	_build_toggle_button.pressed.connect(_on_build_toggle_pressed)
 	_setup_card_drop_targets()
+	_building_bar.z_index = 210
+	_building_bar.z_as_relative = false
 	_building_close_button.pressed.connect(_hide_building_popup)
 	_building_label.text = "Naprawa / rozbiórka"
 	_energy_button.pressed.connect(_on_reward_energy)
@@ -823,7 +825,7 @@ func _request_move(tile_index: int, after_move: Callable = Callable()) -> void:
 	var body := "%s\nKoszt: %d energii" % [
 		"Nieznany teren. Odkrycie aktywuje jego nocne zagrożenia." if is_discovery
 			else tile.biome.display_name,
-		SurvivalSystem.MOVE_ENERGY_COST,
+		_survival.move_energy_cost(),
 	]
 	_confirm_action(title, body, ok_text, func() -> void:
 		_building_popup_requested = false
@@ -933,7 +935,7 @@ func _refresh_tiles(state: RunState) -> void:
 				else tile.biome.description
 		else:
 			tooltip = block_reason if block_reason != "" \
-				else "Przejdź (koszt: %d energii)" % SurvivalSystem.MOVE_ENERGY_COST
+				else "Przejdź (koszt: %d energii)" % _survival.move_energy_cost()
 		var building_tooltips: Array[String] = []
 		for built in tile.buildings:
 			building_tooltips.append(_building_tooltip(built, tile))
@@ -1380,6 +1382,8 @@ func _setup_confirm_popups() -> void:
 
 func _setup_building_info_popup() -> void:
 	_building_info_popup = BUILDING_POPUP_VIEW_SCENE.instantiate()
+	_building_info_popup.z_index = 220
+	_building_info_popup.z_as_relative = false
 	_building_info_popup.hide()
 	add_child(_building_info_popup)
 	_building_info_popup.use_pressed.connect(_on_building_info_use_pressed)
@@ -2452,7 +2456,7 @@ func _rebuild_cards(
 	for i in cards.size():
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		container.add_child(view)
-		view.setup(cards[i], "")
+		view.setup(cards[i], "", "", _card_effect_override(cards[i]))
 		var card := cards[i]
 		var index := i
 		if source != "":
@@ -2634,11 +2638,21 @@ func _refresh_playability() -> void:
 	var hand := _survival.hand
 	var hand_views := _hand_container.get_children()
 	for i in mini(hand_views.size(), hand.size()):
-		(hand_views[i] as CardView).setup(hand[i], _survival.can_play(hand[i]))
+		(hand_views[i] as CardView).setup(
+			hand[i], _survival.can_play(hand[i]), "", _card_effect_override(hand[i])
+		)
 	var gathers := _survival.available_gather_actions().slice(0, MAX_GATHER_CARD_VIEWS)
 	var gather_views := _gather_container.get_children()
 	for i in mini(gather_views.size(), gathers.size()):
-		(gather_views[i] as CardView).setup(gathers[i], _survival.can_play_gather(gathers[i]))
+		(gather_views[i] as CardView).setup(
+			gathers[i], _survival.can_play_gather(gathers[i]), "", _card_effect_override(gathers[i])
+		)
+
+
+func _card_effect_override(card: CardData) -> Variant:
+	if card is ActionCardData:
+		return _survival.action_card_effect_summary(card as ActionCardData)
+	return null
 
 
 func _on_log_message(text: String) -> void:
@@ -2697,7 +2711,7 @@ func _on_reward_card() -> void:
 
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		choice_wrap.add_child(view)
-		view.setup(card, "")
+		view.setup(card, "", "", _card_effect_override(card))
 		view.tooltip_text = "Masz w talii: %d" % _deck_count_for(card)
 		view.pressed.connect(_on_reward_card_chosen.bind(card))
 

@@ -35,7 +35,6 @@ mouse_filter = 2
 color = Color(0.02, 0.025, 0.02, 0.22)
 
 [node name="SecureRegionFrame" type="TextureRect" parent="."]
-z_index = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -150,7 +149,7 @@ alignment = 1
 
 [node name="BuildingsButton" type="TextureButton" parent="."]
 visible = false
-z_index = 2
+z_index = 1
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.79

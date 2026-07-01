@@ -9,4 +9,4 @@ health_delta = 1
 special = "rhythm"
 id = "cadence"
 display_name = "Kadencja"
-description = "Równe tempo pracy koi nerwy i dodaje wigoru w miarę dnia."
+description = "Równe tempo koi nerwy. Im więcej kart zagrano dziś wcześniej, tym więcej energii odzyskujesz."

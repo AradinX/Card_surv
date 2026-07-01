@@ -232,6 +232,7 @@ var _day_active := false
 ## free moves banked by "free_move" cards; extra night mitigation from "ward_night";
 ## a one-shot monster-attack negation from "set_trap".
 var _free_moves := 0
+var _next_move_energy_penalty := 0
 var _extra_night_protection := 0
 var _night_trap := false
 ## Per-turn synergy state (also reset at dawn): how many cards played today, whether
@@ -375,7 +376,7 @@ func current_tile() -> TileState:
 
 ## Effective move cost — a class trait can make wandering cheaper (min 0).
 func move_energy_cost() -> int:
-	return maxi(MOVE_ENERGY_COST + state.character_class.move_energy_delta, 0)
+	return maxi(MOVE_ENERGY_COST + state.character_class.move_energy_delta + _next_move_energy_penalty, 0)
 
 
 ## Returns "" when the move is possible, otherwise a player-facing reason.
@@ -386,6 +387,8 @@ func can_move(tile_index: int) -> String:
 		return "Ten kafel nie sąsiaduje z twoją pozycją."
 	if _free_moves <= 0 and state.energy < move_energy_cost():
 		return "Za mało energii (potrzeba %d)." % move_energy_cost()
+	if _free_moves > 0 and _next_move_energy_penalty > 0 and state.energy < _next_move_energy_penalty:
+		return "Za mało energii (potrzeba %d)." % _next_move_energy_penalty
 	return ""
 
 
@@ -396,9 +399,15 @@ func move_to(tile_index: int) -> void:
 		return
 	if _free_moves > 0:
 		_free_moves -= 1
-		log_message.emit("Bieg: ten ruch jest darmowy.")
+		if _next_move_energy_penalty > 0:
+			state.energy -= _next_move_energy_penalty
+			log_message.emit("Bieg skraca trasę, ale objazd kosztuje +%d energii." % _next_move_energy_penalty)
+			_next_move_energy_penalty = 0
+		else:
+			log_message.emit("Bieg: ten ruch jest darmowy.")
 	else:
 		state.energy -= move_energy_cost()
+		_next_move_energy_penalty = 0
 	state.current_tile = tile_index
 	var discovered_now := false
 	if not current_tile().is_discovered:
@@ -1321,6 +1330,7 @@ func _start_day() -> void:
 	# Card-verb and synergy state are fresh each day (night flags were already
 	# spent during the previous night's resolution).
 	_free_moves = 0
+	_next_move_energy_penalty = 0
 	_extra_night_protection = 0
 	_night_trap = false
 	_turn_cards_played = 0
@@ -1693,13 +1703,16 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 			_energy_refund_per_card += 1
 			log_message.emit("Zapał: każda kolejna karta dziś zwraca +1 energii.")
 		"rhythm":
-			if _turn_cards_played > 0:
-				state.energy = mini(state.energy + _turn_cards_played, state.max_energy)
-				log_message.emit("Rytm dnia: +%d energii za wcześniejsze zagrania." % _turn_cards_played)
+			var recovered_energy := mini(_turn_cards_played, state.max_energy - state.energy)
+			if recovered_energy > 0:
+				state.energy += recovered_energy
 		"combo_food":
 			if _turn_food_played:
 				_add_food(2)
-				log_message.emit("Drugie śniadanie: +2 jedzenia za wcześniejszą kartę jedzenia.")
+				log_message.emit("Combo jedzenia: +2 jedzenia za wcześniejszą kartę jedzenia.")
+		"next_move_cost":
+			_next_move_energy_penalty += 1
+			log_message.emit("Następny ruch dziś kosztuje +1 energii.")
 	# Per-turn synergy bookkeeping: count this card so later plays this turn can
 	# react (rhythm/momentum/combo_food). Gather actions resolve here too, so they
 	# also feed the combo counters.
@@ -1764,13 +1777,41 @@ func _action_card_base_summary(card: ActionCardData) -> String:
 	_append_delta_part(parts, card.water_gain, "wody")
 	_append_delta_part(parts, card.wood_gain, "drewna")
 	_append_delta_part(parts, card.materials_gain, "kamienia")
-	var special := _action_special_log_text(card.special)
+	var special := _action_special_log_text(card.special, card)
 	if special != "":
 		parts.append(special)
 	return ", ".join(parts)
 
 
-func _action_special_log_text(special: String) -> String:
+func action_card_effect_summary(card: ActionCardData) -> String:
+	var parts: PackedStringArray = []
+	_append_delta_part(parts, card.health_delta, "zdrowia")
+	_append_delta_part(parts, card.hunger_delta, "sytości")
+	_append_delta_part(parts, card.thirst_delta, "nawodnienia")
+	_append_delta_part(parts, card.warmth_delta, "ciepła")
+	_append_delta_part(parts, card.energy_delta, "energii")
+	_append_delta_part(parts, card.food_gain, "jedzenia")
+	_append_delta_part(parts, card.water_gain, "wody")
+	_append_delta_part(parts, card.wood_gain, "drewna")
+	_append_delta_part(parts, card.materials_gain, "kamienia")
+	var special := _action_special_log_text(card.special, card)
+	if special != "":
+		parts.append(special)
+	return "  ·  ".join(parts)
+
+
+func _rhythm_recovered_energy(card: ActionCardData) -> int:
+	if card == null or card.special != "rhythm" or _turn_cards_played <= 0:
+		return 0
+	var energy_after_base := clampi(
+		state.energy - card.energy_cost + card.energy_delta + _energy_refund_per_card,
+		0,
+		state.max_energy
+	)
+	return mini(_turn_cards_played, state.max_energy - energy_after_base)
+
+
+func _action_special_log_text(special: String, card: ActionCardData = null) -> String:
 	match special:
 		"craft_tools":
 			return "tworzy narzędzia"
@@ -1793,9 +1834,12 @@ func _action_special_log_text(special: String) -> String:
 		"momentum":
 			return "zapał: kolejne karty zwracają energię"
 		"rhythm":
-			return "rytm: +energia za zagrane karty"
+			var recovered := _rhythm_recovered_energy(card)
+			return "+%d energii" % recovered if recovered > 0 else ""
 		"combo_food":
 			return "combo jedzenia"
+		"next_move_cost":
+			return "następny ruch dziś kosztuje +1 energii"
 		_:
 			return ""
 

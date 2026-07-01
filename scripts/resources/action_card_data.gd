@@ -31,9 +31,10 @@ extends CardData
 ## - ward_night: this night's event/monster health & warmth losses are softened
 ## - set_trap: negate one monster attack on you this night
 ## - momentum: every later card played this turn refunds +1 energy
-## - rhythm: +1 energy for each card already played this turn
+## - rhythm: recover energy for cards already played this turn
 ## - combo_food: +2 extra food if you already played a food card this turn
-@export_enum("none", "build_shelter", "craft_tools", "explore", "double_explore", "draw_two", "scout_reveal", "free_move", "repair_tile", "ward_night", "set_trap", "momentum", "rhythm", "combo_food")
+## - next_move_cost: the next tile move today costs +1 energy
+@export_enum("none", "build_shelter", "craft_tools", "explore", "double_explore", "draw_two", "scout_reveal", "free_move", "repair_tile", "ward_night", "set_trap", "momentum", "rhythm", "combo_food", "next_move_cost")
 var special: String = "none"
 
 ## Optional one-step upgrade: res:// path of the ActionCardData this card becomes
