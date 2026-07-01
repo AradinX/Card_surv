@@ -1030,22 +1030,16 @@ func _building_info_data(building_index: int) -> Dictionary:
 	var built = buildings[building_index]
 	var data: BuildingCardData = built.data
 	var max_hp := _survival.building_max_hp(data)
-	var effect_parts := _building_effect_parts(data)
-	if data.special != "":
-		effect_parts.append(_building_special_description(data.special))
+	var effect_parts := _building_passive_effect_parts(data)
 	var action := _survival.building_action(building_index)
 	var block := str(action.get("block", "")) if not action.is_empty() else ""
 	var action_used := block.contains("użyta dzisiaj")
 	var summary := str(action.get("summary", "")) if not action.is_empty() else ""
 	var action_text := ""
-	if built.is_ruined:
-		action_text = "Akcja: ruina nie ma aktywnej akcji."
-	elif action.is_empty():
-		action_text = "Akcja: ten budynek działa pasywnie."
-	else:
-		action_text = "Akcja: %s%s" % [
+	if not built.is_ruined and not action.is_empty():
+		action_text = "%s%s" % [
 			str(action.get("title", "Użyj")),
-			" (%s)" % summary if summary != "" else "",
+			"\n%s" % summary if summary != "" else "",
 		]
 
 	var is_campfire := data.id == "building_campfire"
@@ -1056,18 +1050,18 @@ func _building_info_data(building_index: int) -> Dictionary:
 	if is_campfire:
 		repair_button_text = "Dołóż drewna"
 		var fuel_block := _survival.can_repair(building_index)
-		repair_text = "Dołóż drewna: %d drewno -> +%d nocy paliwa" % [
+		repair_text = "Dołóż: %d drewno -> +%d noce" % [
 			SurvivalSystem.CAMPFIRE_STOKE_WOOD_COST,
 			SurvivalSystem.CAMPFIRE_FUEL_HP_PER_WOOD,
 		]
 		repair_disabled = fuel_block != ""
 		repair_tooltip = fuel_block if fuel_block != "" else "Można dokładać bez ograniczeń."
 	elif built.is_ruined:
-		repair_text = "Naprawa: niedostępna dla ruin."
+		repair_text = "Naprawa: niedostępna."
 		repair_disabled = true
 		repair_tooltip = "Ruiny można tylko rozebrać."
 	elif built.hp >= max_hp:
-		repair_text = "Naprawa: budynek jest cały."
+		repair_text = "Naprawa: pełne HP."
 		repair_disabled = true
 		repair_tooltip = "Budynek ma pełne HP."
 	else:
@@ -1082,10 +1076,10 @@ func _building_info_data(building_index: int) -> Dictionary:
 
 	var refund := _demolish_refund_summary(built)
 	var demolish_block := _survival.can_demolish(building_index)
-	var demolish_text := "Rozbiórka: %d energii, zwrot %s%s" % [
+	var demolish_text := "Rozbiórka: %d energii\nZwrot: %s%s" % [
 		SurvivalSystem.DEMOLISH_ENERGY_COST,
 		refund,
-		"" if built.is_ruined else " (mniejszy niż z ruin)",
+		"" if built.is_ruined else " (mniej)",
 	]
 	var hp_text := ""
 	if is_campfire:
@@ -1099,9 +1093,7 @@ func _building_info_data(building_index: int) -> Dictionary:
 		"hp_text": hp_text,
 		"hp_low": not is_campfire and not built.is_ruined and built.hp * 2 < max_hp,
 		"status_text": _building_wear_text(data, building_index) if not is_campfire else "",
-		"effects_text": "Efekty pasywne: %s" % (
-			", ".join(effect_parts) if not effect_parts.is_empty() else "brak"
-		),
+		"effects_text": ("Pasywnie: %s" % ", ".join(effect_parts)) if not effect_parts.is_empty() else "",
 		"action_text": action_text,
 		"use_visible": not built.is_ruined and not action.is_empty(),
 		"use_disabled": block != "" or action.is_empty(),
@@ -1251,7 +1243,12 @@ func _demolish_refund_summary(built) -> String:
 		else SurvivalSystem.DEMOLISH_STANDING_REFUND_DIVISOR
 	var wood_refund := floori(built.data.wood_cost / float(divisor))
 	var stone_refund := floori(built.data.materials_cost / float(divisor))
-	return "+%d drewna, +%d kamienia" % [wood_refund, stone_refund]
+	var parts: PackedStringArray = []
+	if wood_refund > 0:
+		parts.append("+%d drewna" % wood_refund)
+	if stone_refund > 0:
+		parts.append("+%d kamienia" % stone_refund)
+	return ", ".join(parts) if not parts.is_empty() else "brak"
 
 
 func _building_tooltip(built, tile: TileState = null) -> String:
@@ -1317,6 +1314,16 @@ func _building_effect_parts(data: BuildingCardData) -> PackedStringArray:
 	if data.water_cap_bonus > 0: parts.append("+%d limitu wody" % data.water_cap_bonus)
 	if data.wood_cap_bonus > 0: parts.append("+%d limitu drewna" % data.wood_cap_bonus)
 	if data.materials_cap_bonus > 0: parts.append("+%d limitu kamienia" % data.materials_cap_bonus)
+	return parts
+
+
+func _building_passive_effect_parts(data: BuildingCardData) -> PackedStringArray:
+	var parts := _building_effect_parts(data)
+	if data.id == "building_campfire" and parts.size() > 1:
+		parts.resize(1)
+	match data.special:
+		"night_protection", "slow_spoilage":
+			parts.append(_building_special_description(data.special))
 	return parts
 
 
@@ -1508,7 +1515,7 @@ func _refresh_build_playability() -> void:
 			"card": catalog[i],
 			"card_id": catalog[i].id,
 		})
-		if not view.disabled:
+		if not view.is_play_blocked():
 			view.tooltip_text = "Przeciągnij budowlę na aktualny biom albo kartkę logów."
 
 
@@ -2439,7 +2446,12 @@ func _setup_draggable_card(
 	})
 	view.card_drag_started.connect(_on_card_drag_started)
 	view.card_drag_finished.connect(_on_card_drag_finished)
-	if not view.disabled:
+	view.pressed.connect(func() -> void:
+		if view.is_play_blocked():
+			view.play_blocked_feedback()
+			_on_log_message(view.block_reason())
+	)
+	if not view.is_play_blocked():
 		view.tooltip_text = hint
 
 

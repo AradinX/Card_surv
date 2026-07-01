@@ -39,6 +39,9 @@ const MONSTER_ART_ALIASES := {
 
 var _drag_payload: Dictionary = {}
 var _drag_tween: Tween
+var _block_reason := ""
+var _feedback_tween: Tween
+var _feedback_frame: Panel
 
 
 ## `cost_override` lets the caller show a context-dependent cost (e.g. the
@@ -56,9 +59,10 @@ func setup(card: CardData, block_reason: String, cost_override: String = "") -> 
 	if _effect_label != null:
 		_effect_label.text = effects
 		_effect_label.visible = effects != ""
-	disabled = block_reason != ""
+	_block_reason = block_reason
+	disabled = false
 	tooltip_text = block_reason
-	self_modulate = Color(0.62, 0.62, 0.62, 1.0) if disabled else Color.WHITE
+	self_modulate = Color(0.62, 0.62, 0.62, 1.0) if is_play_blocked() else Color.WHITE
 	_apply_art(card)
 	_apply_text_layout(card)
 	_fit_all_text()
@@ -69,8 +73,43 @@ func set_drag_payload(payload: Dictionary) -> void:
 	_drag_payload = payload
 
 
+func is_play_blocked() -> bool:
+	return _block_reason != ""
+
+
+func block_reason() -> String:
+	return _block_reason
+
+
+func play_blocked_feedback(reason: String = "") -> void:
+	var text := reason if reason != "" else _block_reason
+	if text != "":
+		tooltip_text = text
+	_ensure_feedback_frame()
+	_feedback_frame.visible = true
+	if _feedback_tween != null:
+		_feedback_tween.kill()
+	position.x = round(position.x)
+	var base_position := position
+	_feedback_frame.modulate.a = 1.0
+	_feedback_tween = create_tween()
+	_feedback_tween.tween_property(self, "position:x", base_position.x - 6.0, 0.04)
+	_feedback_tween.tween_property(self, "position:x", base_position.x + 6.0, 0.06)
+	_feedback_tween.tween_property(self, "position:x", base_position.x - 4.0, 0.05)
+	_feedback_tween.tween_property(self, "position:x", base_position.x + 3.0, 0.05)
+	_feedback_tween.tween_property(self, "position:x", base_position.x, 0.05)
+	_feedback_tween.tween_property(_feedback_frame, "modulate:a", 0.0, 0.25)
+	_feedback_tween.finished.connect(func() -> void:
+		if is_instance_valid(_feedback_frame):
+			_feedback_frame.visible = false
+	)
+
+
 func _get_drag_data(_at_position: Vector2) -> Variant:
-	if disabled or _drag_payload.is_empty():
+	if is_play_blocked():
+		play_blocked_feedback()
+		return null
+	if _drag_payload.is_empty():
 		return null
 	_play_pickup_animation()
 	var preview_size := size
@@ -313,7 +352,7 @@ func _action_special_text(special: String) -> String:
 		"double_explore": return "+2 losowe znaleziska"
 		"draw_two": return "+2 karty do ręki"
 		"scout_reveal": return "odkrywa sąsiedni teren"
-		"free_move": return "następny ruch za darmo"
+		"free_move": return "następny ruch dziś za darmo"
 		"repair_tile": return "doraźna naprawa budynku"
 		"ward_night": return "warta: łagodzi tę noc"
 		"set_trap": return "wnyki: blokują atak potwora"
@@ -327,7 +366,7 @@ func _building_special_text(special: String) -> String:
 	match special:
 		"night_protection": return "ochrona nocna"
 		"slow_spoilage": return "wolniejsze psucie jedzenia"
-		"unlock_crafting": return "konserwuje budynki nocą"
+		"unlock_crafting": return "akcja: wykonaj narzędzia"
 		_: return ""
 
 
@@ -362,3 +401,21 @@ func _format_costs(card: CardData) -> String:
 	elif card is EventCardData:
 		return "Zdarzenie nocne"
 	return "   ·   ".join(parts)
+
+
+func _ensure_feedback_frame() -> void:
+	if _feedback_frame != null and is_instance_valid(_feedback_frame):
+		return
+	_feedback_frame = Panel.new()
+	_feedback_frame.name = "BlockFeedbackFrame"
+	_feedback_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_feedback_frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.45, 0.02, 0.02, 0.0)
+	box.border_color = Color(1.0, 0.1, 0.04, 0.95)
+	box.set_border_width_all(3)
+	box.set_corner_radius_all(6)
+	_feedback_frame.add_theme_stylebox_override("panel", box)
+	add_child(_feedback_frame)
+	move_child(_feedback_frame, get_child_count() - 1)
+	_feedback_frame.visible = false

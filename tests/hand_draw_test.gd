@@ -73,7 +73,11 @@ func _init() -> void:
 			push_error("dawn %d: missing any survival role despite owned support" % day)
 			failures += 1
 
-		# No guests: every hand card must belong to the player's deck.
+		# No guests: every hand card must belong to the player's current deck.
+		# Night events can legitimately grant a card, so refresh ownership each dawn.
+		owned.clear()
+		for owned_card in survival.state.deck:
+			owned[owned_card.id] = true
 		for c in hand:
 			if not owned.has(c.id):
 				push_error("dawn %d: guest card appeared: '%s'" % [day, c.id])

@@ -74,16 +74,16 @@ func set_content(data: Dictionary) -> void:
 	_hp_label.text = str(data.get("hp_text", ""))
 	_hp_label.add_theme_color_override(
 		"font_color",
-		Color(1.0, 0.42, 0.38, 1.0) if bool(data.get("hp_low", false)) else Color(0.97, 0.92, 0.74, 1.0)
+		Color(1.0, 0.42, 0.38, 1.0) if bool(data.get("hp_low", false)) else Color(0.15, 0.09, 0.04, 1.0)
 	)
 	if _status_label != null:
 		var status_text := str(data.get("status_text", ""))
 		_status_label.text = status_text
 		_status_label.visible = status_text != ""
-	_effects_label.text = str(data.get("effects_text", ""))
-	_action_label.text = str(data.get("action_text", ""))
-	_repair_label.text = str(data.get("repair_text", ""))
-	_demolish_label.text = str(data.get("demolish_text", ""))
+	_set_optional_label(_effects_label, str(data.get("effects_text", "")))
+	_set_optional_label(_action_label, str(data.get("action_text", "")))
+	_set_optional_label(_repair_label, str(data.get("repair_text", "")))
+	_set_optional_label(_demolish_label, str(data.get("demolish_text", "")))
 
 	_use_button.visible = bool(data.get("use_visible", true))
 	_use_button.disabled = bool(data.get("use_disabled", false))
@@ -96,6 +96,32 @@ func set_content(data: Dictionary) -> void:
 
 	_demolish_button.disabled = bool(data.get("demolish_disabled", false))
 	_demolish_button.tooltip_text = str(data.get("demolish_tooltip", ""))
+	_fit_content_text()
+
+
+func _set_optional_label(label: Label, text: String) -> void:
+	label.text = text
+	label.visible = text != ""
+
+
+func _fit_content_text() -> void:
+	_fit_label_font(_hp_label, 14, 9, 2)
+	_fit_label_font(_effects_label, 12, 8, 5)
+	_fit_label_font(_action_label, 11, 8, 4)
+	_fit_label_font(_repair_label, 11, 8, 4)
+	_fit_label_font(_demolish_label, 11, 8, 4)
+
+
+func _fit_label_font(label: Label, max_size: int, min_size: int, max_lines: int) -> void:
+	if not label.visible:
+		return
+	label.add_theme_constant_override("line_spacing", 0)
+	label.max_lines_visible = max_lines
+	for font_size in range(max_size, min_size - 1, -1):
+		label.add_theme_font_size_override("font_size", font_size)
+		if label.get_line_count() <= max_lines and label.get_line_count() <= label.get_visible_line_count():
+			return
+	label.add_theme_font_size_override("font_size", min_size)
 
 
 func popup_for(data: Dictionary, anchor: Rect2, viewport_size: Vector2) -> void:

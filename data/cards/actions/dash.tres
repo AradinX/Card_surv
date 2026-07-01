@@ -7,4 +7,4 @@ script = ExtResource("1_script")
 special = "free_move"
 id = "dash"
 display_name = "Bieg"
-description = "Zrywasz się i pędzisz przez ostępy — następne przejście nic nie kosztuje."
+description = "Zrywasz się i pędzisz przez ostępy — następne przejście dziś nic nie kosztuje."

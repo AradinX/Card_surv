@@ -1777,7 +1777,7 @@ func _action_special_log_text(special: String) -> String:
 		"scout_reveal":
 			return "odsłania sąsiedni kafel"
 		"free_move":
-			return "następny ruch za darmo"
+			return "następny ruch dziś za darmo"
 		"repair_tile":
 			return "doraźna naprawa budynku"
 		"ward_night":
