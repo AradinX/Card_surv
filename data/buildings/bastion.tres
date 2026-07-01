@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_cost = 4
-wood_cost = 3
-materials_cost = 4
+energy_cost = 8
+wood_cost = 8
+materials_cost = 8
 max_hp = 16
 defense = 3
 required_biome_ids = PackedStringArray()

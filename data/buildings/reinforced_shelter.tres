@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_cost = 3
-wood_cost = 3
-materials_cost = 2
+energy_cost = 6
+wood_cost = 6
+materials_cost = 6
 max_hp = 12
 warmth_delta = 2
 special = "night_protection"

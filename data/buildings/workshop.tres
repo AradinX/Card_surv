@@ -4,13 +4,13 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_cost = 4
-wood_cost = 3
-materials_cost = 4
+energy_cost = 7
+wood_cost = 5
+materials_cost = 7
 materials_cap_bonus = 6
 materials_gain = 0
 special = "unlock_crafting"
 required_biome_ids = PackedStringArray()
 id = "building_workshop"
 display_name = "Warsztat"
-description = "Nocą zużywa 1 drewno, aby naprawić najbardziej uszkodzony działający budynek o 1 HP. Zwiększa limit kamienia."
+description = "Aktywna akcja \"Wykonaj narzędzia\" za energię i drewno. Zwiększa limit kamienia."

@@ -196,18 +196,33 @@ func _play_day(
 		if played:
 			continue
 
-		# ...then patch up the local settlement (repairs, ruin tear-downs)...
-		for i in survival.current_tile().buildings.size():
+		# ...then patch up the local settlement. Demolish only ever targets
+		# ruins (can_demolish has no HP gate of its own, so without this check
+		# a "healthy building, nothing to repair" tile would get its buildings
+		# torn down for no reason). The campfire has no repair ceiling (uncapped
+		# fuel stockpiling), so only feed it once it's actually running low —
+		# a reasonable player doesn't dump every spare log onto a roaring fire.
+		var buildings := survival.current_tile().buildings
+		for i in buildings.size():
 			if survival.is_bum_omen_window() and survival.can_secure_current_tile() == "":
 				survival.secure_current_tile()
 				played = true
 				break
+			var built = buildings[i]
+			if built.is_ruined:
+				if survival.can_demolish(i) == "":
+					survival.demolish(i)
+					played = true
+					break
+				continue
+			if built.data.id == "building_campfire":
+				if built.hp <= 3 and survival.can_repair(i) == "":
+					survival.repair(i)
+					played = true
+					break
+				continue
 			if survival.can_repair(i) == "":
 				survival.repair(i)
-				played = true
-				break
-			if survival.can_demolish(i) == "":
-				survival.demolish(i)
 				played = true
 				break
 		if played:

@@ -1516,6 +1516,126 @@ Dwie powiązane zmiany zwiększające wagę decyzji „gdzie stać / gdzie spać
   teraz dedykowany `action_<id>.png` (fallback do aliasu) — pod podmianę artu.
   Do CI dopięto `card_upgrade_test`, `hand_draw_test` i `biome_camp_test`.
 
+### Feedback z dema — Faza 1: ognisko na paliwo, zużycie budynków, obrona globalna, ceny (2026-07-01)
+
+Pierwsza fala poprawek z drugiej rundy feedbacku dema (18 punktów spisanych przez
+gracza po testach); ta fala obejmuje mechaniki budynków (punkty #3, #10–13, #15–17):
+
+- **Ognisko przerobione na paliwo drewna.** `BuildingState.hp` dla ogniska to
+  teraz zapas nocy ciepła (start 6), nie wytrzymałość konstrukcji — nigdy nie
+  ulega zużyciu ani nie robi się z niego RUINA (`_check_ruin` je pomija).
+  Dawna akcja „Ogrzej się" zastąpiona **„Dużym ogniem"** (1 drewno + 1 energia
+  → +3 ciepła TEJ NOCY, jednorazowy bonus, nie rusza paliwa). Dawna „Napraw"
+  zastąpiona **„Dołóż drewna"** (1 drewno → +3 nocy paliwa, bez górnego limitu —
+  gracz może dokładać dowolnie dużo drewna na raz, kliknięcie po kliknięciu).
+  `_resolve_campfire_fuel()` spala 1 noc paliwa co świt; przy 0 ognisko jest
+  „wygasłe" (nie ruina) i wymaga dołożenia drewna, by znów grzać.
+- **Warsztat przestał zużywać drewno co noc.** Usunięta pasywna „konserwacja"
+  (`_resolve_workshop_maintenance`, wcześniej po cichu naprawiała losowy budynek
+  kosztem drewna — konkurowała z ogniskiem o ten sam surowiec). Warsztat działa
+  teraz wyłącznie przez swoją aktywną akcję „Wykonaj narzędzia" (energia + drewno
+  + kamień → narzędzia) i podnosi limit kamienia.
+- **Ruina dopiero przy 0 HP** (było: poniżej 50% maks. HP) — `_check_ruin`,
+  `BUM_DAMAGE_PERCENT_*` komentarz zaktualizowany. Popup budynku i kafel planszy
+  pokazują etykietę HP na czerwono, gdy budynek jest poniżej połowy maks. HP,
+  ale nadal stoi (nie jest ruiną) — gracz widzi ostrzeżenie, zanim będzie za późno.
+- **Zużycie budynków rozłożone na wolniejsze poziomy.** Wcześniej większość
+  budynków produkujących zasób traciła -1 HP niemal co noc (przez
+  `_should_passive_wear`), stąd wrażenie ciągłego biegania po naprawy. Dodano
+  `EVERY_THIRD_DAY_WEAR_BUILDING_IDS` / `EVERY_FOURTH_DAY_WEAR_BUILDING_IDS`;
+  wszystkie budynki poza dwoma podstawowymi (Ognisko na paliwie, reszta na
+  jawnym harmonogramie 2/3/4-dniowym) straciły automatyczne zużycie „za każdym
+  razem, gdy coś wyprodukują". Popup budynku dopisuje jawny tekst „Zużycie: -1
+  HP co N dni".
+- **Obrona (Palisada/Wieża/Bastion) działa globalnie**, nie tylko na kaflu, na
+  którym stoi (`_bum_defense_damage_reduction`, `_tile_defense` sumują teraz
+  całą planszę) — jedna warownia broni całej osady, uzasadnia wyższą cenę.
+- **Wyrównanie cen budynków.** Ognisko, Szałas i (po diagnozie regresji, patrz
+  niżej) Studnia/Spiżarnia/Palisada zostają w taniej, „rdzennej" warstwie
+  przetrwania bez zmian. Pozostałe zwykłe budynki (Wieża, Warsztat, Drwalnia,
+  Magazyn drewna, Filtr wodny, Port rybacki, Farma, Kamieniołom, Zielarnia,
+  Pułapki) podrożały ×1.7. Budynki `act2_only` (Wzmocniony schron, Cysterna,
+  Lazaret, Bastion) dostały nowe, wyraźnie najwyższe ceny (Bastion najdroższy ze
+  wszystkich). Dopłata post-BUM (`POST_BUM_BUILD_*_SURCHARGE`) zmniejszona
+  3/5/5 → 1/2/2 (bazowe koszty już wyższe) i całkowicie wyłączona dla Ogniska/
+  Szałasu (`_has_post_bum_surcharge`) — koniec sytuacji, w której odbudowa
+  Szałasu kosztowała więcej niż postawienie Bastionu.
+- **Wymagany biom widoczny na karcie budowy** (`SurvivalSystem.
+  required_biome_label`, np. „Tylko: Las / Góry") — gracz widzi ograniczenie
+  zanim spróbuje budować, nie dopiero w bloku komunikatu.
+- **Diagnoza regresji podczas weryfikacji.** Pierwsza wersja tej fazy zbiła
+  smoke test do 0/50 z 16/50 zgonów w Akcie I (niezmiennik projektu to ~0).
+  Przyczyny: (1) `smoke_test` bota pętla „napraw/rozbierz" demolowała też w
+  pełni zdrowe budynki, bo `can_demolish` nie ma bramki po `is_ruined` — im
+  rzadziej budynek się psuje (nowe wolniejsze warstwy zużycia!), tym częściej
+  stał w pełnym HP i wpadał w tę furtkę; naprawiono logikę bota (rozbiórka
+  tylko ruin, dokładanie drewna do ogniska tylko gdy faktycznie kończy się
+  paliwo); (2) Studnia/Spiżarnia/Palisada przypadkowo trafiły do warstwy ×1.7,
+  łamiąc ustalony wcześniej (2026-06-27) fundament „tania warstwa startowa" —
+  cofnięte do oryginalnych cen. Po poprawkach: **42/50 wygranych (śr. 46 dni),
+  Akt I zgony 3, Akt II zgony 5** — wyraźnie łatwiej niż poprzedni punkt
+  odniesienia (~28–46%), głównie przez globalną obronę i rzadsze zużycie;
+  ZNANE do rozważenia w kolejnej turze: czy dokręcić `BUM_DEFENSE_DAMAGE_
+  REDUCTION_PER_POINT`/`_MAX` albo dopłatę post-BUM, żeby Akt II odzyskał
+  status „ściany" zgodnie z pierwotnym założeniem.
+- Testy: cała trzynastka (`load`/`board`/`ui_layout`/`night_pool`/`fog`/
+  `season`/`save_load`/`meta`/`audio`/`card_upgrade`/`hand_draw`/`biome_camp`/
+  `smoke`) zielona.
+
+### Faza 1 — poprawki po feedbacku gracza: zużycie co 2 dni, czytelność Dużego ognia (2026-07-01)
+
+- **Zużycie budynków z powrotem na jeden poziom co 2 dni** (gracz: wolał prostszy,
+  szybszy rytm niż rozbity 2/3/4-dniowy). `EVERY_THIRD_DAY_WEAR_BUILDING_IDS` i
+  `EVERY_FOURTH_DAY_WEAR_BUILDING_IDS` opróżnione, wszystkie budynki (poza
+  ogniskiem, które zużywa tylko paliwo) wróciły do `EVERY_OTHER_DAY_WEAR_
+  BUILDING_IDS`. Rdzeń poprawki z Fazy 1 zostaje: wciąż NIE ma już zużycia
+  „za każdym razem, gdy budynek coś wyprodukuje" — tylko jawny harmonogram co
+  2 dni. Smoke: 35/50 (~70%), Akt I zgony 4, Akt II zgony 11 — trochę trudniej
+  niż wersja 3/4-dniowa, wciąż daleko od 0/50 sprzed Fazy 1.
+- **Diagnoza „Duży ogień nie działa".** Zgłoszenie gracza: po użyciu akcji noc
+  dawała tylko +4 ciepła zamiast spodziewanego bonusu. Zdiagnozowane headless
+  skryptem (`_standing_building_stat_passives`/`_building_warmth_value` faktycznie
+  liczą +7 = 4 bazowe + 3 z Dużego ognia — log „Budynki wspierają potrzeby
+  nocą: +7 ciepła." to potwierdza) — mechanika działa poprawnie, ale wynik
+  NETTO po nocnym spadku ciepła (np. +7 − 3 spadku = +4) maskował bonus,
+  wyglądając jakby nie zadziałał. Naprawione przez czytelność, nie logikę:
+  nowa, osobna linia logu `_campfire_boost_summary()` — „Duży ogień grzeje
+  dodatkowo: +3 ciepła (Ognisko)." — pojawia się w nocy niezależnie od tego,
+  jak wynik netto wygląda po zsumowaniu ze spadkiem/kapem ciepła.
+- Testy: cała trzynastka zielona (smoke 35/50).
+
+### Zużycie budynków wg kategorii: dochód/akcja/statyczne (2026-07-01)
+
+Trzecia iteracja schematu zużycia, na wyraźną prośbę gracza — kategoryzacja wg
+tego, co budynek robi, ta sama reguła w Akcie I i Akcie II (bez osobnej ścieżki
+po BUM):
+
+- **Dochód pasywny → co 1 dzień** (`NIGHTLY_WEAR_BUILDING_IDS`, lista już była
+  odpytywana bez modulo, wystarczyło ją wypełnić): Studnia, Cysterna, Filtr
+  wodny, Spiżarnia, Zielarnia, Lazaret, Farma, Pułapki, Port rybacki, Drwalnia,
+  Magazyn drewna, Kamieniołom, Wzmocniony schron (ma dochód ciepła jak Szałas,
+  ale zostaje w grupie produkcyjnej — NIE dostał wyjątku Szałasu; do ew.
+  zmiany, jeśli okaże się zbyt kruchy w Akcie II).
+- **Wyjątek: Szałas → co 2 dni** (`EVERY_OTHER_DAY_WEAR_BUILDING_IDS`, teraz
+  tylko ten jeden budynek).
+- **Statyczne (bez dochodu, bez akcji) → co 3 dni** (`EVERY_THIRD_DAY_WEAR_
+  BUILDING_IDS`): Palisada, Bastion.
+- **Wieża obserwacyjna i Warsztat** (mają akcję, zero dochodu pasywnego) — NIE
+  są w żadnej z powyższych list: zużywają się WYŁĄCZNIE przy realnym użyciu
+  akcji (`BUILDING_ACTION_WEAR`, bez zmian). Budynek produkcyjny użyty tego
+  samego dnia traci 2 HP (harmonogram + akcja) — zamierzone, skomentowane
+  w kodzie.
+- `run.gd _building_wear_text()` rozpoznaje teraz też „co dzień" i „tylko przy
+  użyciu akcji" (zamiast mylącego „brak zużycia" dla Wieży/Warsztatu).
+- **Balans (smoke):** 32/50 (~64%, śr. 41,4 dnia), Akt I zgony **7** (śr. dzień
+  12,9), Akt II zgony 11 — Akt I zauważalnie powyżej historycznego ~0–2
+  (Studnia/Spiżarnia teraz w grupie „co dzień", nie mają wyjątku jak Szałas).
+  To bezpośrednia konsekwencja nowej reguły gracza (dochód pasywny = zawsze co
+  dzień, bez wyjątku dla tanich budynków startowych) — zaimplementowane zgodnie
+  z instrukcją, ale odnotowane jako sygnał do ew. dalszego dostrojenia (np.
+  wyjątek 2-dniowy dla Studni/Spiżarni, analogiczny do Szałasu).
+- Testy: cała trzynastka zielona.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

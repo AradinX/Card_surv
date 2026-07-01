@@ -1048,11 +1048,21 @@ func _building_info_data(building_index: int) -> Dictionary:
 			" (%s)" % summary if summary != "" else "",
 		]
 
+	var is_campfire := data.id == "building_campfire"
 	var repair_text := ""
 	var repair_disabled := false
 	var repair_tooltip := ""
 	var repair_button_text := "Napraw"
-	if built.is_ruined:
+	if is_campfire:
+		repair_button_text = "Dołóż drewna"
+		var fuel_block := _survival.can_repair(building_index)
+		repair_text = "Dołóż drewna: %d drewno -> +%d nocy paliwa" % [
+			SurvivalSystem.CAMPFIRE_STOKE_WOOD_COST,
+			SurvivalSystem.CAMPFIRE_FUEL_HP_PER_WOOD,
+		]
+		repair_disabled = fuel_block != ""
+		repair_tooltip = fuel_block if fuel_block != "" else "Można dokładać bez ograniczeń."
+	elif built.is_ruined:
 		repair_text = "Naprawa: niedostępna dla ruin."
 		repair_disabled = true
 		repair_tooltip = "Ruiny można tylko rozebrać."
@@ -1077,12 +1087,18 @@ func _building_info_data(building_index: int) -> Dictionary:
 		refund,
 		"" if built.is_ruined else " (mniejszy niż z ruin)",
 	]
+	var hp_text := ""
+	if is_campfire:
+		hp_text = ("Pali się jeszcze %d nocy" % built.hp) if built.hp > 0 else "Wygasłe"
+	else:
+		hp_text = "HP %d/%d%s" % [built.hp, max_hp, "  |  RUINA" if built.is_ruined else ""]
 	return {
 		"index": building_index,
 		"building_data": data,
 		"act2": _survival.state.bum_happened,
-		"hp_text": "HP %d/%d%s" % [built.hp, max_hp, "  |  RUINA" if built.is_ruined else ""],
-		"status_text": "",
+		"hp_text": hp_text,
+		"hp_low": not is_campfire and not built.is_ruined and built.hp * 2 < max_hp,
+		"status_text": _building_wear_text(data, building_index) if not is_campfire else "",
 		"effects_text": "Efekty pasywne: %s" % (
 			", ".join(effect_parts) if not effect_parts.is_empty() else "brak"
 		),
@@ -1099,6 +1115,24 @@ func _building_info_data(building_index: int) -> Dictionary:
 		"demolish_disabled": demolish_block != "",
 		"demolish_tooltip": demolish_block if demolish_block != "" else demolish_text,
 	}
+
+
+## Short "-1 HP co N dni" disclosure so the player knows what to expect instead
+## of discovering wear rates by trial and error (feedback item: too opaque).
+func _building_wear_text(data: BuildingCardData, building_index: int) -> String:
+	if data.id == "building_campfire":
+		return ""
+	if SurvivalSystem.NIGHTLY_WEAR_BUILDING_IDS.has(data.id):
+		return "Zużycie: -1 HP co dzień."
+	if SurvivalSystem.EVERY_OTHER_DAY_WEAR_BUILDING_IDS.has(data.id):
+		return "Zużycie: -1 HP co 2 dni."
+	if SurvivalSystem.EVERY_THIRD_DAY_WEAR_BUILDING_IDS.has(data.id):
+		return "Zużycie: -1 HP co 3 dni."
+	if SurvivalSystem.EVERY_FOURTH_DAY_WEAR_BUILDING_IDS.has(data.id):
+		return "Zużycie: -1 HP co 4 dni."
+	if not _survival.building_action(building_index).is_empty():
+		return "Zużycie: -1 HP przy użyciu akcji."
+	return "Zużycie: brak stałego zużycia."
 
 
 func _hide_building_info_popup() -> void:
@@ -1151,6 +1185,17 @@ func _on_building_info_repair_pressed(building_index: int) -> void:
 	var repair_block := _survival.can_repair(building_index)
 	if repair_block != "":
 		_on_log_message(repair_block)
+		return
+	if built.data.id == "building_campfire":
+		var fuel_text := "%s\nPali się jeszcze: %d nocy\nKoszt: %d drewno -> +%d nocy paliwa" % [
+			built.data.display_name,
+			built.hp,
+			SurvivalSystem.CAMPFIRE_STOKE_WOOD_COST,
+			SurvivalSystem.CAMPFIRE_FUEL_HP_PER_WOOD,
+		]
+		_confirm_action("Dołożyć drewna do ogniska?", fuel_text, "Dołóż drewna", func() -> void:
+			_repair_building_confirmed(building_index)
+		)
 		return
 	var max_hp := _survival.building_max_hp(built.data)
 	var text := "%s\nHP: %d/%d\nKoszt: %d energii, %d drewna" % [
@@ -1213,9 +1258,12 @@ func _building_tooltip(built, tile: TileState = null) -> String:
 	if tile == null:
 		tile = _survival.current_tile()
 	var data: BuildingCardData = built.data
+	var hp_line := "HP %d/%d" % [built.hp, _survival.building_max_hp(data)]
+	if data.id == "building_campfire":
+		hp_line = "Pali się jeszcze %d nocy" % built.hp if built.hp > 0 else "Wygasłe"
 	var parts: PackedStringArray = [
 		data.display_name,
-		"HP %d/%d" % [built.hp, _survival.building_max_hp(data)],
+		hp_line,
 	]
 	if tile.bum_secured and not _survival.state.bum_happened:
 		parts.append("Rejon zabezpieczony")
@@ -1253,6 +1301,11 @@ func _building_action_for_tooltip(built, tile: TileState = null) -> String:
 
 func _building_effect_parts(data: BuildingCardData) -> PackedStringArray:
 	var parts: PackedStringArray = []
+	if data.id == "building_campfire":
+		parts.append("%+d ciepła/noc, dopóki się pali" % data.warmth_delta)
+		parts.append("Duży ogień: +%d ciepła dodatkowo tej nocy (1 drewno + 1 energia)" %
+			SurvivalSystem.CAMPFIRE_STOKE_BONUS_WARMTH)
+		return parts
 	if data.food_gain != 0: parts.append("%+d jedzenia nocą" % data.food_gain)
 	if data.water_gain != 0: parts.append("%+d wody nocą" % data.water_gain)
 	if data.wood_gain != 0: parts.append("%+d drewna nocą" % data.wood_gain)
@@ -1274,7 +1327,7 @@ func _building_special_description(special: String) -> String:
 		"slow_spoilage":
 			return "spowalnia psucie jedzenia"
 		"unlock_crafting":
-			return "przerabia drewno na kamień nocą"
+			return "aktywna akcja: drewno + energia -> narzędzia"
 		_:
 			return special
 
@@ -1469,6 +1522,9 @@ func _build_cost_summary(b: BuildingCardData) -> String:
 		parts.append("%d kamienia" % int(cost["materials"]))
 	if int(cost["food"]) > 0:
 		parts.append("%d jedz." % int(cost["food"]))
+	var biome_label: String = _survival.required_biome_label(b)
+	if biome_label != "":
+		parts.append(biome_label)
 	return ", ".join(parts)
 
 

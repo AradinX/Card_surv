@@ -499,18 +499,28 @@ func _fill_occupied_slot(slot: Panel, built: BuildingState, building_tooltip: St
 	if built.is_ruined:
 		_add_ruin_smoke(slot)
 
+	var is_campfire := built.data.id == "building_campfire"
+	var hp_low := not is_campfire and not built.is_ruined \
+		and built.hp * 2 < built.data.max_hp
 	var tag := Label.new()
-	tag.text = "%s\nRUINA" % built.data.display_name if built.is_ruined \
-		else "%s\n%d HP" % [built.data.display_name, built.hp]
+	if built.is_ruined:
+		tag.text = "%s\nRUINA" % built.data.display_name
+	elif is_campfire:
+		tag.text = "%s\n%s" % [
+			built.data.display_name,
+			("pali się: %d n." % built.hp) if built.hp > 0 else "wygasłe",
+		]
+	else:
+		tag.text = "%s\n%d HP" % [built.data.display_name, built.hp]
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	tag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tag.clip_text = true
 	tag.add_theme_font_size_override("font_size", 7)
-	tag.add_theme_color_override(
-		"font_color",
-		Color(1.0, 0.55, 0.5, 1.0) if built.is_ruined else Color(0.97, 0.92, 0.74, 1.0)
-	)
+	var tag_color := Color(0.97, 0.92, 0.74, 1.0)
+	if built.is_ruined or hp_low:
+		tag_color = Color(1.0, 0.55, 0.5, 1.0)
+	tag.add_theme_color_override("font_color", tag_color)
 	tag.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 1.0))
 	tag.add_theme_constant_override("shadow_offset_x", 1)
 	tag.add_theme_constant_override("shadow_offset_y", 1)

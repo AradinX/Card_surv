@@ -35,9 +35,8 @@ const WIN_DAY := 50
 ## building preparation in place, Act I has room to become a real build-up phase.
 const BUM_DAY_MIN := 20
 const BUM_DAY_MAX := 26
-## Each building rolls this damage percent range when BUM strikes. A building
-## survives (stays usable) only if it takes <=50% (ruin threshold), so this range
-## leaves roughly a third of buildings standing into Act II instead of wiping all.
+## Each building rolls this damage percent range when BUM strikes. Ruin only
+## hits at 0 HP, so most buildings survive damaged rather than being wiped.
 const BUM_DAMAGE_PERCENT_MIN := 35
 const BUM_DAMAGE_PERCENT_MAX := 80
 const BUM_SECURED_TILE_LIMIT := 2
@@ -61,11 +60,13 @@ const REPAIR_ENERGY_COST := 1
 const REPAIR_TILE_AMOUNT := 3
 const DEMOLISH_ENERGY_COST := 1
 ## Building after the cataclysm is allowed but taxed — raw materials are scarce
-## in Act II, so every new building costs extra energy/wood/materials. This keeps
-## rebuilding possible without trivializing the disaster.
-const POST_BUM_BUILD_ENERGY_SURCHARGE := 3
-const POST_BUM_BUILD_WOOD_SURCHARGE := 5
-const POST_BUM_BUILD_MATERIALS_SURCHARGE := 5
+## in Act II, so every new building costs a bit extra energy/wood/materials on
+## top of its (already rebalanced, see _has_post_bum_surcharge) base cost. This
+## keeps rebuilding possible without trivializing the disaster. Campfire/hut are
+## exempt entirely: base survival shouldn't get pricier after the cataclysm.
+const POST_BUM_BUILD_ENERGY_SURCHARGE := 1
+const POST_BUM_BUILD_WOOD_SURCHARGE := 2
+const POST_BUM_BUILD_MATERIALS_SURCHARGE := 2
 ## Tearing down a ruin refunds about half of the build resources; standing
 ## buildings return less, because some materials are lost during careful removal.
 const DEMOLISH_REFUND_DIVISOR := 2
@@ -73,14 +74,45 @@ const DEMOLISH_STANDING_REFUND_DIVISOR := 4
 const DAILY_BUILDING_WEAR := 1
 const BUILDING_PASSIVE_WEAR := 1
 const BUILDING_ACTION_WEAR := 1
-const NIGHTLY_WEAR_BUILDING_IDS := ["building_campfire"]
+## The campfire no longer wears like a structure — its "HP" is fuel, burned by
+## _resolve_campfire_fuel() once per night instead (see CAMPFIRE_* below).
+## Wear cadence by building category (same rule before AND after BUM — no
+## separate Act II schedule): buildings with passive income wear every day
+## (this list has no day-modulo gate below, so it fires nightly), the hut is
+## a deliberate exception at 2 days, and pure-defense static buildings (no
+## income, no action) wear every 3 days. Reinforced Shelter (Act II upgrade of
+## the hut, but has a passive warmth income) sits with the producers, not the
+## hut exception — flag if that should change. Watchtower/Workshop have an
+## action but NO passive income, so they're in NEITHER list below: they only
+## take wear when their action is actually used (BUILDING_ACTION_WEAR in
+## use_building()) — a producer that's also used that same day can lose 2 HP
+## in one day (schedule + action use); that's intentional, not a bug.
+const NIGHTLY_WEAR_BUILDING_IDS := [
+	"building_well",
+	"building_cistern",
+	"building_water_filter",
+	"building_pantry",
+	"building_herbalist",
+	"building_field_infirmary",
+	"building_farm",
+	"building_traps",
+	"building_fishing_dock",
+	"building_logging_camp",
+	"building_wood_storage",
+	"building_quarry",
+	"building_reinforced_shelter",
+]
 const EVERY_OTHER_DAY_WEAR_BUILDING_IDS := [
 	"building_hut",
+]
+const EVERY_THIRD_DAY_WEAR_BUILDING_IDS := [
 	"building_palisade",
-	"building_watchtower",
-	"building_reinforced_shelter",
 	"building_bastion",
 ]
+const EVERY_FOURTH_DAY_WEAR_BUILDING_IDS: Array[String] = []
+## Buildings listed here NEVER take the old "wear whenever the nightly passive
+## does something" hit — all their wear comes exclusively from the scheduled
+## tiers above (or, for the campfire, from burning fuel).
 const PASSIVE_WEAR_EXCLUDED_BUILDING_IDS := [
 	"building_campfire",
 	"building_hut",
@@ -90,7 +122,24 @@ const PASSIVE_WEAR_EXCLUDED_BUILDING_IDS := [
 	"building_bastion",
 	"building_pantry",
 	"building_wood_storage",
+	"building_well",
+	"building_cistern",
+	"building_farm",
+	"building_fishing_dock",
+	"building_herbalist",
+	"building_logging_camp",
+	"building_quarry",
+	"building_traps",
+	"building_water_filter",
+	"building_field_infirmary",
 ]
+## Campfire fuel economy: hp IS remaining warmth-nights. "Dołóż drewna" adds
+## fuel with no cap; "Duży ogień" is a one-night bonus on top of the base
+## nightly warmth, costing wood+energy instead of touching the fuel supply.
+const CAMPFIRE_FUEL_HP_PER_WOOD := 3
+const CAMPFIRE_STOKE_WOOD_COST := 1
+const CAMPFIRE_STOKE_ENERGY_COST := 1
+const CAMPFIRE_STOKE_BONUS_WARMTH := 3
 const HAND_SIZE := 4
 const MOVE_ENERGY_COST := 1
 const DAILY_HUNGER_DECAY := 3
@@ -421,7 +470,9 @@ func repair_wood_cost(built: BuildingState) -> int:
 	return ceili((building_max_hp(built.data) - built.hp) / 2.0)
 
 
-## Returns "" when the building on the current tile can be repaired.
+## Returns "" when the building on the current tile can be repaired (or, for
+## the campfire, refuelled — see add_campfire_fuel below, reached through the
+## same "Napraw"/"Dołóż drewna" UI button).
 func can_repair(building_index: int) -> String:
 	if not _day_active:
 		return "Dzień dobiegł końca."
@@ -429,6 +480,10 @@ func can_repair(building_index: int) -> String:
 	if building_index < 0 or building_index >= buildings.size():
 		return "Nie ma takiego budynku."
 	var built := buildings[building_index]
+	if built.data.id == "building_campfire":
+		if state.wood < CAMPFIRE_STOKE_WOOD_COST:
+			return "Za mało drewna (potrzeba %d)." % CAMPFIRE_STOKE_WOOD_COST
+		return ""
 	if built.is_ruined:
 		return "To ruina — można ją tylko rozebrać."
 	if built.hp >= building_max_hp(built.data):
@@ -446,6 +501,13 @@ func repair(building_index: int) -> void:
 		log_message.emit(block_reason)
 		return
 	var built := current_tile().buildings[building_index]
+	if built.data.id == "building_campfire":
+		state.wood -= CAMPFIRE_STOKE_WOOD_COST
+		built.hp += CAMPFIRE_FUEL_HP_PER_WOOD
+		log_message.emit("Dokładasz drewno do ogniska: pali się jeszcze %d nocy." % built.hp)
+		stats_changed.emit(state)
+		board_changed.emit(state)
+		return
 	state.energy -= REPAIR_ENERGY_COST
 	state.wood -= repair_wood_cost(built)
 	built.hp = building_max_hp(built.data)
@@ -654,8 +716,12 @@ func use_building(building_index: int) -> void:
 		drawn = hand.size() - before_hand
 	if bool(action.get("tools", false)):
 		state.has_tools = true
+	if bool(action.get("campfire_boost", false)):
+		built.campfire_boost_active = true
 	_used_building_actions[_building_action_key(building_index, action)] = true
 	var summary := _action_delta_summary(snapshot)
+	if bool(action.get("campfire_boost", false)):
+		summary += (", " if summary != "" else "") + "+%d ciepła tej nocy" % CAMPFIRE_STOKE_BONUS_WARMTH
 	if drawn > 0:
 		summary += (", " if summary != "" else "") + "+%d karta do ręki" % drawn
 	log_message.emit("Budynek: %s - %s%s" % [
@@ -663,6 +729,12 @@ func use_building(building_index: int) -> void:
 		str(action.get("title", "Akcja")),
 		": %s." % summary if summary != "" else ".",
 	])
+	if bool(action.get("no_wear", false)):
+		stats_changed.emit(state)
+		board_changed.emit(state)
+		if drawn > 0:
+			hand_changed.emit(hand)
+		return
 	_apply_building_wear(built, BUILDING_ACTION_WEAR, "Użycie zużywa %s (-%d HP)." % [
 		built.data.display_name,
 		BUILDING_ACTION_WEAR,
@@ -772,7 +844,7 @@ func end_of_day_forecast() -> Dictionary:
 	for tile in state.board:
 		for built in tile.buildings:
 			if not built.is_ruined:
-				passive_warmth += built.data.warmth_delta
+				passive_warmth += _building_warmth_value(built)
 	return {
 		"hunger_decay": hunger_decay,
 		"thirst_decay": thirst_decay,
@@ -825,6 +897,17 @@ func _biome_lock_reason(building: BuildingCardData) -> String:
 	for biome_id in building.required_biome_ids:
 		names.append(BIOME_DISPLAY_NAMES.get(biome_id, biome_id))
 	return "Można budować tylko na: " + " / ".join(names)
+
+
+## Short "Tylko: X / Y" label for the build-mode card, shown regardless of the
+## current tile so the restriction is visible before the player even tries.
+func required_biome_label(building: BuildingCardData) -> String:
+	if building.required_biome_ids.is_empty():
+		return ""
+	var names: PackedStringArray = []
+	for biome_id in building.required_biome_ids:
+		names.append(BIOME_DISPLAY_NAMES.get(biome_id, biome_id))
+	return "Tylko: " + " / ".join(names)
 
 
 ## Effective build cost on the current tile (class discount + post-BUM surcharge),
@@ -913,6 +996,7 @@ func resolve_night(choice_index: int = 0) -> void:
 				_resolve_event(event)
 	_night_choice_done = false
 	_resolve_needs()
+	_resolve_campfire_fuel()
 	_resolve_scheduled_building_wear()
 	stats_changed.emit(state)
 	board_changed.emit(state)
@@ -1229,6 +1313,9 @@ func _start_day() -> void:
 	_day_active = true
 	_used_gathers.clear()
 	_used_building_actions.clear()
+	for tile in state.board:
+		for built in tile.buildings:
+			built.campfire_boost_active = false
 	# Card-verb and synergy state are fresh each day (night flags were already
 	# spent during the previous night's resolution).
 	_free_moves = 0
@@ -1721,7 +1808,14 @@ func _append_delta_part(parts: PackedStringArray, delta: int, label: String) -> 
 func _building_action_definition(building: BuildingCardData) -> Dictionary:
 	match building.id:
 		"building_campfire":
-			return {"id": "warm_up", "title": "Ogrzej się", "cost_energy": 1, "warmth": 3}
+			return {
+				"id": "stoke_big_fire",
+				"title": "Duży ogień",
+				"cost_wood": CAMPFIRE_STOKE_WOOD_COST,
+				"cost_energy": CAMPFIRE_STOKE_ENERGY_COST,
+				"campfire_boost": true,
+				"no_wear": true,
+			}
 		"building_well":
 			return {"id": "draw_water", "title": "Nabierz wody", "cost_energy": 1, "water": 2}
 		"building_cistern":
@@ -1772,6 +1866,8 @@ func _building_action_summary(action: Dictionary) -> String:
 		parts.append("narzędzia: tak")
 	if int(action.get("draw_cards", 0)) > 0:
 		parts.append("+%d karta do ręki" % int(action.get("draw_cards", 0)))
+	if bool(action.get("campfire_boost", false)):
+		parts.append("+%d ciepła tej nocy" % CAMPFIRE_STOKE_BONUS_WARMTH)
 	return ", ".join(parts)
 
 
@@ -1843,8 +1939,11 @@ func _build(building: BuildingCardData) -> void:
 
 
 ## Post-BUM rebuild surcharge applies to NORMAL buildings only; dedicated Act II
-## buildings (act2_only) are the intended rebuild path, so they skip it.
+## buildings (act2_only) are the intended rebuild path, so they skip it. Campfire
+## and hut are core survival — they cost exactly the same before and after BUM.
 func _has_post_bum_surcharge(building: BuildingCardData) -> bool:
+	if building.id == "building_campfire" or building.id == "building_hut":
+		return false
 	return state.bum_happened and not building.act2_only
 
 
@@ -1935,13 +2034,15 @@ func _trigger_bum() -> void:
 	board_changed.emit(state)
 
 
-func _bum_defense_damage_reduction(tile: TileState) -> int:
+## Defense (Palisada/Wieża/Bastion) protects the whole settlement, not just the
+## tile it stands on — a wall on one side of the camp still slows the disaster
+## down everywhere. The tile param is unused now but kept for call-site parity.
+func _bum_defense_damage_reduction(_tile: TileState) -> int:
 	var defense := 0
-	if tile == null:
-		return 0
-	for built in tile.buildings:
-		if not built.is_ruined:
-			defense += built.data.defense
+	for board_tile in state.board:
+		for built in board_tile.buildings:
+			if not built.is_ruined:
+				defense += built.data.defense
 	return mini(
 		defense * BUM_DEFENSE_DAMAGE_REDUCTION_PER_POINT,
 		BUM_DEFENSE_DAMAGE_REDUCTION_MAX
@@ -2109,11 +2210,14 @@ func _monster_attack_building(monster: MonsterCardData) -> void:
 	_check_ruin(target)
 
 
-func _tile_defense(tile: TileState) -> int:
+## Monster attacks are also resisted by the whole settlement's defense, not
+## just whatever tile the monster happens to be raiding.
+func _tile_defense(_tile: TileState) -> int:
 	var defense := 0
-	for built in tile.buildings:
-		if not built.is_ruined:
-			defense += built.data.defense
+	for board_tile in state.board:
+		for built in board_tile.buildings:
+			if not built.is_ruined:
+				defense += built.data.defense
 	return defense
 
 
@@ -2166,8 +2270,35 @@ func _resolve_scheduled_building_wear() -> void:
 			elif state.day % 2 == 0 and EVERY_OTHER_DAY_WEAR_BUILDING_IDS.has(building_id):
 				if _apply_building_wear(built, DAILY_BUILDING_WEAR, "", tile):
 					wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
+			elif state.day % 3 == 0 and EVERY_THIRD_DAY_WEAR_BUILDING_IDS.has(building_id):
+				if _apply_building_wear(built, DAILY_BUILDING_WEAR, "", tile):
+					wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
+			elif state.day % 4 == 0 and EVERY_FOURTH_DAY_WEAR_BUILDING_IDS.has(building_id):
+				if _apply_building_wear(built, DAILY_BUILDING_WEAR, "", tile):
+					wear_logs.append("%s -%d HP" % [built.data.display_name, DAILY_BUILDING_WEAR])
 	if not wear_logs.is_empty():
 		log_message.emit("Zużycie budynków: %s." % "; ".join(wear_logs))
+
+
+## Burns 1 night of campfire fuel (hp) per standing campfire. Never ruins the
+## campfire — it just goes unlit at 0 (see _check_ruin/_building_warmth_value).
+func _resolve_campfire_fuel() -> void:
+	var burning: PackedStringArray = []
+	var expired: PackedStringArray = []
+	for tile in state.board:
+		for built in tile.buildings:
+			if built.data.id != "building_campfire" or built.hp <= 0:
+				continue
+			built.hp -= 1
+			if built.hp > 0:
+				burning.append("%s: paliwo na %d nocy" % [built.data.display_name, built.hp])
+			else:
+				expired.append(built.data.display_name)
+	if not burning.is_empty():
+		log_message.emit("Ognisko: %s." % "; ".join(burning))
+	if not expired.is_empty():
+		log_message.emit("%s wygasło: dołóż drewno, żeby znów dawało ciepło." %
+			", ".join(expired))
 
 
 func _should_passive_wear(data: BuildingCardData, apply_stat_passives: bool) -> bool:
@@ -2198,7 +2329,7 @@ func _resolve_stat_passive_building_wear(stat_key: String) -> void:
 				"thirst":
 					value = built.data.thirst_delta
 				"warmth":
-					value = built.data.warmth_delta
+					value = _building_warmth_value(built)
 			if value == 0:
 				continue
 			if _apply_building_wear(built, BUILDING_PASSIVE_WEAR, "", tile):
@@ -2207,37 +2338,13 @@ func _resolve_stat_passive_building_wear(stat_key: String) -> void:
 		log_message.emit("Praca budynków zużywa: %s." % "; ".join(wear_logs))
 
 
-func _resolve_workshop_maintenance() -> String:
-	if state.wood <= 0:
-		return ""
-	var target: BuildingState = null
-	var target_missing_hp := 0
-	for tile in state.board:
-		for built in tile.buildings:
-			if built.is_ruined:
-				continue
-			var max_hp := building_max_hp(built.data)
-			var missing_hp := max_hp - built.hp
-			if missing_hp > target_missing_hp:
-				target = built
-				target_missing_hp = missing_hp
-	if target == null:
-		return ""
-	state.wood -= 1
-	target.hp = mini(target.hp + 1, building_max_hp(target.data))
-	return "konserwuje %s (-1 drewna, +1 HP; %d/%d HP)" % [
-		target.data.display_name,
-		target.hp,
-		building_max_hp(target.data),
-	]
-
-
-## Below 50% HP a building collapses into a ruin: passives, defense and
-## specials stop working; it can only be torn down (README BUM threshold).
+## At 0 HP a building collapses into a ruin: passives, defense and specials
+## stop working; it can only be torn down. The campfire is exempt — it never
+## ruins from running out of fuel, it just goes unlit (see _resolve_campfire_fuel).
 func _check_ruin(built: BuildingState) -> void:
-	if built.is_ruined:
+	if built.is_ruined or built.data.id == "building_campfire":
 		return
-	if built.hp * 2 < building_max_hp(built.data):
+	if built.hp <= 0:
 		built.is_ruined = true
 		log_message.emit("%s zamienia się w RUINĘ. Możesz ją tylko rozebrać." %
 			built.data.display_name)
@@ -2261,7 +2368,8 @@ func _resolve_building_passives(apply_stat_passives: bool = true) -> void:
 			_add_materials(data.materials_gain)
 			if apply_stat_passives:
 				_apply_stat_deltas(
-					data.health_delta, data.hunger_delta, data.thirst_delta, data.warmth_delta
+					data.health_delta, data.hunger_delta, data.thirst_delta,
+					_building_warmth_value(built)
 				)
 			var summary := _action_delta_summary(snapshot)
 			if summary != "":
@@ -2269,10 +2377,6 @@ func _resolve_building_passives(apply_stat_passives: bool = true) -> void:
 				if _should_passive_wear(data, apply_stat_passives):
 					if _apply_building_wear(built, BUILDING_PASSIVE_WEAR, "", tile):
 						wear_logs.append("%s -%d HP" % [data.display_name, BUILDING_PASSIVE_WEAR])
-			if data.special == "unlock_crafting":
-				var maintenance_log := _resolve_workshop_maintenance()
-				if maintenance_log != "":
-					building_logs.append("%s %s" % [data.display_name, maintenance_log])
 	if not building_logs.is_empty():
 		log_message.emit("Budynki nocą: %s." % "; ".join(building_logs))
 
@@ -2295,8 +2399,40 @@ func _standing_building_stat_passives() -> Dictionary:
 			totals["health"] += built.data.health_delta
 			totals["hunger"] += built.data.hunger_delta
 			totals["thirst"] += built.data.thirst_delta
-			totals["warmth"] += built.data.warmth_delta
+			totals["warmth"] += _building_warmth_value(built)
 	return totals
+
+
+## Campfire warmth is fuel-gated (0 once hp hits 0, i.e. unlit) and gets a
+## one-night bonus after "Duży ogień" is used. Every other building just
+## reports its flat data.warmth_delta.
+## Explicit, separate log line for the "Duży ogień" bonus — the combined
+## warmth passives get netted against nightly decay in a single number, which
+## can make a working bonus look like it "did nothing" if it's masked by the
+## cap or decay. This spells it out regardless of the net result.
+func _campfire_boost_summary() -> String:
+	var boosted: PackedStringArray = []
+	for tile in state.board:
+		for built in tile.buildings:
+			if not built.is_ruined and built.data.id == "building_campfire" \
+				and built.hp > 0 and built.campfire_boost_active:
+				boosted.append(built.data.display_name)
+	if boosted.is_empty():
+		return ""
+	return "Duży ogień grzeje dodatkowo: +%d ciepła (%s)." % [
+		CAMPFIRE_STOKE_BONUS_WARMTH, ", ".join(boosted)
+	]
+
+
+func _building_warmth_value(built: BuildingState) -> int:
+	if built.data.id != "building_campfire":
+		return built.data.warmth_delta
+	if built.hp <= 0:
+		return 0
+	var value := built.data.warmth_delta
+	if built.campfire_boost_active:
+		value += CAMPFIRE_STOKE_BONUS_WARMTH
+	return value
 
 
 func _stat_passive_summary(passives: Dictionary) -> String:
@@ -2545,6 +2681,9 @@ func _resolve_needs() -> void:
 		warmth_decay += int(camp["warmth_loss"])
 		log_message.emit("Zimny biom obozu wychładza cię nocą. -%d ciepła." %
 			int(camp["warmth_loss"]))
+	var campfire_boost_text := _campfire_boost_summary()
+	if campfire_boost_text != "":
+		log_message.emit(campfire_boost_text)
 	state.warmth = clampi(
 		state.warmth + int(stat_passives.get("warmth", 0)) - warmth_decay,
 		0,
