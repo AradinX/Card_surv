@@ -4,13 +4,12 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_cost = 8
-wood_cost = 7
-materials_cost = 7
+energy_cost = 5
+wood_cost = 3
+materials_cost = 5
 max_hp = 8
-health_delta = 2
+materials_cap_bonus = 6
 required_biome_ids = PackedStringArray()
-act2_only = true
-id = "building_field_infirmary"
-display_name = "Lazaret polowy"
-description = "Punkt opatrunkowy z ocalałych zapasów."
+id = "building_stone_storage"
+display_name = "Magazyn kamienia"
+description = "Zadaszony skład na kamień. Zwiększa limit kamienia."

@@ -97,6 +97,18 @@ const BUILD_PLACE_FX := "res://assets/art/fx/buildings/fx_build_place.png"
 const REPAIR_FX := "res://assets/art/fx/buildings/fx_repair_sparkle.png"
 const COLLAPSE_FX := "res://assets/art/fx/buildings/fx_ruin_collapse.png"
 const SECURE_REGION_FX := "res://assets/art/fx/buildings/fx_secure_region.png"
+const BIOME_NORMAL_BG_DIR := "res://assets/art/biomes/backgrounds/normal"
+const BIOME_CORRUPTED_BG_DIR := "res://assets/art/biomes/backgrounds/corrupted"
+const BIOME_PREVIEW_ART_IDS := {
+	"forest": "forest",
+	"meadows": "meadow",
+	"mountains": "mountains",
+	"swamp": "swamp",
+	"river": "river",
+	"wasteland": "wasteland",
+	"caves": "caves",
+	"coast": "coast",
+}
 ## Low-HP danger vignette shows at or below this fraction of max health.
 const LOW_HP_FRACTION := 0.3
 const NEED_WARNING_FRACTION := 0.3
@@ -784,13 +796,13 @@ func _on_secure_region_pressed(_anchor_rect: Rect2, tile_index: int) -> void:
 		_refresh_tiles(_survival.state)
 		return
 	var title := "Zabezpieczyć rejon?"
-	var text := "Koszt: %s\n\nEfekt: budynki na tym kaflu dostają -%d%% obrażeń BUM i tylko %d%% szans na zużycie HP w Akcie I. Limit: %d rejony. Zabezpieczenie zużywa się przy BUM." % [
-		_survival.secure_current_tile_summary(),
+	var cost_text := "Koszt:\n%s" % _survival.secure_current_tile_summary()
+	var effect_text := "Efekt:\n-%d%% obrażeń BUM\n%d%% szans na zużycie HP w Akcie I\nLimit: %d rejony\nZużywa się przy BUM." % [
 		SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
 		SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
 		SurvivalSystem.BUM_SECURED_TILE_LIMIT,
 	]
-	_confirm_secure(title, text, "Zabezpiecz", func() -> void:
+	_confirm_secure(title, cost_text, effect_text, "Zabezpiecz", _secure_region_preview_texture(), func() -> void:
 		_survival.secure_current_tile()
 		AudioManager.play_sfx("build")
 		var fx_path := SECURE_REGION_FX if ResourceLoader.exists(SECURE_REGION_FX) else BUILD_PLACE_FX
@@ -1334,7 +1346,7 @@ func _building_special_description(special: String) -> String:
 		"slow_spoilage":
 			return "spowalnia psucie jedzenia"
 		"unlock_crafting":
-			return "aktywna akcja: drewno + energia -> narzędzia"
+			return "daje narzędzia po zbudowaniu"
 		_:
 			return special
 
@@ -1415,11 +1427,31 @@ func _on_action_confirmed() -> void:
 		action.call()
 
 
+func _secure_region_preview_texture() -> Texture2D:
+	var tile := _survival.current_tile()
+	var art_id := str(BIOME_PREVIEW_ART_IDS.get(tile.biome.id, tile.biome.id))
+	var state_suffix := "plague" if tile.is_corrupted else "normal"
+	var directory := BIOME_CORRUPTED_BG_DIR if tile.is_corrupted else BIOME_NORMAL_BG_DIR
+	var path := "%s/biome_%s_%s_bg.png" % [directory, art_id, state_suffix]
+	if ResourceLoader.exists(path):
+		return load(path) as Texture2D
+	var fallback := "%s/biome_forest_normal_bg.png" % BIOME_NORMAL_BG_DIR
+	if ResourceLoader.exists(fallback):
+		return load(fallback) as Texture2D
+	return null
+
+
 ## Secure-region prompt uses its own panel (with a preview slot) instead of the
 ## plain confirm popup.
-func _confirm_secure(title: String, text: String, ok_text: String, action: Callable) -> void:
+func _confirm_secure(
+		title: String,
+		cost_text: String,
+		effect_text: String,
+		ok_text: String,
+		preview: Texture2D,
+		action: Callable) -> void:
 	_pending_secure_action = action
-	_secure_popup.open(title, text, ok_text)
+	_secure_popup.open(title, cost_text, effect_text, ok_text, preview)
 
 
 func _on_secure_confirmed() -> void:

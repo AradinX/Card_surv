@@ -26,6 +26,9 @@ static var _marker_path: String = PLAYER_MARKER
 ## Hover tooltip on the current-tile marker (class name + ability summary).
 static var _marker_tooltip: String = ""
 @export var secure_region_frame_texture: Texture2D
+const BUILDING_ART_ALIASES := {
+	"building_stone_storage": "building_quarry",
+}
 
 
 ## Pick the current-tile marker + hover tooltip for the played class (falls back
@@ -483,7 +486,8 @@ func _make_slot() -> Panel:
 func _fill_occupied_slot(slot: Panel, built: BuildingState, building_tooltip: String) -> void:
 	slot.mouse_filter = Control.MOUSE_FILTER_PASS
 	slot.tooltip_text = building_tooltip
-	var art_path := "%s/%s.png" % [BUILDING_ART_DIR, built.data.id]
+	var art_id := str(BUILDING_ART_ALIASES.get(built.data.id, built.data.id))
+	var art_path := "%s/%s.png" % [BUILDING_ART_DIR, art_id]
 	if ResourceLoader.exists(art_path):
 		var thumb := TextureRect.new()
 		thumb.texture = load(art_path)

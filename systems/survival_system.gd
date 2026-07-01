@@ -85,20 +85,18 @@ const BUILDING_ACTION_WEAR := 1
 ## hut exception — flag if that should change. Watchtower/Workshop have an
 ## action but NO passive income, so they're in NEITHER list below: they only
 ## take wear when their action is actually used (BUILDING_ACTION_WEAR in
-## use_building()) — a producer that's also used that same day can lose 2 HP
-## in one day (schedule + action use); that's intentional, not a bug.
+## use_building()). Pure cap storages also stay out of scheduled wear.
+## A producer that's also used that same day can lose 2 HP in one day
+## (schedule + action use); that's intentional, not a bug.
 const NIGHTLY_WEAR_BUILDING_IDS := [
-	"building_well",
 	"building_cistern",
 	"building_water_filter",
 	"building_pantry",
 	"building_herbalist",
 	"building_field_infirmary",
 	"building_farm",
-	"building_traps",
 	"building_fishing_dock",
 	"building_logging_camp",
-	"building_wood_storage",
 	"building_quarry",
 	"building_reinforced_shelter",
 ]
@@ -713,6 +711,9 @@ func use_building(building_index: int) -> void:
 		var before_hand := hand.size()
 		_draw_cards(int(action.get("draw_cards", 0)))
 		drawn = hand.size() - before_hand
+	var repaired_buildings := 0
+	if int(action.get("repair_tile_buildings", 0)) > 0:
+		repaired_buildings = _repair_current_tile_buildings(int(action.get("repair_tile_buildings", 0)))
 	if bool(action.get("tools", false)):
 		state.has_tools = true
 	if bool(action.get("campfire_boost", false)):
@@ -723,6 +724,11 @@ func use_building(building_index: int) -> void:
 		summary += (", " if summary != "" else "") + "+%d ciepła tej nocy" % CAMPFIRE_STOKE_BONUS_WARMTH
 	if drawn > 0:
 		summary += (", " if summary != "" else "") + "+%d karta do ręki" % drawn
+	if repaired_buildings > 0:
+		summary += (", " if summary != "" else "") + "naprawiono %d bud. (+%d HP)" % [
+			repaired_buildings,
+			int(action.get("repair_tile_buildings", 0)),
+		]
 	log_message.emit("Budynek: %s - %s%s" % [
 		built.data.display_name,
 		str(action.get("title", "Akcja")),
@@ -1813,15 +1819,23 @@ func _building_action_definition(building: BuildingCardData) -> Dictionary:
 				"no_wear": true,
 			}
 		"building_well":
-			return {"id": "draw_water", "title": "Nabierz wody", "cost_energy": 1, "water": 2}
+			return {"id": "draw_water", "title": "Nabierz wody", "cost_energy": 1, "water": 3}
 		"building_cistern":
 			return {"id": "draw_water", "title": "Nabierz wody", "cost_energy": 1, "water": 3}
 		"building_water_filter":
-			return {"id": "filter_water", "title": "Przefiltruj wodę", "cost_energy": 1, "water": 2}
+			return {"id": "collect_rainwater", "title": "Zbierz deszczówkę", "cost_energy": 1, "water": 2}
 		"building_pantry":
 			return {"id": "eat_ration", "title": "Zjedz zapas", "cost_energy": 1, "cost_food": 1, "hunger": 3}
 		"building_workshop":
-			return {"id": "craft_tools", "title": "Wykonaj narzędzia", "cost_energy": 1, "cost_wood": 1, "cost_materials": 1, "tools": true}
+			return {
+				"id": "workshop_repair",
+				"title": "Podreperuj konstrukcje",
+				"cost_energy": 1,
+				"cost_wood": 1,
+				"cost_materials": 1,
+				"repair_tile_buildings": 1,
+				"no_wear": true,
+			}
 		"building_herbalist":
 			return {"id": "brew_medicine", "title": "Użyj ziół", "cost_energy": 1, "health": 2}
 		"building_field_infirmary":
@@ -1836,8 +1850,6 @@ func _building_action_definition(building: BuildingCardData) -> Dictionary:
 			return {"id": "fish", "title": "Zarzuć sieci", "cost_energy": 1, "food": 1}
 		"building_logging_camp":
 			return {"id": "chop_wood", "title": "Rąb drewno", "cost_energy": 1, "wood": 1}
-		"building_wood_storage":
-			return {"id": "take_dry_wood", "title": "Weź suche drewno", "cost_energy": 1, "wood": 1}
 		"building_quarry":
 			return {"id": "mine_stone", "title": "Wydobądź kamień", "cost_energy": 1, "materials": 1}
 		_:
@@ -1860,6 +1872,8 @@ func _building_action_summary(action: Dictionary) -> String:
 	_append_delta_part(parts, int(action.get("materials", 0)), "kamienia")
 	if bool(action.get("tools", false)):
 		parts.append("narzędzia: tak")
+	if int(action.get("repair_tile_buildings", 0)) > 0:
+		parts.append("+%d HP budynkom na kaflu" % int(action.get("repair_tile_buildings", 0)))
 	if int(action.get("draw_cards", 0)) > 0:
 		parts.append("+%d karta do ręki" % int(action.get("draw_cards", 0)))
 	if bool(action.get("campfire_boost", false)):
@@ -1891,7 +1905,31 @@ func _building_action_capacity_block(action: Dictionary) -> String:
 		return "Limit kamienia jest pełny."
 	if int(action.get("draw_cards", 0)) > 0 and hand.size() >= HAND_SIZE:
 		return "Masz pełną rękę."
+	if int(action.get("repair_tile_buildings", 0)) > 0 and not _has_damaged_current_tile_building():
+		return "Brak uszkodzonych budynków na tym kaflu."
 	return ""
+
+
+func _has_damaged_current_tile_building() -> bool:
+	for built in current_tile().buildings:
+		if built.is_ruined:
+			continue
+		if built.hp < building_max_hp(built.data):
+			return true
+	return false
+
+
+func _repair_current_tile_buildings(amount: int) -> int:
+	var repaired := 0
+	for built in current_tile().buildings:
+		if built.is_ruined:
+			continue
+		var max_hp := building_max_hp(built.data)
+		if built.hp >= max_hp:
+			continue
+		built.hp = mini(built.hp + amount, max_hp)
+		repaired += 1
+	return repaired
 
 
 func _building_action_key(building_index: int, action: Dictionary) -> String:
@@ -1924,6 +1962,8 @@ func _build(building: BuildingCardData) -> void:
 	built.data = building
 	built.hp = building_max_hp(building)
 	current_tile().buildings.append(built)
+	if building.special == "unlock_crafting" and not state.has_tools:
+		state.has_tools = true
 
 	log_message.emit("Budujesz: %s (%s, slot %d/%d)." % [
 		building.display_name,
@@ -1931,6 +1971,8 @@ func _build(building: BuildingCardData) -> void:
 		current_tile().buildings.size(),
 		current_tile().biome.building_slots,
 	])
+	if building.special == "unlock_crafting":
+		log_message.emit("%s daje narzędzia." % building.display_name)
 	board_changed.emit(state)
 
 

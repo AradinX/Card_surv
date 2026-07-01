@@ -16,7 +16,8 @@ const PANEL_ACT2 := "res://assets/art/ui/panels/secure_popup_panel_act2.png"
 @onready var _panel: Control = $Panel
 @onready var _title_label: Label = $Panel/TitleLabel
 @onready var _preview: TextureRect = $Panel/RegionPreview
-@onready var _body_label: Label = $Panel/BodyLabel
+@onready var _cost_label: Label = $Panel/CostLabel
+@onready var _effect_label: Label = $Panel/EffectLabel
 @onready var _close_button: Button = $Panel/CloseButton
 @onready var _ok_button: Button = $Panel/OkButton
 
@@ -33,9 +34,15 @@ func _ready() -> void:
 
 
 ## `preview` is optional art for the placeholder slot (e.g. the secured tile).
-func open(title: String, body: String, ok_text: String = "Zabezpiecz", preview: Texture2D = null) -> void:
+func open(
+		title: String,
+		cost_text: String,
+		effect_text: String,
+		ok_text: String = "Zabezpiecz",
+		preview: Texture2D = null) -> void:
 	_title_label.text = title
-	_body_label.text = body
+	_cost_label.text = cost_text
+	_effect_label.text = effect_text
 	_ok_button.text = ok_text
 	_preview.texture = preview
 	_preview.visible = preview != null

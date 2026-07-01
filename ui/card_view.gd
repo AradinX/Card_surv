@@ -22,6 +22,9 @@ const ACTION_ART_DIR := "res://assets/art/cards/illustrations/actions_act1_candi
 const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_candidates"
 const EVENT_ART_DIR := "res://assets/art/cards/illustrations/events"
 const MONSTER_ART_DIR := "res://assets/art/cards/illustrations/monsters"
+const BUILDING_ART_ALIASES := {
+	"building_stone_storage": "building_quarry",
+}
 
 # Action cards resolve to a dedicated `action_<id>.png` first (see
 # _illustration_path); this map only covers the few ids whose art lives under a
@@ -202,7 +205,9 @@ func _apply_text_layout(card: CardData) -> void:
 
 func _illustration_path(card: CardData) -> String:
 	if card is BuildingCardData:
-		return "%s/%s.png" % [BUILDING_ART_DIR, card.id]
+		return "%s/%s.png" % [
+			BUILDING_ART_DIR, BUILDING_ART_ALIASES.get(card.id, card.id)
+		]
 	if card is MonsterCardData:
 		return "%s/%s.png" % [
 			MONSTER_ART_DIR, MONSTER_ART_ALIASES.get(card.id, card.id)
@@ -366,7 +371,7 @@ func _building_special_text(special: String) -> String:
 	match special:
 		"night_protection": return "ochrona nocna"
 		"slow_spoilage": return "wolniejsze psucie jedzenia"
-		"unlock_crafting": return "akcja: wykonaj narzędzia"
+		"unlock_crafting": return "narzędzia po zbudowaniu"
 		_: return ""
 
 

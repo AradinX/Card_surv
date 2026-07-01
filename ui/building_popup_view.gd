@@ -8,6 +8,9 @@ signal demolish_pressed(building_index: int)
 const PANEL_ACT1 := "res://assets/art/ui/panels/building_popup_panel_act1.png"
 const PANEL_ACT2 := "res://assets/art/ui/panels/building_popup_panel_act2.png"
 const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_candidates"
+const BUILDING_ART_ALIASES := {
+	"building_stone_storage": "building_quarry",
+}
 const POPUP_SIZE := Vector2(640, 480)
 const CHROMA_SHADER := "shader_type canvas_item;
 uniform vec3 outside_key = vec3(1.0, 0.0, 1.0);
@@ -148,7 +151,8 @@ func _panel_material() -> ShaderMaterial:
 func _building_texture(building_data: BuildingCardData) -> Texture2D:
 	if building_data == null:
 		return null
-	var path := "%s/%s.png" % [BUILDING_ART_DIR, building_data.id]
+	var art_id := str(BUILDING_ART_ALIASES.get(building_data.id, building_data.id))
+	var path := "%s/%s.png" % [BUILDING_ART_DIR, art_id]
 	return load(path) if ResourceLoader.exists(path) else null
 
 
