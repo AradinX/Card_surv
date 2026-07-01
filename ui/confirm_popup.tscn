@@ -1,0 +1,99 @@
+[gd_scene load_steps=3 format=3 uid="uid://btdwdji5rjjvx"]
+
+[ext_resource type="Script" uid="uid://cta8v2qmudo1n" path="res://ui/confirm_popup.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cw6v3xw83l1xq" path="res://assets/art/ui/panels/confirm_popup_panel_act1.png" id="2_panel"]
+
+[node name="ConfirmPopup" type="ColorRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+script = ExtResource("1_script")
+
+[node name="Panel" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -270.0
+offset_right = 360.0
+offset_bottom = 270.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelArt" type="TextureRect" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_panel")
+expand_mode = 1
+
+[node name="TitleLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 128.0
+offset_top = 73.0
+offset_right = 593.0
+offset_bottom = 131.0
+theme_override_colors/font_color = Color(0.22, 0.13, 0.05, 1)
+theme_override_font_sizes/font_size = 26
+text = "Tytuł"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BodyLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 135.0
+offset_top = 214.0
+offset_right = 602.0
+offset_bottom = 288.0
+theme_override_colors/font_color = Color(0.24, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 18
+text = "Treść"
+autowrap_mode = 3
+
+[node name="CancelButton" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 139.0
+offset_top = 400.0
+offset_right = 319.0
+offset_bottom = 456.0
+text = "Anuluj"
+flat = true
+
+[node name="OkButton" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 408.0
+offset_top = 401.0
+offset_right = 588.0
+offset_bottom = 457.0
+text = "OK"
+flat = true
+
+[node name="CloseButton" type="Button" parent="Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.86500007
+anchor_top = 0.093
+anchor_right = 0.92200005
+anchor_bottom = 0.18800001
+offset_left = -13.800049
+offset_top = -12.220001
+offset_right = 12.159973
+offset_bottom = 8.479996
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.7372549, 0.05882353, 0, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.03, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.62, 0.12, 0.06, 1)
+theme_override_font_sizes/font_size = 20
+text = "X"
+flat = true

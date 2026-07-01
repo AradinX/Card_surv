@@ -25,6 +25,7 @@ const CLASS_MARKER_DIR := "res://assets/art/characters"
 static var _marker_path: String = PLAYER_MARKER
 ## Hover tooltip on the current-tile marker (class name + ability summary).
 static var _marker_tooltip: String = ""
+@export var secure_region_frame_texture: Texture2D
 
 
 ## Pick the current-tile marker + hover tooltip for the played class (falls back
@@ -246,6 +247,7 @@ func setup(
 	_background.texture = load(_background_path(tile))
 	_background.self_modulate = Color.WHITE
 	_frame.texture = load(CORRUPTION_FRAME if tile.is_corrupted else TILE_FRAME)
+	_frame.visible = not tile.bum_secured
 	_title_plate.texture = load(TITLE_PLATE)
 	_player_marker.texture = load(_marker_path)
 	_player_marker.visible = is_current
@@ -258,6 +260,8 @@ func setup(
 	_secure_region_button.visible = secure_visible
 	_secure_region_button.disabled = secure_disabled
 	_secure_region_button.tooltip_text = secure_tooltip
+	if secure_visible:
+		_secure_region_button.move_to_front()
 	_state_overlay.color = _overlay_color(is_current, block_reason, tile.is_corrupted)
 	if _drop_highlight:
 		_state_overlay.color = Color(0.45, 0.72, 0.24, 0.24)
@@ -282,6 +286,7 @@ func _setup_unknown_tile(
 	_background.self_modulate = Color(0.25, 0.34, 0.32, 1.0) \
 		if not tile.is_corrupted else Color(0.22, 0.28, 0.22, 1.0)
 	_frame.texture = load(TILE_FRAME)
+	_frame.visible = true
 	_title_plate.texture = load(TITLE_PLATE)
 	_player_marker.texture = load(_marker_path)
 	_player_marker.visible = is_current
@@ -311,7 +316,9 @@ func _configure_secure_region_frame() -> void:
 	_secure_region_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_secure_region_frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_secure_region_frame.stretch_mode = TextureRect.STRETCH_SCALE
-	if ResourceLoader.exists(SECURE_REGION_FRAME):
+	if secure_region_frame_texture != null:
+		_secure_region_frame.texture = secure_region_frame_texture
+	elif ResourceLoader.exists(SECURE_REGION_FRAME):
 		_secure_region_frame.texture = load(SECURE_REGION_FRAME)
 
 
@@ -320,11 +327,13 @@ func _configure_secure_region_button() -> void:
 		return
 	var icon_path := SECURE_REGION_ICON if ResourceLoader.exists(SECURE_REGION_ICON) else SECURE_REGION_ICON_FALLBACK
 	if ResourceLoader.exists(icon_path):
-		var icon := load(icon_path)
-		_secure_region_button.texture_normal = icon
-		_secure_region_button.texture_hover = icon
-		_secure_region_button.texture_pressed = icon
+		var icon_texture := load(icon_path)
+		_secure_region_button.texture_normal = icon_texture
+		_secure_region_button.texture_hover = icon_texture
+		_secure_region_button.texture_pressed = icon_texture
+		_secure_region_button.texture_disabled = icon_texture
 	_secure_region_button.visible = false
+	_secure_region_button.z_index = 30
 	_secure_region_button.pressed.connect(func() -> void:
 		secure_region_pressed.emit(_secure_region_button.get_global_rect())
 	)

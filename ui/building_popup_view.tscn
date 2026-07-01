@@ -1,9 +1,7 @@
-[gd_scene load_steps=6 format=3 uid="uid://b7rqa2wjlq1a6"]
+[gd_scene load_steps=5 format=3 uid="uid://b7rqa2wjlq1a6"]
 
 [ext_resource type="Script" uid="uid://cmkd6unwfl10c" path="res://ui/building_popup_view.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bq2ejcm1ovfk4" path="res://assets/art/ui/panels/building_popup_panel_act1.png" id="2_panel_act1"]
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_panel"]
 
 [sub_resource type="Shader" id="Shader_chroma"]
 code = "shader_type canvas_item;
@@ -28,16 +26,15 @@ shader_parameter/outside_key = Vector3(1, 0, 1)
 shader_parameter/art_key = Vector3(0, 0.31, 1)
 shader_parameter/tolerance = 0.18
 
-[node name="BuildingPopupView" type="PopupPanel"]
-oversampling_override = 1.0
-size = Vector2i(648, 488)
-visible = true
-theme_override_styles/panel = SubResource("StyleBoxEmpty_panel")
+[node name="BuildingPopupView" type="Control"]
+custom_minimum_size = Vector2(640, 480)
+layout_mode = 3
+anchors_preset = 0
 script = ExtResource("1_script")
 
 [node name="Root" type="Control" parent="."]
 custom_minimum_size = Vector2(640, 480)
-layout_mode = 3
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

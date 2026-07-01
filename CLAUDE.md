@@ -1745,6 +1745,35 @@ w systemach).
   przycisku pokazuje koszt, limit i powód blokady. Samouczek i pomoc opisują
   tę decyzję jako przygotowanie do Aktu II.
 
+### Panele popupów jako osobne sceny (confirm / talia / zabezpieczenie) (2026-07-01)
+
+- Ręcznie malowane drewniane panele (rustykalne drewno + pergamin + lina +
+  nity + pieczęć woskowa, wariant Akt I i skażony Akt II) zostały wycięte
+  chroma-keyem do alfy (zieleń → alfa na 6 panelach; niebieski placeholder →
+  alfa na 2 panelach `secure`; surowe oryginały w
+  `assets/_reference/panels_raw_greenkey/`, tool `tools/chroma_key_panels.gd`).
+- Zamiast wbudowanych `ConfirmationDialog`/`AcceptDialog` powstały **3 nowe,
+  reużywalne sceny UI** (pełnoekranowe overlaye z przyciemnionym tłem +
+  wyśrodkowany panel 720×540; kliknięcie tła = anuluj, Esc = zamknij):
+  - `ui/confirm_popup.tscn` (`ConfirmPopupView`): potwierdzenia ruch/odkrycie/
+    rozbiórka. Sygnały `confirmed`/`cancelled`, `open(title, body, ok_text)`.
+  - `ui/deck_popup.tscn` (`DeckPopupView`): podgląd talii (`RichTextLabel`
+    z przewijaniem), `open(list_text)`.
+  - `ui/secure_popup.tscn` (`SecurePopupView`): zabezpieczenie rejonu; ma slot
+    podglądu (`RegionPreview`) w wyciętej strefie placeholdera, `open(title,
+    body, ok_text, preview)`.
+- Każda scena ma `set_act2()` — podmienia panel na skażony i re-skinuje
+  przyciski (`ButtonSkin`, ozdobny styl gameplay). `run.gd` woła je w
+  `_apply_act2_look()` (także przy wznowieniu post-BUM — popupy tworzone przed
+  resume). **Layout dzieci (tytuł/treść/przyciski/preview) jest ustawiony
+  zgrubnie i przeznaczony do ręcznego strojenia w edytorze.**
+- `run.gd`: `_confirm_action` → `_confirm_popup`, nowy `_confirm_secure` →
+  `_secure_popup`, `_show_deck_dialog` → `_deck_popup`; Esc zamyka aktywny
+  popup (przed menu pauzy). Usunięty martwy kod build-confirm
+  (`_build_confirm`/`_on_build_confirmed`/`_on_build_card_pressed` — budowa jest
+  drag-only). Weryfikacja: `--import` bez błędów, 3 sceny + `run.tscn`
+  `can_instantiate`, `ui_layout`/`load`/`biome_camp` OK, smoke bez crashy.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).

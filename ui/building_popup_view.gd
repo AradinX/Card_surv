@@ -1,5 +1,5 @@
 class_name BuildingPopupView
-extends PopupPanel
+extends Control
 
 signal use_pressed(building_index: int)
 signal repair_pressed(building_index: int)
@@ -44,7 +44,7 @@ var _panel_shader: Shader
 
 
 func _ready() -> void:
-	add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	visible = false
 	if _panel_art.material == null:
 		_panel_art.material = _panel_material()
 	_close_button.pressed.connect(hide)
@@ -97,10 +97,12 @@ func popup_for(data: Dictionary, anchor: Rect2, viewport_size: Vector2) -> void:
 	set_content(data)
 	var popup_size := _scaled_size(viewport_size)
 	var pos := _popup_position(anchor, popup_size, viewport_size)
-	popup(Rect2i(
-		Vector2i(roundi(pos.x), roundi(pos.y)),
-		Vector2i(roundi(popup_size.x), roundi(popup_size.y))
-	))
+	set_anchors_preset(Control.PRESET_TOP_LEFT)
+	position = pos
+	size = popup_size
+	custom_minimum_size = popup_size
+	visible = true
+	move_to_front()
 
 
 func _panel_material() -> ShaderMaterial:

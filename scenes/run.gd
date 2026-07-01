@@ -7,6 +7,9 @@ const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
 const NIGHT_CARD_VIEW_SCENE := preload("res://ui/night_card_view.tscn")
 const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
 const BUILDING_POPUP_VIEW_SCENE := preload("res://ui/building_popup_view.tscn")
+const CONFIRM_POPUP_SCENE := preload("res://ui/confirm_popup.tscn")
+const DECK_POPUP_SCENE := preload("res://ui/deck_popup.tscn")
+const SECURE_POPUP_SCENE := preload("res://ui/secure_popup.tscn")
 const CARD_DROP_ZONE_SCRIPT := preload("res://ui/card_drop_zone.gd")
 const MAX_GATHER_CARD_VIEWS := 3
 const LOG_PANEL_ACT2 := "res://assets/art/ui/panels/log_panel_act2.png"
@@ -182,13 +185,14 @@ var _tile_buttons: Array[BiomeTileView] = []
 var _button_act := 1
 var _building_popup_requested := false
 var _build_mode := false
-var _build_confirm: ConfirmationDialog
-var _pending_build: BuildingCardData
-var _action_confirm: ConfirmationDialog
+var _confirm_popup: ConfirmPopupView
+var _secure_popup: SecurePopupView
 var _pending_confirm_action := Callable()
+var _pending_secure_action := Callable()
+var _modal_layer: CanvasLayer
 var _building_info_popup
 var _deck_button: Button
-var _deck_dialog: AcceptDialog
+var _deck_popup: DeckPopupView
 var _log_drop_zone
 var _tutorial_overlay: Control
 var _tutorial_dim: ColorRect
@@ -227,10 +231,13 @@ func _ready() -> void:
 	_forecast_label.visible = false
 	_card_choices.custom_minimum_size = Vector2(0, 232)
 	_top_status_bar.setup_max_values()
+	_setup_overlay_layers()
 	_apply_button_skin()
 	_create_weather_overlay()
 	_create_low_hp_overlay()
 	_create_need_warning_overlays()
+	# Before the resume act2 look below, so a resumed post-BUM run skins them too.
+	_setup_confirm_popups()
 	_setup_deck_dialog()
 	_setup_tutorial_panel()
 
@@ -265,8 +272,6 @@ func _ready() -> void:
 	_survival.log_message.connect(_on_log_message)
 	_end_day_button.pressed.connect(_on_end_day_pressed)
 	_build_toggle_button.pressed.connect(_on_build_toggle_pressed)
-	_setup_build_confirm()
-	_setup_action_confirm()
 	_setup_card_drop_targets()
 	_building_close_button.pressed.connect(_hide_building_popup)
 	_building_label.text = "Naprawa / rozbiórka"
@@ -289,6 +294,12 @@ func _ready() -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_RESIZED and is_node_ready():
 		_apply_responsive_layout()
+
+
+func _setup_overlay_layers() -> void:
+	for overlay in [_level_overlay, _night_overlay, _pause_overlay]:
+		overlay.z_index = 100
+		overlay.z_as_relative = false
 
 
 func _apply_responsive_layout() -> void:
@@ -364,7 +375,7 @@ func _fit_building_popup(viewport_size: Vector2) -> void:
 	_building_bar.offset_bottom = -104.0
 
 
-func _fit_tutorial_panel(viewport_size: Vector2) -> void:
+func _fit_tutorial_panel(_viewport_size: Vector2) -> void:
 	if _tutorial_overlay == null:
 		return
 	_tutorial_overlay.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -542,9 +553,9 @@ func _tutorial_step_copy() -> Dictionary:
 func _update_tutorial_visuals() -> void:
 	if _tutorial_overlay == null or not _tutorial_overlay.visible:
 		return
+	var viewport_size := get_viewport_rect().size
 	if _tutorial_step == TUTORIAL_DONE:
 		_tutorial_highlight.visible = false
-		var viewport_size := get_viewport_rect().size
 		var width := minf(TUTORIAL_PANEL_BASE.x, maxf(viewport_size.x - 32.0, 280.0))
 		var height := minf(TUTORIAL_PANEL_BASE.y, maxf(viewport_size.y - 32.0, 140.0))
 		_tutorial_panel.custom_minimum_size = Vector2(width, height)
@@ -552,7 +563,6 @@ func _update_tutorial_visuals() -> void:
 		_tutorial_panel.position = viewport_size * 0.5 - Vector2(width, height) * 0.5
 		return
 	var rect := _tutorial_target_rect()
-	var viewport_size := get_viewport_rect().size
 	if rect.size.x <= 1.0 or rect.size.y <= 1.0:
 		rect = Rect2(Vector2(24, 112), Vector2(360, 160))
 	_tutorial_highlight.visible = not _tutorial_should_hide_highlight()
@@ -717,6 +727,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _settings_overlay.visible:
 		_settings_overlay.visible = false
+	elif _confirm_popup != null and _confirm_popup.visible:
+		_confirm_popup.close()
+		_pending_confirm_action = Callable()
+	elif _secure_popup != null and _secure_popup.visible:
+		_secure_popup.close()
+		_pending_secure_action = Callable()
+	elif _deck_popup != null and _deck_popup.visible:
+		_deck_popup.close()
 	elif _night_overlay.visible or _level_overlay.visible:
 		return
 	else:
@@ -772,7 +790,7 @@ func _on_secure_region_pressed(_anchor_rect: Rect2, tile_index: int) -> void:
 		SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
 		SurvivalSystem.BUM_SECURED_TILE_LIMIT,
 	]
-	_confirm_action(title, text, "Zabezpiecz", func() -> void:
+	_confirm_secure(title, text, "Zabezpiecz", func() -> void:
 		_survival.secure_current_tile()
 		AudioManager.play_sfx("build")
 		var fx_path := SECURE_REGION_FX if ResourceLoader.exists(SECURE_REGION_FX) else BUILD_PLACE_FX
@@ -1091,6 +1109,30 @@ func _hide_building_info_popup() -> void:
 func _on_building_info_use_pressed(building_index: int) -> void:
 	if building_index < 0:
 		return
+	var buildings := _survival.current_tile().buildings
+	if building_index >= buildings.size():
+		return
+	var action := _survival.building_action(building_index)
+	if action.is_empty():
+		return
+	var block := str(action.get("block", ""))
+	if block != "":
+		_on_log_message(block)
+		return
+	var title := "Użyć akcji budynku?"
+	var action_title := str(action.get("title", "Użyj"))
+	var summary := str(action.get("summary", ""))
+	var text := "%s\nAkcja: %s%s" % [
+		buildings[building_index].data.display_name,
+		action_title,
+		"\nEfekt: %s" % summary if summary != "" else "",
+	]
+	_confirm_action(title, text, action_title, func() -> void:
+		_use_building_confirmed(building_index)
+	)
+
+
+func _use_building_confirmed(building_index: int) -> void:
 	_survival.use_building(building_index)
 	AudioManager.play_sfx("card_play")
 	_refresh_building_actions()
@@ -1102,6 +1144,28 @@ func _on_building_info_use_pressed(building_index: int) -> void:
 func _on_building_info_repair_pressed(building_index: int) -> void:
 	if building_index < 0:
 		return
+	var buildings := _survival.current_tile().buildings
+	if building_index >= buildings.size():
+		return
+	var built = buildings[building_index]
+	var repair_block := _survival.can_repair(building_index)
+	if repair_block != "":
+		_on_log_message(repair_block)
+		return
+	var max_hp := _survival.building_max_hp(built.data)
+	var text := "%s\nHP: %d/%d\nKoszt: %d energii, %d drewna" % [
+		built.data.display_name,
+		built.hp,
+		max_hp,
+		SurvivalSystem.REPAIR_ENERGY_COST,
+		_survival.repair_wood_cost(built),
+	]
+	_confirm_action("Naprawić budynek?", text, "Napraw", func() -> void:
+		_repair_building_confirmed(building_index)
+	)
+
+
+func _repair_building_confirmed(building_index: int) -> void:
 	_survival.repair(building_index)
 	AudioManager.play_sfx("repair")
 	_spawn_tile_fx(REPAIR_FX, true)
@@ -1221,20 +1285,25 @@ func _building_special_description(special: String) -> String:
 ## on the current tile.
 
 
-func _setup_build_confirm() -> void:
-	_build_confirm = ConfirmationDialog.new()
-	_build_confirm.title = "Postawić budowlę?"
-	_build_confirm.ok_button_text = "Buduj"
-	_build_confirm.cancel_button_text = "Anuluj"
-	_build_confirm.confirmed.connect(_on_build_confirmed)
-	add_child(_build_confirm)
+## Confirm (move/discover/demolish) and secure-region modals painted on the
+## hand-made wooden panels. Both are full-screen overlays added on top.
+func _setup_confirm_popups() -> void:
+	_modal_layer = CanvasLayer.new()
+	_modal_layer.name = "ModalLayer"
+	_modal_layer.layer = 50
+	add_child(_modal_layer)
 
+	_confirm_popup = CONFIRM_POPUP_SCENE.instantiate()
+	_confirm_popup.z_index = 300
+	_confirm_popup.z_as_relative = false
+	_modal_layer.add_child(_confirm_popup)
+	_confirm_popup.confirmed.connect(_on_action_confirmed)
 
-func _setup_action_confirm() -> void:
-	_action_confirm = ConfirmationDialog.new()
-	_action_confirm.cancel_button_text = "Anuluj"
-	_action_confirm.confirmed.connect(_on_action_confirmed)
-	add_child(_action_confirm)
+	_secure_popup = SECURE_POPUP_SCENE.instantiate()
+	_secure_popup.z_index = 300
+	_secure_popup.z_as_relative = false
+	_modal_layer.add_child(_secure_popup)
+	_secure_popup.confirmed.connect(_on_secure_confirmed)
 
 
 func _setup_building_info_popup() -> void:
@@ -1268,18 +1337,15 @@ func _setup_deck_dialog() -> void:
 	ButtonSkin.apply_primary(_deck_button, _button_act)
 	_deck_button.pressed.connect(_show_deck_dialog)
 
-	_deck_dialog = AcceptDialog.new()
-	_deck_dialog.title = "Talia"
-	_deck_dialog.ok_button_text = "OK"
-	add_child(_deck_dialog)
+	_deck_popup = DECK_POPUP_SCENE.instantiate()
+	_deck_popup.z_index = 300
+	_deck_popup.z_as_relative = false
+	_modal_layer.add_child(_deck_popup)
 
 
 func _confirm_action(title: String, text: String, ok_text: String, action: Callable) -> void:
 	_pending_confirm_action = action
-	_action_confirm.title = title
-	_action_confirm.dialog_text = text
-	_action_confirm.ok_button_text = ok_text
-	_action_confirm.popup_centered(Vector2i(420, 220))
+	_confirm_popup.open(title, text, ok_text)
 
 
 func _on_action_confirmed() -> void:
@@ -1289,9 +1355,22 @@ func _on_action_confirmed() -> void:
 		action.call()
 
 
+## Secure-region prompt uses its own panel (with a preview slot) instead of the
+## plain confirm popup.
+func _confirm_secure(title: String, text: String, ok_text: String, action: Callable) -> void:
+	_pending_secure_action = action
+	_secure_popup.open(title, text, ok_text)
+
+
+func _on_secure_confirmed() -> void:
+	var action := _pending_secure_action
+	_pending_secure_action = Callable()
+	if action.is_valid():
+		action.call()
+
+
 func _show_deck_dialog() -> void:
-	_deck_dialog.dialog_text = _deck_summary()
-	_deck_dialog.popup_centered(Vector2i(560, 520))
+	_deck_popup.open(_survival.state.deck)
 
 
 func _deck_summary() -> String:
@@ -1378,30 +1457,6 @@ func _refresh_build_playability() -> void:
 		})
 		if not view.disabled:
 			view.tooltip_text = "Przeciągnij budowlę na aktualny biom albo kartkę logów."
-
-
-func _on_build_card_pressed(building: BuildingCardData) -> void:
-	var block: String = _survival.can_build(building)
-	if block != "":
-		_on_log_message(block)
-		return
-	_pending_build = building
-	_build_confirm.dialog_text = "%s\nKoszt: %s\n\nPostawić na tym kaflu?" % [
-		building.display_name,
-		_build_cost_summary(building),
-	]
-	_build_confirm.popup_centered()
-
-
-func _on_build_confirmed() -> void:
-	if _pending_build == null:
-		return
-	_survival.build(_pending_build)
-	AudioManager.play_sfx("build")
-	_spawn_tile_fx(BUILD_PLACE_FX, false)
-	_pending_build = null
-	if _build_mode:
-		_refresh_build_cards()
 
 
 ## Effective build cost (class discount + post-BUM surcharge) as a player string.
@@ -1503,6 +1558,12 @@ func _apply_act2_look() -> void:
 	_log.add_theme_color_override("default_color", _act2_look["log_text"])
 	_night_summary.add_theme_color_override("font_color", _act2_look["log_text"])
 	_background.color = _act2_look["scrim"]
+	if _confirm_popup != null:
+		_confirm_popup.set_act2()
+	if _secure_popup != null:
+		_secure_popup.set_act2()
+	if _deck_popup != null:
+		_deck_popup.set_act2()
 
 
 ## Cataclysm: a layered fullscreen sequence — dread glow, blast (flash +

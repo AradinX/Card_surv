@@ -68,6 +68,38 @@ static func apply_minimal_many(buttons: Array) -> void:
 		apply_minimal(button as Button)
 
 
+static func apply_panel_action(button: Button) -> void:
+	if button == null:
+		return
+	_clear_styleboxes(button)
+	button.flat = true
+	button.clip_text = true
+	button.add_theme_color_override("font_color", Color(0.13, 0.08, 0.035, 1))
+	button.add_theme_color_override("font_pressed_color", Color(0.08, 0.05, 0.025, 1))
+	button.add_theme_color_override("font_hover_color", Color(0.29, 0.14, 0.05, 1))
+	button.add_theme_color_override("font_disabled_color", Color(0.3, 0.25, 0.18, 0.62))
+	button.add_theme_font_size_override("font_size", 18)
+
+
+static func apply_panel_close(button: Button) -> void:
+	if button == null:
+		return
+	_clear_styleboxes(button)
+	button.flat = true
+	button.clip_text = true
+	button.text = "X"
+	button.add_theme_color_override("font_color", Color(0.7372549, 0.05882353, 0.0, 1.0))
+	button.add_theme_color_override("font_pressed_color", Color(0.08, 0.03, 0.02, 1.0))
+	button.add_theme_color_override("font_hover_color", Color(0.62, 0.12, 0.06, 1.0))
+	button.add_theme_font_size_override("font_size", 20)
+
+
+static func _clear_styleboxes(button: Button) -> void:
+	var empty_style := StyleBoxEmpty.new()
+	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
+		button.add_theme_stylebox_override(state, empty_style)
+
+
 static func _flat(fill: Color, border: Color) -> StyleBoxFlat:
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = fill

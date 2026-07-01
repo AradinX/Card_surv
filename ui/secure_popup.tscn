@@ -1,0 +1,100 @@
+[gd_scene load_steps=3 format=3 uid="uid://ddb8jfwer0g3l"]
+
+[ext_resource type="Script" uid="uid://dq5x503yx1m6p" path="res://ui/secure_popup.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://bq1lmt7j0f34j" path="res://assets/art/ui/panels/secure_popup_panel_act1.png" id="2_panel"]
+
+[node name="SecurePopup" type="ColorRect"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+script = ExtResource("1_script")
+
+[node name="Panel" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -270.0
+offset_right = 360.0
+offset_bottom = 270.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelArt" type="TextureRect" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("2_panel")
+expand_mode = 1
+
+[node name="TitleLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 83.0
+offset_top = 56.0
+offset_right = 584.0
+offset_bottom = 94.0
+theme_override_colors/font_color = Color(0.22, 0.13, 0.05, 1)
+theme_override_font_sizes/font_size = 24
+text = "Zabezpieczyć rejon?"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RegionPreview" type="TextureRect" parent="Panel"]
+layout_mode = 0
+offset_left = 67.0
+offset_top = 109.0
+offset_right = 356.0
+offset_bottom = 310.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BodyLabel" type="Label" parent="Panel"]
+layout_mode = 0
+offset_left = 388.0
+offset_top = 126.0
+offset_right = 635.0
+offset_bottom = 294.0
+theme_override_colors/font_color = Color(0.24, 0.16, 0.08, 1)
+theme_override_font_sizes/font_size = 16
+text = "Koszt / efekt"
+autowrap_mode = 3
+
+[node name="OkButton" type="Button" parent="Panel"]
+layout_mode = 0
+offset_left = 280.0
+offset_top = 441.0
+offset_right = 442.0
+offset_bottom = 493.0
+text = "Zabezpiecz"
+flat = true
+
+[node name="CloseButton" type="Button" parent="Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.87700003
+anchor_top = 0.086
+anchor_right = 0.924
+anchor_bottom = 0.157
+offset_left = -15.440002
+offset_top = -15.440002
+offset_right = 16.71997
+offset_bottom = 12.219994
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.7372549, 0.05882353, 0, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.03, 0.02, 1)
+theme_override_colors/font_hover_color = Color(0.62, 0.12, 0.06, 1)
+theme_override_font_sizes/font_size = 20
+text = "X"
+flat = true
