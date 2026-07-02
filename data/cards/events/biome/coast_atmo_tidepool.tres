@@ -6,8 +6,8 @@
 script = ExtResource("1_script")
 id = "coast_atmo_tidepool"
 display_name = "Rozlewisko"
-description = "W skalnych sadzawkach po odpływie zostają małże i kraby. +1 jedzenia."
-food_delta = 1
+description = "W skalnych sadzawkach po odpływie zostają muszle i gładkie krzemienie. +1 kamienia."
+materials_delta = 1
 weight = 6
 cooldown_days = 4
 max_per_run = 2

@@ -6,10 +6,11 @@
 script = ExtResource("1_script")
 id = "mountains_corrupt_frost"
 display_name = "Lodowy szept"
-description = "Z dolin pełznie nienaturalny chłód, który gasi ogień i ścina oddech. -2 ciepła, -1 zdrowia."
+description = "Z dolin pełznie nienaturalny chłód, który gasi ogień i wolę działania. -2 ciepła, -1 energii następnego dnia (schronienie chroni)."
 warmth_delta = -2
-health_delta = -1
+next_day_energy_delta = -1
 shelter_protects = true
+disaster_id = "eclipse"
 weight = 7
 cooldown_days = 3
 max_per_run = 3

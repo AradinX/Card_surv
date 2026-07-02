@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 id = "rift_tremor"
-display_name = "Wstrząs wtórny"
+display_name = "Osuwisko"
 description = "Ziemia faluje, a zgromadzony budulec zsuwa się w nowo otwartą szczelinę. -2 kamienia, -1 zdrowia."
 materials_delta = -2
 health_delta = -1

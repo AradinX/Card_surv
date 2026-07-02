@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_delta = 4
-health_delta = -2
+energy_delta = 3
+next_day_energy_delta = -3
 id = "overexert"
-display_name = "Nadludzki wysiłek"
-description = "Wyciskasz z siebie wszystko ponad granicę. Ciało to odchoruje."
+display_name = "Daj z siebie więcej"
+description = "Wyciskasz z siebie wszystko ponad granicę. Jutro zapłacisz zmęczeniem."

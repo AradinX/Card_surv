@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 id = "fog"
 display_name = "Gęsta mgła"
-description = "Niewiele widać na krok. -1 energii następnego dnia."
-next_day_energy_delta = -1
+description = "Niewiele widać na krok. Jutro każdy ruch kosztuje +1 energii."
+next_day_move_penalty = 1
 category = "weather"
 severity = "minor"

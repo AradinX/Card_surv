@@ -316,6 +316,7 @@ func _effects_summary(card: CardData) -> String:
 		_push_delta(p, a.water_gain, "wody")
 		_push_delta(p, a.wood_gain, "drewna")
 		_push_delta(p, a.materials_gain, "kamienia")
+		_push_delta(p, a.next_day_energy_delta, "energii jutro")
 		var sp := _action_special_text(a.special)
 		if sp != "":
 			p.append(sp)

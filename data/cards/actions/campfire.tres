@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 1
 wood_cost = 2
-warmth_delta = 2
+warmth_delta = 4
 id = "campfire"
 display_name = "Ogrzej się"
 description = "Rozpal ognisko i odetchnij w cieple."

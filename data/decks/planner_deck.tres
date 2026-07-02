@@ -9,7 +9,7 @@
 [ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="7_rest"]
 [ext_resource type="Resource" path="res://data/cards/actions/herbs.tres" id="8_herbs"]
 [ext_resource type="Resource" path="res://data/cards/actions/first_aid.tres" id="9_aid"]
-[ext_resource type="Resource" path="res://data/cards/actions/gather_wood.tres" id="10_wood"]
+[ext_resource type="Resource" path="res://data/cards/actions/deadfall_wood.tres" id="10_wood"]
 [ext_resource type="Resource" path="res://data/cards/actions/woodcraft.tres" id="11_wc"]
 
 [resource]

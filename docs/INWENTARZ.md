@@ -1,6 +1,6 @@
 # Inwentarz „Dzień 50” — co jest, czego brakuje
 
-Żywy spis zawartości gry. Stan: **2026-07-01**.
+Żywy spis zawartości gry. Stan: **2026-07-02**.
 
 **Legenda:** ✅ działa w grze · 🟡 działa częściowo lub wymaga polishu · 🔴 brak.
 
@@ -41,19 +41,19 @@ odpowiednich taliach startowych.
 ✅ Skaut jest zawsze odblokowany. Wygrany run daje 1 monetę, ruletka kosztuje
 1 monetę i losuje jedną z zablokowanych klas.
 
-🟡 Aktualny sygnał balansowy z 30 runów bota na klasę:
+🟡 Aktualny sygnał balansowy z 30 runów bota na klasę (2026-07-02):
 
 | Klasa | Wygrane |
 |---|---:|
-| Zielarka | 27/30 |
-| Skaut | 27/30 |
-| Wojskowy | 20/30 |
-| Wędrowiec | 20/30 |
-| Budowlaniec | 18/30 |
-| Łowca | 17/30 |
-| Kucharz | 15/30 |
-| Strateg | 12/30 |
-| Informatyk | 4/30 |
+| Zielarka | 28/30 |
+| Skaut | 19/30 |
+| Strateg | 19/30 |
+| Wędrowiec | 17/30 |
+| Łowca | 10/30 |
+| Kucharz | 9/30 |
+| Wojskowy | 7/30 |
+| Budowlaniec | 3/30 |
+| Informatyk | 0/30 |
 
 To nie jest finalny balans. Informatyk ma być trudny, ale rozrzut wymaga
 playtestów człowieka.
@@ -116,9 +116,9 @@ podglądu/oznaczania nieodkrytych kafli przed ruchem.
 ✅ **74 karty akcji** łącznie (54 top-level, 9 sygnaturowych, 7 ulepszeń,
 4 skażone).
 
-✅ **50 kart** w głównej puli nagród (top-level minus 4 karty `gather_only`
-przypięte do biomu — Poluj/Wędkowanie/Sidła/Suchy chrust nie wpadają już do
-nagród awansu).
+✅ **47 kart** w głównej puli nagród (top-level minus 7 kart `gather_only`:
+akcje biomów Poluj/Wędkowanie/Sidła/Suchy chrust/Rąb drewno/Wydobycie kamienia
+oraz Szukaj kamienia — fallback wyłącznie talii startowych).
 
 ✅ **4 skażone akcje biomów** używane po BUM.
 
@@ -183,10 +183,10 @@ ilustracje.
 
 ✅ Docelowy warunek zwycięstwa to przetrwanie do dnia 50.
 
-🟡 Kontrolne smoke testy (2026-07-01): główny przebieg **0/50** dla naiwnego bota,
-średnio 24,2 dnia; zgony: Akt I 17, Akt II 33. Po dodaniu kosztownego
-zabezpieczania rejonów autopilot częściej ginie przed BUM, więc balans i logika
-bota wymagają dalszego strojenia.
+🟡 Kontrolne smoke testy (2026-07-02, po przeglądzie kart): główny przebieg
+**22/50** dla naiwnego bota, średnio 37,7 dnia; zgony: Akt I 8 (śr. dzień 10,3),
+Akt II 20. Wyraźna poprawa względem 0/50 z 2026-07-01; Akt I wciąż powyżej
+historycznego ideału ~0–2 zgonów — do obserwacji przy kolejnym strojeniu.
 
 ## UI, animacje i FX
 

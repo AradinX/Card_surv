@@ -6,11 +6,12 @@
 script = ExtResource("1_script")
 id = "coast_corrupt_foam"
 display_name = "Czarna piana"
-description = "Fale niosą tłustą, zimną maź, która oblepia wszystko w obozie. -1 ciepła, -1 nawodnienia, -1 zdrowia."
-warmth_delta = -1
+description = "Wzburzone fale niosą tłustą maź, która oblepia zapasy i naczynia. -1 jedzenia, -1 nawodnienia, -1 zdrowia."
+food_delta = -1
 water_delta = -1
 health_delta = -1
 shelter_protects = true
+disaster_id = "flood"
 weight = 8
 cooldown_days = 3
 max_per_run = 3

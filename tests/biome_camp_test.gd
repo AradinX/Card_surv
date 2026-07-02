@@ -8,7 +8,10 @@ extends SceneTree
 ##   godot --headless --path . -s tests/biome_camp_test.gd
 
 const ACTIONS_DIR := "res://data/cards/actions"
-const GATHER_ONLY_IDS := ["hunt", "fishing", "snare_trap", "wasteland_scrapwood"]
+const GATHER_ONLY_IDS := [
+	"hunt", "fishing", "snare_trap", "wasteland_scrapwood",
+	"gather_wood", "mine_stone", "scavenge",
+]
 
 
 func _init() -> void:

@@ -1885,6 +1885,72 @@ w systemach).
   drag-only). Weryfikacja: `--import` bez błędów, 3 sceny + `run.tscn`
   `can_instantiate`, `ui_layout`/`load`/`biome_camp` OK, smoke bez crashy.
 
+### Przegląd kart: dominacje, tematyka, duplikaty nocy (2026-07-02)
+
+Audyt wszystkich 220 kart (porównanie surowych liczb, nie opisów) wykrył karty
+ściśle zdominowane, tematycznie odwrócone i zduplikowane zdarzenia nocne.
+Poprawki w 3 etapach wg decyzji gracza:
+
+- **Zdominowane karty akcji:**
+  - „Dołóż do ognia" (stoke_fire) zdjęte z osi ciepła — teraz JEDYNA konwersja
+    drewno→energia (2 drewna → +3 energii). „Ogrzej się" (campfire) podbite
+    +2→+4 ciepła (było ściśle gorsze od „Otul się"); „Otul się" bez zmian.
+  - „Obróbka kamienia" (knapping) kosztuje teraz 3 energii (+2 drewna → 2 kamienie)
+    — przestaje dominować sygnaturę Budowlańca; opcja na deficyt kamienia.
+  - „Rąb drewno" (gather_wood) tylko jako akcja biomu Lasu (`gather_only`);
+    w taliach zastąpione: Kucharz → Naręcze drewna, Strateg → Wiatrołom; talia
+    i ręka tutoriala używają Wiatrołomu (tutorial ciągnie karty z puli nagród).
+  - „Szukaj kamienia" (scavenge) zostaje TYLKO w 4 taliach startowych
+    (`gather_only` = poza pulą nagród); „Wydobycie kamienia" (mine_stone) wyszło
+    z puli nagród i jest akcją zbierania biomów kamiennych — zastępuje scavenge
+    we WSZYSTKICH listach gather biomów (normalnych i skażonych; jedna podmiana
+    ścieżki ExtResource na biom obsłużyła obie listy).
+  - „Sidła" (gather Łąk): +1 jedzenia +2 sytości (było +1/+1 = Zbieractwo
+    z doliczonym drewnem).
+  - Świadomie zostają mniej opłacalne (decyzja gracza — karty „pod presją"):
+    Bukłak, Zbieractwo vs Suszone mięso, Ciesielka, Zacisnąć zęby, Bandaż bez
+    kosztu kamienia (bandażowanie kamieniem nie miało logiki).
+- **Tematyka (koszt zdrowia zamiast energii itp.):**
+  - „Forsowny marsz" → **„Bez obiadu"** (efekt bez zmian +3 energii/−2 sytości;
+    nazwa pasuje do pominięcia posiłku zamiast odwróconej logiki marszu).
+  - „Nadludzki wysiłek" (overexert) → **„Daj z siebie więcej"**: +3 energii dziś,
+    **−3 energii jutro** (pożyczka tempa zamiast −2 zdrowia). NOWE POLE
+    `ActionCardData.next_day_energy_delta` (reużywa `RunState.next_day_energy_
+    delta`), wpięte w `_resolve_action`, log akcji i linię efektów `card_view`.
+  - „Mętna woda" (skażona): dodane −1 zdrowia (spójnie z resztą skażonego
+    zbierania). „Wybielone kości" (Pustkowie): −1 zdrowia → −2 energii
+    następnego dnia (widok nie daje zasnąć), severity minor→medium.
+- **Duplikaty zdarzeń nocnych:**
+  - „Gęsta mgła" ≠ „Rozmokła ziemia": mgła ma NOWĄ mechanikę — jutro każdy ruch
+    kosztuje +1 energii. Pole `EventCardData.next_day_move_penalty` →
+    `RunState.next_day_move_penalty` (persystowane) → o świcie do
+    `_move_penalty_today` doliczanego w `move_energy_cost()` (wzorzec 1:1 jak
+    `next_day_energy_delta`; darmowy ruch z „Biegu" pozostaje darmowy).
+  - NOWE POLE `EventCardData.disaster_id` ("" = zawsze): zdarzenie wchodzi do
+    puli nocy tylko po BUM pod pasującą katastrofą (filtr `_event_matches_
+    disaster` w `_event_pool()`, obejmuje pulę bazową i biomową). Użyte:
+    „Lodowy szept" (skażone Góry) → tylko Zaćmienie, efekt −2 ciepła/−1 energii
+    jutro; „Czarna piana" (skażone Wybrzeże) → tylko Powódź, efekt −1 jedzenia/
+    −1 nawodnienia/−1 zdrowia — koniec bliźniaków z „Wyciem w szczelinach"
+    i „Słonym szkwałem" w tych samych biomach.
+  - „Otwarte rany" (Plaga): −2 zdrowia/−1 ciepła (było identyczne z „Gorączką").
+  - Pęknięcie: druga karta o nazwie „Wstrząs wtórny" (rift_tremor) przemianowana
+    na **„Osuwisko"** (efekt bez zmian).
+  - Deduplikacja atmo w biomie: „Szum nurtu" (Rzeka) → +1 energii jutro
+    („Zimorodek" zostaje +1 zdrowia); „Rozlewisko" (Wybrzeże) → +1 kamienia
+    („Krzyk mew" zostaje +1 jedzenia).
+- `biome_camp_test.GATHER_ONLY_IDS` rozszerzone do 7 kart; pula nagród 50→47.
+- Testy: cała czternastka zielona. Smoke **22/50** (śr. 37,7 dnia; zgony Akt I 8,
+  śr. dzień 10,3 / Akt II 20) — wyraźnie lepiej niż 0/50 z 2026-07-01 (bot ginął
+  na drogim zabezpieczaniu rejonów); Akt I nadal powyżej ideału ~0–2 zgonów, do
+  obserwacji. Klasy: Zielarka 28/30 … Wojskowy 7/30, Budowlaniec 3/30,
+  Informatyk 0/30 (Budowlaniec mocno w dół — droższa Obróbka kamienia; kandydat
+  do przyjrzenia się przy następnym strojeniu).
+- ZNANE/niezrobione z audytu (świadomie): reskiny „-1/+1 energii jutro" w atmo
+  różnych biomów zostają (flavor per biom); „Dziwne jagody" — opcja ryzykowna
+  wciąż ledwo lepsza od bezpiecznej; dwie karty o nazwie „Głęboki sen"
+  (deep_sleep i rest_up „Odpoczynek: Głęboki sen").
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).

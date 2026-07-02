@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 1
+health_delta = -1
 water_gain = 1
 id = "murky_water"
 display_name = "Mętna woda"

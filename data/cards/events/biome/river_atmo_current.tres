@@ -6,8 +6,8 @@
 script = ExtResource("1_script")
 id = "river_atmo_current"
 display_name = "Szum nurtu"
-description = "Rzeka szemrze równo przez całą noc. Ten dźwięk koi nerwy i pomaga odpocząć. +1 zdrowia."
-health_delta = 1
+description = "Rzeka szemrze równo przez całą noc. Śpisz jak zabity. +1 energii następnego dnia."
+next_day_energy_delta = 1
 weight = 6
 cooldown_days = 3
 max_per_run = 2

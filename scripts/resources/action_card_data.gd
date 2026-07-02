@@ -20,6 +20,8 @@ extends CardData
 @export var water_gain: int = 0
 @export var wood_gain: int = 0
 @export var materials_gain: int = 0
+## Energy carried into TOMORROW's dawn (borrow-now/repay-later tempo cards).
+@export var next_day_energy_delta: int = 0
 
 ## Special effects handled by SurvivalSystem:
 ## - craft_tools: sets has_tools (one-time; +1 food/wood gain from cards)
@@ -41,8 +43,8 @@ var special: String = "none"
 ## when the player picks its upgrade reward (swaps in the deck). "" = no upgrade.
 @export var upgrade_id: String = ""
 
-## Biome gather actions are pinned to their tile (1x/day) and must NOT enter the
-## level-up reward pool. Marking a card gather_only keeps strong tile-locked
-## gathers (Poluj/Wedkowanie/...) out of the reward draft, so those resources stay
-## tied to the biome that produces them (anti-camping economy).
+## Keeps a card OUT of the level-up reward pool. Used for biome gather actions
+## pinned to their tile (Poluj/Wedkowanie/Wydobycie kamienia/...) so resources
+## stay tied to the biome that produces them (anti-camping economy), and for
+## starter-deck-only fallbacks (Szukaj kamienia) that must not dilute rewards.
 @export var gather_only: bool = false

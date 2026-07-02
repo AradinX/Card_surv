@@ -233,6 +233,8 @@ var _day_active := false
 ## a one-shot monster-attack negation from "set_trap".
 var _free_moves := 0
 var _next_move_energy_penalty := 0
+## All-day move surcharge set at dawn from last night's event (fog).
+var _move_penalty_today := 0
 var _extra_night_protection := 0
 var _night_trap := false
 ## Per-turn synergy state (also reset at dawn): how many cards played today, whether
@@ -328,7 +330,7 @@ func configure_tutorial_run() -> void:
 	current_tile().is_discovered = true
 
 	var tutorial_deck := _cards_by_ids([
-		"find_water", "forage", "gather_wood", "rest",
+		"find_water", "forage", "deadfall_wood", "rest",
 		"survey", "craft_tools", "bandage", "dried_meat",
 	])
 	if not tutorial_deck.is_empty():
@@ -376,7 +378,11 @@ func current_tile() -> TileState:
 
 ## Effective move cost — a class trait can make wandering cheaper (min 0).
 func move_energy_cost() -> int:
-	return maxi(MOVE_ENERGY_COST + state.character_class.move_energy_delta + _next_move_energy_penalty, 0)
+	return maxi(
+		MOVE_ENERGY_COST + state.character_class.move_energy_delta
+		+ _next_move_energy_penalty + _move_penalty_today,
+		0
+	)
 
 
 ## Returns "" when the move is possible, otherwise a player-facing reason.
@@ -1351,6 +1357,11 @@ func _start_day() -> void:
 		1, state.max_energy
 	)
 	state.next_day_energy_delta = 0
+	# Fog-like conditions: last night's event can tax every tile move today.
+	_move_penalty_today = state.next_day_move_penalty
+	state.next_day_move_penalty = 0
+	if _move_penalty_today > 0:
+		log_message.emit("Trudne warunki: każdy ruch kosztuje dziś +%d energii." % _move_penalty_today)
 
 	# Passive dawn healing (a medic/hardy class trait).
 	if state.character_class.daily_health_regen > 0 and state.health < state.max_health:
@@ -1555,7 +1566,7 @@ func _tutorial_opening_hand_ids() -> Array[String]:
 		return []
 	match state.day:
 		1:
-			return ["find_water", "forage", "gather_wood", "rest"]
+			return ["find_water", "forage", "deadfall_wood", "rest"]
 		2:
 			return ["survey", "craft_tools", "bandage", "dried_meat"]
 		_:
@@ -1673,6 +1684,7 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 	state.energy = clampi(
 		state.energy + card.energy_delta + _energy_refund_per_card, 0, state.max_energy
 	)
+	state.next_day_energy_delta += card.next_day_energy_delta
 
 	match card.special:
 		"craft_tools":
@@ -1777,6 +1789,7 @@ func _action_card_base_summary(card: ActionCardData) -> String:
 	_append_delta_part(parts, card.water_gain, "wody")
 	_append_delta_part(parts, card.wood_gain, "drewna")
 	_append_delta_part(parts, card.materials_gain, "kamienia")
+	_append_delta_part(parts, card.next_day_energy_delta, "energii jutro")
 	var special := _action_special_log_text(card.special, card)
 	if special != "":
 		parts.append(special)
@@ -1794,6 +1807,7 @@ func action_card_effect_summary(card: ActionCardData) -> String:
 	_append_delta_part(parts, card.water_gain, "wody")
 	_append_delta_part(parts, card.wood_gain, "drewna")
 	_append_delta_part(parts, card.materials_gain, "kamienia")
+	_append_delta_part(parts, card.next_day_energy_delta, "energii jutro")
 	var special := _action_special_log_text(card.special, card)
 	if special != "":
 		parts.append(special)
@@ -2163,13 +2177,17 @@ func _rebuild_event_deck() -> void:
 
 
 func _event_pool() -> Array[CardData]:
-	var event_pool: Array[CardData] = _base_event_cards.duplicate()
+	var event_pool: Array[CardData] = []
+	for event in _base_event_cards:
+		if _event_matches_disaster(event):
+			event_pool.append(event)
 	var tile := current_tile()
 	if tile.is_discovered:
 		var biome_events := tile.biome.corrupted_extra_event_cards \
 			if tile.is_corrupted else tile.biome.extra_event_cards
 		for event in biome_events:
-			event_pool.append(event)
+			if _event_matches_disaster(event):
+				event_pool.append(event)
 
 	if state.bum_happened and state.disaster != null:
 		for event in state.disaster.extra_event_cards:
@@ -2178,6 +2196,16 @@ func _event_pool() -> Array[CardData]:
 		for monster in state.disaster.monsters:
 			event_pool.append(monster)
 	return event_pool
+
+
+## Disaster-gated events (EventCardData.disaster_id) join the pool only after
+## BUM and only under the matching disaster; "" means always eligible.
+func _event_matches_disaster(event: CardData) -> bool:
+	var data := event as EventCardData
+	if data == null or data.disaster_id == "":
+		return true
+	return state.bum_happened and state.disaster != null \
+		and state.disaster.id == data.disaster_id
 
 
 ## Run phase for the night pool's category weighting.
@@ -2586,6 +2614,7 @@ func _resolve_event(event: EventCardData) -> void:
 	_add_wood(event.wood_delta)
 	_add_materials(event.materials_delta)
 	state.next_day_energy_delta += event.next_day_energy_delta
+	state.next_day_move_penalty += event.next_day_move_penalty
 
 
 ## Apply the player's chosen option on a decision event. A risky choice may

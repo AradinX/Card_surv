@@ -6,6 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 2
 wood_gain = 2
+gather_only = true
 id = "gather_wood"
 display_name = "Rąb drewno"
 description = "Narąb drewna na opał i rozbudowę obozu."

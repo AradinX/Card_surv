@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 wood_cost = 2
-warmth_delta = 5
+energy_delta = 3
 id = "stoke_fire"
 display_name = "Dołóż do ognia"
-description = "Wrzucasz solidną porcję drewna — bucha żywym, grzejącym płomieniem."
+description = "Przy buzującym ogniu siły wracają szybciej, niż uchodzą."

@@ -40,8 +40,8 @@ Aktualne zasoby danych:
 | Katastrofy | 4 |
 | Potwory | 15 |
 | Karty akcji (łącznie) | 74 |
-| Karty akcji w głównej puli nagród | 50 |
-| Karty zbierania przypięte do biomu (`gather_only`) | 4 |
+| Karty akcji w głównej puli nagród | 47 |
+| Karty poza pulą nagród (`gather_only`: akcje biomów + fallbacki talii) | 7 |
 | Skażone akcje biomów | 4 |
 | Karty sygnaturowe klas | 9 |
 | Warianty ulepszeń kart | 7 |
@@ -133,11 +133,11 @@ Aktualny zestaw obejmuje:
 - ulepszenia kart (podmiana w talii), owned-only dobór ręki oraz flagę
   `gather_only`, modyfikatory kafla (camp) i przygotowanie rejonów pod BUM.
 
-Kontrolne pomiary smoke testu (2026-07-01): główny przebieg **0/50** dla
-naiwnego bota, średnio 24,2 dnia; zgony: Akt I 17, Akt II 33. Drogi koszt
-zabezpieczania rejonów mocno karze autopilota, więc to sygnał balansu i AI bota
-do dalszego strojenia, nie twarda bramka — świadomy gracz powinien wybierać
-zabezpieczenia ostrożniej.
+Kontrolne pomiary smoke testu (2026-07-02, po przeglądzie kart): główny przebieg
+**22/50** dla naiwnego bota, średnio 37,7 dnia; zgony: Akt I 8 (śr. dzień 10,3),
+Akt II 20. Wyraźna poprawa względem 0/50 z 2026-07-01 (bot ginął na drogim
+zabezpieczaniu rejonów); Akt I wciąż powyżej historycznego ideału ~0–2 zgonów —
+sygnał do dalszego strojenia, nie twarda bramka.
 
 ## Architektura
 

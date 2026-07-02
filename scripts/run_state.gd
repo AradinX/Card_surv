@@ -34,6 +34,8 @@ enum Season {SPRING, SUMMER, AUTUMN, WINTER}
 @export var has_tools: bool = false
 ## Accumulated energy modifier from events, applied at the next dawn.
 @export var next_day_energy_delta: int = 0
+## Extra energy cost added to every tile move tomorrow (fog), consumed at dawn.
+@export var next_day_move_penalty: int = 0
 
 ## In-run character progression (resets every run). Levels grant a choice
 ## of 1 of 3 rewards; unclaimed level-ups wait in pending_rewards.

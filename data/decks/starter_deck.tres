@@ -10,7 +10,7 @@
 [ext_resource type="Resource" path="res://data/cards/actions/craft_tools.tres" id="8_tools"]
 [ext_resource type="Resource" path="res://data/cards/actions/herbs.tres" id="9_herbs"]
 [ext_resource type="Resource" path="res://data/cards/actions/explore.tres" id="10_explore"]
-[ext_resource type="Resource" path="res://data/cards/actions/gather_wood.tres" id="11_wood"]
+[ext_resource type="Resource" path="res://data/cards/actions/haul_wood.tres" id="11_wood"]
 [ext_resource type="Resource" path="res://data/cards/actions/knapping.tres" id="12_knap"]
 
 [resource]

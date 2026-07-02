@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/resources/biome_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/fishing.tres" id="2_fishing"]
-[ext_resource type="Resource" path="res://data/cards/actions/scavenge.tres" id="3_scav"]
+[ext_resource type="Resource" path="res://data/cards/actions/mine_stone.tres" id="3_scav"]
 [ext_resource type="Resource" path="res://data/cards/events/biome/coast_storm.tres" id="4_storm"]
 [ext_resource type="Resource" path="res://data/cards/events/biome/coast_high_tide.tres" id="5_tide"]
 [ext_resource type="Resource" path="res://data/cards/actions/corrupted/tainted_hunt.tres" id="6_tainted"]

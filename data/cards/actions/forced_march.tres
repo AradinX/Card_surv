@@ -7,5 +7,5 @@ script = ExtResource("1_script")
 energy_delta = 3
 hunger_delta = -2
 id = "forced_march"
-display_name = "Forsowny marsz"
-description = "Zaciskasz pas i ruszasz ostro — żołądek zapłaci za to później."
+display_name = "Bez obiadu"
+description = "Nie ma czasu na posiłek — zaciskasz pas i pracujesz dalej."

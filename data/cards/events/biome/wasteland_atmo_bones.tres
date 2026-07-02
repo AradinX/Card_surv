@@ -6,11 +6,11 @@
 script = ExtResource("1_script")
 id = "wasteland_atmo_bones"
 display_name = "Wybielone kości"
-description = "Wiatr odsłania kości zwierząt i ludzi, ułożone jak drogowskazy donikąd. Ten widok zostaje pod skórą. -1 zdrowia."
-health_delta = -1
+description = "Wiatr odsłania kości zwierząt i ludzi, ułożone jak drogowskazy donikąd. Ten widok nie daje ci zasnąć. -2 energii następnego dnia."
+next_day_energy_delta = -2
 weight = 6
 cooldown_days = 4
 max_per_run = 2
 category = "biome"
-severity = "minor"
+severity = "medium"
 tags = PackedStringArray("wasteland", "atmo")

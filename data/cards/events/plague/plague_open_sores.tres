@@ -6,9 +6,9 @@
 script = ExtResource("1_script")
 id = "plague_open_sores"
 display_name = "Otwarte rany"
-description = "Skóra pęka ropiejącymi wrzodami, które nie chcą się goić. -2 zdrowia, -1 energii następnego dnia."
+description = "Skóra pęka ropiejącymi wrzodami, a dreszcze nie ustają. -2 zdrowia, -1 ciepła."
 health_delta = -2
-next_day_energy_delta = -1
+warmth_delta = -1
 weight = 5
 cooldown_days = 5
 max_per_run = 2
