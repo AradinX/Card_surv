@@ -9,6 +9,7 @@ label = "Ogrzej go przy ogniu"
 result_text = "Z wdzięczności zostawia ci mapę okolicy."
 warmth_delta = -2
 grant_random_card = true
+required_active_building_id = "building_campfire"
 
 [sub_resource type="Resource" id="rob"]
 script = ExtResource("2_choice")
@@ -18,6 +19,7 @@ food_gain = 2
 materials_gain = 1
 risk_chance = 30
 risk_health = 2
+risk_next_day_energy_delta = -2
 
 [sub_resource type="Resource" id="pass"]
 script = ExtResource("2_choice")

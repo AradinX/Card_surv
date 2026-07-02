@@ -13,10 +13,11 @@ materials_gain = 1
 script = ExtResource("2_choice")
 label = "Przeszukaj ciała (ryzyko zarazy)"
 result_text = "Grzebiesz w zaropiałych zwłokach po cenniejszy łup."
-materials_gain = 2
 food_gain = 1
+materials_gain = 2
 risk_chance = 40
-risk_health = 3
+risk_materials_gain = 1
+risk_next_day_energy_delta = -3
 
 [resource]
 script = ExtResource("1_script")

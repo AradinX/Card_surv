@@ -17,7 +17,9 @@ result_text = "Ryzykujesz dłuższe grzebanie po zmroku."
 food_gain = 2
 materials_gain = 3
 risk_chance = 40
-risk_health = 2
+risk_food_gain = 1
+risk_wood_gain = 1
+risk_next_day_energy_delta = -3
 
 [resource]
 script = ExtResource("1_script")

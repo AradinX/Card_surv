@@ -12,10 +12,12 @@ result_text = "Niech spoczywa. Odwracasz wzrok."
 script = ExtResource("2_choice")
 label = "Zabierz plecak (ryzyko)"
 result_text = "Brodzisz po pas w gnijącej wodzie, by ściągnąć tobół z ciała."
-materials_gain = 2
+food_gain = 2
 water_gain = 1
-risk_chance = 35
-risk_health = 2
+materials_gain = 1
+risk_chance = 40
+risk_water_gain = 1
+risk_next_day_energy_delta = -3
 
 [resource]
 script = ExtResource("1_script")

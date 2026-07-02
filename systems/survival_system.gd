@@ -990,9 +990,48 @@ func apply_night_choice(choice_index: int) -> String:
 	var event := _pending_night_card as EventCardData
 	if event.choices.is_empty():
 		return ""
+	var block_reason := _night_choice_block_reason_for_event(event, choice_index)
+	if block_reason != "":
+		log_message.emit(block_reason)
+		return block_reason
 	_night_choice_done = true
 	_resolve_building_passives(false)
 	return _resolve_event_choice(event, choice_index)
+
+
+func night_choice_block_reason(choice_index: int) -> String:
+	if not _night_pending or not (_pending_night_card is EventCardData):
+		return ""
+	return _night_choice_block_reason_for_event(_pending_night_card as EventCardData, choice_index)
+
+
+func _night_choice_block_reason_for_event(event: EventCardData, choice_index: int) -> String:
+	if event == null or event.choices.is_empty():
+		return ""
+	var idx := clampi(choice_index, 0, event.choices.size() - 1)
+	var choice := event.choices[idx]
+	if choice.required_active_building_id != "" and not _has_active_building(choice.required_active_building_id):
+		return _active_building_requirement_text(choice.required_active_building_id)
+	return ""
+
+
+func _active_building_requirement_text(building_id: String) -> String:
+	match building_id:
+		"building_campfire":
+			return "Wymaga aktywnego ogniska."
+		_:
+			return "Wymaga aktywnego budynku."
+
+
+func _has_active_building(building_id: String) -> bool:
+	for tile in state.board:
+		for built in tile.buildings:
+			if built.data == null or built.data.id != building_id or built.is_ruined:
+				continue
+			if building_id == "building_campfire" and built.hp <= 0:
+				continue
+			return true
+	return false
 
 
 func resolve_night(choice_index: int = 0) -> void:
@@ -2618,19 +2657,33 @@ func _resolve_event(event: EventCardData) -> void:
 
 
 ## Apply the player's chosen option on a decision event. A risky choice may
-## backfire (gains skipped, you take risk_health damage instead). Returns a
-## short PL summary of the outcome for the UI confirmation popup.
+## backfire and apply its own failure deltas. Returns a short PL summary of the
+## outcome for the UI confirmation popup.
 func _resolve_event_choice(event: EventCardData, choice_index: int) -> String:
 	log_message.emit("Zdarzenie: %s — %s" % [event.display_name, event.description])
 	var idx := clampi(choice_index, 0, event.choices.size() - 1)
 	var choice := event.choices[idx]
 	var backfired := choice.risk_chance > 0 and _rng.randi_range(0, 99) < choice.risk_chance
 	if backfired:
-		_apply_stat_deltas(-choice.risk_health, 0, 0, 0)
+		_apply_stat_deltas(
+			-choice.risk_health,
+			choice.risk_hunger_delta,
+			choice.risk_thirst_delta,
+			choice.risk_warmth_delta
+		)
+		_add_food(choice.risk_food_gain)
+		_add_water(choice.risk_water_gain)
+		_add_wood(choice.risk_wood_gain)
+		_add_materials(choice.risk_materials_gain)
+		state.next_day_energy_delta += choice.risk_next_day_energy_delta
 		if choice.risk_health > 0:
 			_record_damage(choice.risk_health, "Zdarzenie: %s" % event.display_name)
-		log_message.emit("Nie udało się! -%d zdrowia." % choice.risk_health)
-		return "Nie udało się! −%d zdrowia." % choice.risk_health
+		var fail_parts := _event_choice_failure_parts(choice)
+		var fail_summary := "Nie udało się!"
+		if not fail_parts.is_empty():
+			fail_summary += " (" + ", ".join(fail_parts) + ")"
+		log_message.emit(fail_summary)
+		return fail_summary
 	_apply_stat_deltas(
 		choice.health_delta, choice.hunger_delta, choice.thirst_delta, choice.warmth_delta
 	)
@@ -2639,16 +2692,7 @@ func _resolve_event_choice(event: EventCardData, choice_index: int) -> String:
 	_add_wood(choice.wood_gain)
 	_add_materials(choice.materials_gain)
 	state.next_day_energy_delta += choice.next_day_energy_delta
-	var parts: PackedStringArray = []
-	if choice.health_delta != 0: parts.append("%+d zdrowia" % choice.health_delta)
-	if choice.hunger_delta != 0: parts.append("%+d sytości" % choice.hunger_delta)
-	if choice.thirst_delta != 0: parts.append("%+d nawodnienia" % choice.thirst_delta)
-	if choice.warmth_delta != 0: parts.append("%+d ciepła" % choice.warmth_delta)
-	if choice.food_gain != 0: parts.append("%+d jedzenia" % choice.food_gain)
-	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
-	if choice.wood_gain != 0: parts.append("%+d drewna" % choice.wood_gain)
-	if choice.materials_gain != 0: parts.append("%+d kamienia" % choice.materials_gain)
-	if choice.next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.next_day_energy_delta)
+	var parts := _event_choice_success_parts(choice)
 	if choice.grant_random_card and not _card_pool.is_empty():
 		var card: CardData = _card_pool[_rng.randi_range(0, _card_pool.size() - 1)]
 		state.deck.append(card)
@@ -2660,6 +2704,34 @@ func _resolve_event_choice(event: EventCardData, choice_index: int) -> String:
 	if not parts.is_empty():
 		summary += "\n(" + ", ".join(parts) + ")" if summary != "" else "(" + ", ".join(parts) + ")"
 	return summary if summary != "" else "Gotowe."
+
+
+func _event_choice_success_parts(choice: EventChoiceData) -> PackedStringArray:
+	var parts: PackedStringArray = []
+	if choice.health_delta != 0: parts.append("%+d zdrowia" % choice.health_delta)
+	if choice.hunger_delta != 0: parts.append("%+d sytości" % choice.hunger_delta)
+	if choice.thirst_delta != 0: parts.append("%+d nawodnienia" % choice.thirst_delta)
+	if choice.warmth_delta != 0: parts.append("%+d ciepła" % choice.warmth_delta)
+	if choice.food_gain != 0: parts.append("%+d jedzenia" % choice.food_gain)
+	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
+	if choice.wood_gain != 0: parts.append("%+d drewna" % choice.wood_gain)
+	if choice.materials_gain != 0: parts.append("%+d kamienia" % choice.materials_gain)
+	if choice.next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.next_day_energy_delta)
+	return parts
+
+
+func _event_choice_failure_parts(choice: EventChoiceData) -> PackedStringArray:
+	var parts: PackedStringArray = []
+	if choice.risk_health > 0: parts.append("-%d zdrowia" % choice.risk_health)
+	if choice.risk_hunger_delta != 0: parts.append("%+d sytości" % choice.risk_hunger_delta)
+	if choice.risk_thirst_delta != 0: parts.append("%+d nawodnienia" % choice.risk_thirst_delta)
+	if choice.risk_warmth_delta != 0: parts.append("%+d ciepła" % choice.risk_warmth_delta)
+	if choice.risk_food_gain != 0: parts.append("%+d jedzenia" % choice.risk_food_gain)
+	if choice.risk_water_gain != 0: parts.append("%+d wody" % choice.risk_water_gain)
+	if choice.risk_wood_gain != 0: parts.append("%+d drewna" % choice.risk_wood_gain)
+	if choice.risk_materials_gain != 0: parts.append("%+d kamienia" % choice.risk_materials_gain)
+	if choice.risk_next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.risk_next_day_energy_delta)
+	return parts
 
 
 func _has_night_protection() -> bool:

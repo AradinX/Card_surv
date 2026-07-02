@@ -10,6 +10,8 @@ result_text = "Udane łowy — pełna spiżarnia."
 food_gain = 4
 risk_chance = 40
 risk_health = 3
+risk_materials_gain = -1
+risk_next_day_energy_delta = -1
 
 [sub_resource type="Resource" id="scare"]
 script = ExtResource("2_choice")

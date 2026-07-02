@@ -13,10 +13,11 @@ materials_gain = 1
 script = ExtResource("2_choice")
 label = "Zejdź głębiej (ryzyko)"
 result_text = "Schodzisz po kruszącej się ścianie ku kuszącemu łupowi."
-materials_gain = 3
-wood_gain = 1
+wood_gain = 3
+materials_gain = 2
 risk_chance = 45
-risk_health = 3
+risk_materials_gain = 1
+risk_next_day_energy_delta = -4
 
 [resource]
 script = ExtResource("1_script")

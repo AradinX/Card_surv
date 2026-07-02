@@ -2107,8 +2107,10 @@ func _build_night_choices(card: CardData) -> void:
 		var choice = choices[i]
 		var button := Button.new()
 		button.custom_minimum_size = Vector2(420, 86)
+		var block_reason := _survival.night_choice_block_reason(i) if _survival != null else ""
 		button.disabled = true
-		button.text = _choice_button_text(choice)
+		button.text = _choice_button_text(choice, block_reason)
+		button.set_meta("choice_block_reason", block_reason)
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		button.add_theme_font_size_override("font_size", 12)
 		ButtonSkin.apply_minimal(button)
@@ -2117,7 +2119,7 @@ func _build_night_choices(card: CardData) -> void:
 
 
 ## Full choice copy: clear risk odds plus explicit success/failure outcomes.
-func _choice_button_text(choice) -> String:
+func _choice_button_text(choice, block_reason: String = "") -> String:
 	var label := _choice_label_without_risk(choice.label)
 	var title := label
 	if choice.risk_chance > 0:
@@ -2129,6 +2131,8 @@ func _choice_button_text(choice) -> String:
 		lines.append("%s: %s" % ["Sukces" if choice.risk_chance > 0 else "Efekt", success])
 	if choice.risk_chance > 0:
 		lines.append("Porażka: %s" % _choice_failure_summary(choice))
+	if block_reason != "":
+		lines.append(block_reason)
 	return "\n".join(lines)
 
 
@@ -2152,9 +2156,17 @@ func _choice_success_summary(choice) -> String:
 
 
 func _choice_failure_summary(choice) -> String:
-	if choice.risk_health > 0:
-		return "-%d zdrowia" % choice.risk_health
-	return "brak efektu"
+	var parts: PackedStringArray = []
+	if choice.risk_health > 0: parts.append("-%d zdrowia" % choice.risk_health)
+	if choice.risk_hunger_delta != 0: parts.append("%+d sytości" % choice.risk_hunger_delta)
+	if choice.risk_thirst_delta != 0: parts.append("%+d nawodnienia" % choice.risk_thirst_delta)
+	if choice.risk_warmth_delta != 0: parts.append("%+d ciepła" % choice.risk_warmth_delta)
+	if choice.risk_food_gain != 0: parts.append("%+d jedzenia" % choice.risk_food_gain)
+	if choice.risk_water_gain != 0: parts.append("%+d wody" % choice.risk_water_gain)
+	if choice.risk_wood_gain != 0: parts.append("%+d drewna" % choice.risk_wood_gain)
+	if choice.risk_materials_gain != 0: parts.append("%+d kamienia" % choice.risk_materials_gain)
+	if choice.risk_next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.risk_next_day_energy_delta)
+	return ", ".join(parts) if not parts.is_empty() else "brak efektu"
 
 
 func _night_summary_text(card: CardData) -> String:
@@ -2369,7 +2381,8 @@ func _play_night_reveal(view: Control, back: Control, tint: Color) -> void:
 		if is_instance_valid(_night_continue_button):
 			_night_continue_button.disabled = false
 		for button in _night_choices.get_children():
-			(button as Button).disabled = false
+			var choice_button := button as Button
+			choice_button.disabled = str(choice_button.get_meta("choice_block_reason", "")) != ""
 	)
 
 

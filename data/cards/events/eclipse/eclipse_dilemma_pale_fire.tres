@@ -13,9 +13,9 @@ warmth_delta = 3
 script = ExtResource("2_choice")
 label = "Zabierz żar i drewno (ryzyko)"
 result_text = "Obrabowujesz cudze ognisko — ale w mroku ktoś mógł czuwać."
-warmth_delta = 2
-wood_gain = 2
-risk_chance = 30
+wood_gain = 1
+materials_gain = 1
+risk_chance = 40
 risk_health = 2
 
 [resource]

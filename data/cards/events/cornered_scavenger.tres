@@ -5,9 +5,12 @@
 
 [sub_resource type="Resource" id="share"]
 script = ExtResource("2_choice")
-label = "Podziel się"
-result_text = "Rozchodzicie się w pokoju — zostawia ci część łupu."
-materials_gain = 2
+label = "Wymień się"
+result_text = "Wymieniacie się szybko i rozchodzicie bez walki."
+food_gain = -2
+water_gain = 1
+wood_gain = 2
+materials_gain = -1
 
 [sub_resource type="Resource" id="shoo"]
 script = ExtResource("2_choice")
@@ -18,10 +21,15 @@ result_text = "Ucieka w mrok z pustymi rękami."
 script = ExtResource("2_choice")
 label = "Walcz o wszystko (ryzyko)"
 result_text = "Bierzesz całość siłą."
-materials_gain = 4
-food_gain = 2
+food_gain = 1
+water_gain = 1
+wood_gain = 2
+materials_gain = 3
 risk_chance = 50
 risk_health = 4
+risk_food_gain = -3
+risk_wood_gain = -3
+risk_materials_gain = -2
 
 [resource]
 script = ExtResource("1_script")

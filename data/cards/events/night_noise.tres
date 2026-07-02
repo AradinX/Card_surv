@@ -7,8 +7,9 @@
 script = ExtResource("2_choice")
 label = "Zbadaj (ryzyko)"
 result_text = "W ciemności coś leżało — łup zdobyty."
-materials_gain = 3
+food_gain = 2
 wood_gain = 1
+materials_gain = 1
 risk_chance = 45
 risk_health = 3
 

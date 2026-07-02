@@ -15,7 +15,7 @@ result_text = "Ogień powinien zabić to, co w środku. Powinien."
 hunger_delta = 5
 food_gain = 1
 risk_chance = 45
-risk_health = 3
+risk_health = 7
 
 [resource]
 script = ExtResource("1_script")

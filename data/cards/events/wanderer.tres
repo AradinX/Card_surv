@@ -20,9 +20,14 @@ script = ExtResource("2_choice")
 label = "Okradnij (ryzyko)"
 result_text = "Zabierasz mu zapasy."
 food_gain = 2
-materials_gain = 3
-risk_chance = 45
-risk_health = 3
+wood_gain = 1
+materials_gain = 2
+risk_chance = 50
+risk_health = 2
+risk_food_gain = -1
+risk_wood_gain = -1
+risk_materials_gain = -1
+risk_next_day_energy_delta = -2
 
 [resource]
 script = ExtResource("1_script")

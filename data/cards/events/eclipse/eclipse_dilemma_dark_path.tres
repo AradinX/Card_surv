@@ -15,6 +15,7 @@ result_text = "Idziesz po omacku ku magazynom, których nie widać."
 materials_gain = 2
 risk_chance = 40
 risk_health = 2
+risk_food_gain = -1
 
 [resource]
 script = ExtResource("1_script")

@@ -14,9 +14,11 @@ script = ExtResource("2_choice")
 label = "Wpław po nią (ryzyko)"
 result_text = "Rzucasz się w lodowaty, mętny nurt."
 food_gain = 2
-materials_gain = 1
+wood_gain = 4
 risk_chance = 40
 risk_health = 2
+risk_food_gain = 1
+risk_next_day_energy_delta = -4
 
 [resource]
 script = ExtResource("1_script")

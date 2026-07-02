@@ -8,6 +8,7 @@ script = ExtResource("2_choice")
 label = "Podziel się jedzeniem"
 result_text = "Dzielisz się ostatkami. W zamian zdradza ci swoją kryjówkę zapasów."
 food_gain = -1
+water_gain = -1
 grant_random_card = true
 
 [sub_resource type="Resource" id="shoo"]
@@ -19,9 +20,12 @@ result_text = "Pokazujesz nóż. Człowiek znika w mroku."
 script = ExtResource("2_choice")
 label = "Okradnij go (ryzyko)"
 result_text = "Rzucasz się na jego tobołek — ale chory broni się zaciekle."
-food_gain = 2
-risk_chance = 35
-risk_health = 2
+food_gain = 1
+grant_random_card = true
+risk_chance = 50
+risk_health = 3
+risk_food_gain = -2
+risk_water_gain = -2
 
 [resource]
 script = ExtResource("1_script")
