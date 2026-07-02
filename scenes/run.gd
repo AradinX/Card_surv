@@ -4,7 +4,6 @@ extends Control
 ## SurvivalSystem signals and forwards player input to it.
 
 const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
-const NIGHT_CARD_VIEW_SCENE := preload("res://ui/night_card_view.tscn")
 const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
 const BUILDING_POPUP_VIEW_SCENE := preload("res://ui/building_popup_view.tscn")
 const CONFIRM_POPUP_SCENE := preload("res://ui/confirm_popup.tscn")
@@ -67,7 +66,7 @@ const ACT2_LOOK := {
 		"log_text": Color(0.72, 0.92, 0.92, 1.0),
 	},
 }
-## Night event card reveal: backs to flip from, fullscreen accent FX.
+## Night event popup: backs to flip the illustration from, fullscreen accent FX.
 const CARD_BACK := {
 	"event": "res://assets/art/cards/backs/card_back_event.png",
 	"monster": "res://assets/art/cards/backs/card_back_monster.png",
@@ -79,7 +78,20 @@ const NIGHT_FX := {
 	"shine": "res://assets/art/fx/cards/fx_card_shine_sweep.png",
 	"dust": "res://assets/art/fx/cards/fx_card_dust_puff.png",
 }
-const NIGHT_CARD_SIZE := Vector2(170, 255)
+## Night popup background swaps by card type: monster gets the sinister
+## blood-moon skin, decision events get the 3-note choice layout, everything
+## else uses the plain event panel. All three share identical zone anchors.
+const NIGHT_PANEL_EVENT := "res://assets/art/ui/panels/night_popup_panel_event.png"
+const NIGHT_PANEL_EVENT_CHOICE := "res://assets/art/ui/panels/night_popup_panel_event_choice.png"
+const NIGHT_PANEL_MONSTER := "res://assets/art/ui/panels/night_popup_panel_monster.png"
+## Choice buttons are pinned to 3 asymmetric note slots baked into the choice
+## panel art (bottom two-thirds of the description sheet); fractions are local
+## to the ChoiceButtons container (0..1 top to bottom).
+const NIGHT_CHOICE_SLOTS := [
+	Vector2(0.0, 0.267),
+	Vector2(0.267, 0.571),
+	Vector2(0.571, 1.0),
+]
 ## Ambient / feedback FX (all optional — guarded by ResourceLoader.exists, so a
 ## missing or mid-regeneration asset simply skips the effect).
 const WEATHER_RAIN := "res://assets/art/fx/weather/fx_rain_overlay.png"
@@ -125,9 +137,7 @@ const NEED_WARNING_FX := {
 const DESIGN_VIEWPORT := Vector2(1280, 720)
 const OVERLAY_PADDING := Vector2(32, 32)
 const LEVEL_PANEL_BASE := Vector2(900, 470)
-const NIGHT_PANEL_BASE := Vector2(460, 560)
-const NIGHT_NOTE_BASE := Vector2(340, 300)
-const NIGHT_LAYOUT_GAP := 28.0
+const NIGHT_PANEL_BASE := Vector2(840, 630)
 const PAUSE_PANEL_BASE := Vector2(460, 430)
 const TUTORIAL_PANEL_BASE := Vector2(430, 190)
 const TUTORIAL_HIGHLIGHT_PAD := 8.0
@@ -176,14 +186,15 @@ const TUTORIAL_DONE := 13
 @onready var _card_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/CardButton
 @onready var _card_choices: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/CardChoices
 @onready var _night_overlay: ColorRect = $NightEventOverlay
-@onready var _night_panel: PanelContainer = $NightEventOverlay/Panel
-@onready var _night_note_panel: Control = $NightEventOverlay/NotePanel
-@onready var _night_note_art: TextureRect = $NightEventOverlay/NotePanel/NoteArt
-@onready var _night_card_slot: CenterContainer = $NightEventOverlay/Panel/PanelMargin/VBox/CardSlot
-@onready var _night_summary: Label = $NightEventOverlay/NotePanel/NoteMargin/SummaryLabel
-@onready var _night_continue_button: Button = $NightEventOverlay/Panel/PanelMargin/VBox/ContinueButton
-@onready var _night_choices: VBoxContainer = $NightEventOverlay/Panel/PanelMargin/VBox/ChoiceButtons
-@onready var _night_result: Label = $NightEventOverlay/Panel/PanelMargin/VBox/ResultLabel
+@onready var _night_panel: Control = $NightEventOverlay/Panel
+@onready var _night_panel_art: TextureRect = $NightEventOverlay/Panel/PanelArt
+@onready var _night_title: Label = $NightEventOverlay/Panel/TitleLabel
+@onready var _night_illustration: TextureRect = $NightEventOverlay/Panel/Illustration
+@onready var _night_summary: Label = $NightEventOverlay/Panel/EffectsLabel
+@onready var _night_desc: Label = $NightEventOverlay/Panel/DescLabel
+@onready var _night_continue_button: Button = $NightEventOverlay/Panel/ContinueButton
+@onready var _night_choices: Control = $NightEventOverlay/Panel/ChoiceButtons
+@onready var _night_result: Label = $NightEventOverlay/Panel/ResultLabel
 @onready var _forecast_label: Label = $Scroll/Margin/Layout/MidRow/LogPanel/ForecastLabel
 @onready var _pause_overlay: ColorRect = $PauseOverlay
 @onready var _pause_panel: PanelContainer = $PauseOverlay/Panel
@@ -329,7 +340,7 @@ func _apply_responsive_layout() -> void:
 	_main_scroll.scroll_vertical = 0
 
 	_fit_centered_panel(_level_panel, LEVEL_PANEL_BASE, viewport_size)
-	_fit_night_layout(viewport_size)
+	_fit_centered_panel(_night_panel, NIGHT_PANEL_BASE, viewport_size)
 	_fit_centered_panel(_pause_panel, PAUSE_PANEL_BASE, viewport_size)
 	_fit_building_popup(viewport_size)
 	_fit_tutorial_panel(viewport_size)
@@ -343,37 +354,6 @@ func _fit_centered_panel(panel: Control, base_size: Vector2, viewport_size: Vect
 	var panel_scale := minf(1.0, minf(available.x / base_size.x, available.y / base_size.y))
 	panel.scale = Vector2(panel_scale, panel_scale)
 	panel.pivot_offset = panel.size * 0.5
-
-
-func _fit_night_layout(viewport_size: Vector2) -> void:
-	var available := Vector2(
-		maxf(viewport_size.x - OVERLAY_PADDING.x * 2.0, 1.0),
-		maxf(viewport_size.y - OVERLAY_PADDING.y * 2.0, 1.0)
-	)
-	var total_width := NIGHT_NOTE_BASE.x + NIGHT_LAYOUT_GAP + NIGHT_PANEL_BASE.x
-	var max_height := maxf(NIGHT_NOTE_BASE.y, NIGHT_PANEL_BASE.y)
-	var panel_scale := minf(1.0, minf(available.x / total_width, available.y / max_height))
-	var scaled_total := total_width * panel_scale
-	var left := (viewport_size.x - scaled_total) * 0.5
-	var top := (viewport_size.y - max_height * panel_scale) * 0.5
-
-	_place_overlay_panel(_night_note_panel, NIGHT_NOTE_BASE, panel_scale, Vector2(
-		left,
-		top + (max_height - NIGHT_NOTE_BASE.y) * panel_scale * 0.5
-	))
-	_place_overlay_panel(_night_panel, NIGHT_PANEL_BASE, panel_scale, Vector2(
-		left + (NIGHT_NOTE_BASE.x + NIGHT_LAYOUT_GAP) * panel_scale,
-		top
-	))
-
-
-func _place_overlay_panel(panel: Control, base_size: Vector2, panel_scale: float, pos: Vector2) -> void:
-	panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	panel.custom_minimum_size = base_size
-	panel.size = base_size
-	panel.position = pos
-	panel.scale = Vector2(panel_scale, panel_scale)
-	panel.pivot_offset = Vector2.ZERO
 
 
 func _fit_building_popup(viewport_size: Vector2) -> void:
@@ -639,7 +619,7 @@ func _tutorial_target_rect() -> Rect2:
 		TUTORIAL_END_DAY:
 			return _node_rect(_end_day_button)
 		TUTORIAL_NIGHT_EVENT:
-			return _node_rect(_night_note_panel if _night_note_panel.visible else _night_overlay)
+			return _node_rect(_night_panel)
 		TUTORIAL_DISCOVER_TILE:
 			return _discoverable_tile_rect()
 		TUTORIAL_REPAIR_BUILDING:
@@ -1653,9 +1633,10 @@ func _apply_act2_look() -> void:
 	_top_status_bar.set_act2()
 	if ResourceLoader.exists(LOG_PANEL_ACT2):
 		_log_panel_art.texture = load(LOG_PANEL_ACT2)
-		_night_note_art.texture = load(LOG_PANEL_ACT2)
 	_log.add_theme_color_override("default_color", _act2_look["log_text"])
 	_night_summary.add_theme_color_override("font_color", _act2_look["log_text"])
+	_night_desc.add_theme_color_override("font_color", _act2_look["log_text"])
+	_night_result.add_theme_color_override("font_color", _act2_look["log_text"])
 	_background.color = _act2_look["scrim"]
 	if _confirm_popup != null:
 		_confirm_popup.set_act2()
@@ -2058,40 +2039,55 @@ func _on_night_card_drawn(card: CardData) -> void:
 	# before its effects resolve (re-enabled on the reveal tween's `finished`).
 	_night_continue_button.disabled = true
 
-	# Front and back are both direct children of the slot's CenterContainer, so
-	# they land on the exact same centred rect. The card flips from back to front.
-	var view: NightCardView = NIGHT_CARD_VIEW_SCENE.instantiate()
-	_night_card_slot.add_child(view)
-	view.custom_minimum_size = NIGHT_CARD_SIZE
-	view.setup(card, "")
-	view.focus_mode = Control.FOCUS_NONE
-	view.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	view.pivot_offset = NIGHT_CARD_SIZE * 0.5
-	view.scale = Vector2(0.0, 1.0)
-	view.visible = false
-
 	var is_monster := card is MonsterCardData
-	var back := TextureRect.new()
-	back.texture = load(CARD_BACK["monster" if is_monster else "event"])
-	back.custom_minimum_size = NIGHT_CARD_SIZE
-	back.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	back.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	back.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	back.pivot_offset = NIGHT_CARD_SIZE * 0.5
-	_night_card_slot.add_child(back)
+	var has_choices := card is EventCardData and not (card as EventCardData).choices.is_empty()
+	_night_panel_art.texture = load(_night_panel_texture(is_monster, has_choices))
+	_night_title.text = card.display_name
+	# The choice panel's description sheet only keeps its top third clear (the
+	# lower two-thirds are the 3 pinned choice notes baked into the art).
+	_night_desc.anchor_bottom = 0.466 if has_choices else 0.678
+	_night_desc.text = card.description
+	_night_desc.visible = true
+	_night_result.visible = false
 
 	_night_summary.text = _night_summary_text(card)
 	_night_summary.visible = true
-	_night_note_panel.visible = true
 	_build_night_choices(card)
-	_play_night_reveal(view, back, _night_tint(card))
+	_play_night_reveal(_night_illustration_texture(card), "monster" if is_monster else "event", _night_tint(card))
 	if is_monster:
 		AudioManager.play_sfx("monster")
 		_spawn_claw_flash()
 
 
+## Background art swaps by card type: monster gets the sinister blood-moon
+## skin, decision events get the 3-note choice layout, everything else uses
+## the plain event panel. All three share identical zone anchors.
+func _night_panel_texture(is_monster: bool, has_choices: bool) -> String:
+	if is_monster:
+		return NIGHT_PANEL_MONSTER
+	if has_choices:
+		return NIGHT_PANEL_EVENT_CHOICE
+	return NIGHT_PANEL_EVENT
+
+
+## Same lookup CardView uses for events/monsters, without needing a CardView
+## instance (the panel now shows the illustration directly, not a full card).
+func _night_illustration_texture(card: CardData) -> Texture2D:
+	var path := ""
+	if card is MonsterCardData:
+		path = "%s/%s.png" % [
+			CardView.MONSTER_ART_DIR, CardView.MONSTER_ART_ALIASES.get(card.id, card.id)
+		]
+	elif card is EventCardData:
+		path = "%s/%s.png" % [CardView.EVENT_ART_DIR, card.id]
+	if path != "" and ResourceLoader.exists(path):
+		return load(path)
+	return null
+
+
 ## Decision events show one button per choice (with its effect summary) instead
-## of a single "Dalej". Buttons start disabled and unlock when the reveal ends.
+## of a single "Dalej", pinned to the 3 asymmetric note slots baked into the
+## choice panel art. Buttons start disabled and unlock when the reveal ends.
 func _build_night_choices(card: CardData) -> void:
 	for child in _night_choices.get_children():
 		child.queue_free()
@@ -2106,7 +2102,16 @@ func _build_night_choices(card: CardData) -> void:
 	for i in choices.size():
 		var choice = choices[i]
 		var button := Button.new()
-		button.custom_minimum_size = Vector2(420, 86)
+		var slot: Vector2 = NIGHT_CHOICE_SLOTS[i]
+		button.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		button.anchor_left = 0.0
+		button.anchor_right = 1.0
+		button.anchor_top = slot.x
+		button.anchor_bottom = slot.y
+		button.offset_left = 0.0
+		button.offset_top = 0.0
+		button.offset_right = 0.0
+		button.offset_bottom = 0.0
 		var block_reason := _survival.night_choice_block_reason(i) if _survival != null else ""
 		button.disabled = true
 		button.text = _choice_button_text(choice, block_reason)
@@ -2295,13 +2300,17 @@ func _on_night_choice(index: int) -> void:
 	for button in _night_choices.get_children():
 		(button as Button).queue_free()
 	_night_choices.visible = false
+	_night_desc.visible = false
+	# The result reclaims the full description sheet now that the choice
+	# notes (which used to cover its lower two-thirds) are gone.
+	_night_result.anchor_top = 0.224
+	_night_result.anchor_bottom = 0.678
 	_night_result.text = summary
 	_night_result.visible = true
 	_night_summary.text = "Wybór: %s\nNoc: %s" % [
 		summary.replace("\n", " "),
 		_night_needs_summary()
 	]
-	_night_note_panel.visible = true
 	_night_continue_button.visible = true
 	_night_continue_button.disabled = false
 
@@ -2327,12 +2336,16 @@ func _night_tint(card: CardData) -> Color:
 			return Color(1.0, 0.92, 0.72)
 
 
-## The card flips from its back to its front while a spotlight, glow, sparks,
-## a shine sweep and a dust puff sell the reveal. Spotlight + glow linger behind
-## the panel; the rest are one-shot. `tint` colours the glow/burst per category.
-func _play_night_reveal(view: Control, back: Control, tint: Color) -> void:
+## The illustration flips from its card back to the real art while a
+## spotlight, glow, sparks, a shine sweep and a dust puff sell the reveal.
+## Spotlight + glow linger behind the panel; the rest are one-shot. `tint`
+## colours the glow/burst per category.
+func _play_night_reveal(illustration: Texture2D, back_key: String, tint: Color) -> void:
+	_night_illustration.texture = load(CARD_BACK[back_key])
+	_night_illustration.pivot_offset = _night_illustration.size * 0.5
+	_night_illustration.scale = Vector2(1.0, 1.0)
 
-	# Backdrop glow behind the panel (does not wash the card face).
+	# Backdrop glow behind the panel (does not wash the illustration).
 	var spotlight := _spawn_night_fx("spotlight", get_viewport_rect().size, true, Color.WHITE, 0)
 	var glow := _spawn_night_fx("glow", Vector2(560, 560), true, tint, 1)
 	# One-shot accents on top.
@@ -2355,15 +2368,15 @@ func _play_night_reveal(view: Control, back: Control, tint: Color) -> void:
 	_night_tween.tween_property(spotlight, "modulate:a", 0.55, 0.45)
 	# Glow blooms as the flip begins.
 	_night_tween.tween_property(glow, "modulate:a", 0.7, 0.45).set_delay(HOLD)
-	# The flip: back turns to edge, swap back->front, front turns out. Both are
-	# pivoted at their centre, so the card stays centred throughout.
-	_night_tween.tween_property(back, "scale", Vector2(0.0, 1.0), 0.22) \
+	# The flip: back turns to edge, swap back->illustration, then turns back out.
+	# Both halves happen on the same node (pivoted at its centre), so the
+	# illustration stays centred in its frame throughout.
+	_night_tween.tween_property(_night_illustration, "scale", Vector2(0.0, 1.0), 0.22) \
 		.set_delay(HOLD).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	_night_tween.tween_callback(func() -> void:
-		back.visible = false
-		view.visible = true
+		_night_illustration.texture = illustration
 	).set_delay(HOLD + 0.22)
-	_night_tween.tween_property(view, "scale", Vector2(1.0, 1.0), 0.24) \
+	_night_tween.tween_property(_night_illustration, "scale", Vector2(1.0, 1.0), 0.24) \
 		.set_delay(HOLD + 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	# Shine sweeps across during the flip.
 	var sx := shine.position.x
@@ -2429,14 +2442,14 @@ func _clear_night_card() -> void:
 		if is_instance_valid(node):
 			node.queue_free()
 	_night_fx.clear()
-	for child in _night_card_slot.get_children():
-		_night_card_slot.remove_child(child)
-		child.queue_free()
+	_night_illustration.texture = null
+	_night_illustration.scale = Vector2.ONE
 	for child in _night_choices.get_children():
 		child.queue_free()
 	_night_result.visible = false
 	_night_result.text = ""
-	_night_note_panel.visible = false
+	_night_desc.visible = false
+	_night_desc.text = ""
 	_night_summary.visible = false
 	_night_summary.text = ""
 

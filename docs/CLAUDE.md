@@ -1627,6 +1627,55 @@ po BUM):
   wyjątek 2-dniowy dla Studni/Spiżarni, analogiczny do Szałasu).
 - Testy: cała trzynastka zielona.
 
+### Nocny popup przebudowany: panel z ilustracją zamiast karty w ramce (2026-07-02)
+
+Gracz zgłosił, że nocny popup wyglądał źle: karta z własną ramką (`card_frame_event`/
+`card_frame_monster`) siedziała wewnątrz ozdobnej ramki panelu — "ramka w ramce".
+Po serii promptów/iteracji (`docs/asset_plan/ASSET_PROMPTS_NIGHT_POPUP.md`) wybrany
+został wariant, w którym **panel przejmuje rolę karty**: ozdobna złota rama panelu
+oprawia bezpośrednio samą ilustrację zdarzenia/potwora, a tytuł/opis/efekty są
+tekstem na przypiętych kartkach pergaminu namalowanych na panelu.
+
+- **3 nowe tła popupu** (1024×768, generowane `[$imagegen]`, wspólny układ stref):
+  `night_popup_panel_event.png` (zwykłe zdarzenie), `night_popup_panel_event_choice.png`
+  (zdarzenie z wyborem — dolne 2/3 kartki opisu to 3 przyklejone, asymetryczne
+  karteczki na przyciski wyboru), `night_popup_panel_monster.png` (atak potwora —
+  ten sam układ w mrocznym wariancie: krwawy księżyc, poczerniałe żelazo, zadrapania
+  pazurów). Tło poza panelem przyszło z generatora już przezroczyste; jedyny chroma-key
+  potrzebny w tej turze to niebieski placeholder pod ilustrację (`tools/
+  chroma_key_night_popup.gd`, ten sam wzorzec co `chroma_key_panels.gd`, klucz
+  `(0,0,255)`).
+- **`NightEventOverlay`** w `run.tscn` przebudowany: zniknęła osobna `NotePanel`
+  (dawny sticky-note na `log_panel_act1`) i `CardSlot` z `NightCardView`. Jeden
+  `Panel` (Control, stały rozmiar 840×630, centrowany jak `secure_popup`) ma teraz:
+  `PanelArt` (tło, podmieniane wg typu karty), `TitleLabel` (tytuł na płycie u góry),
+  `Illustration` (TextureRect w wyciętej złotej ramie), `EffectsLabel` (kartka pod
+  obrazkiem — efekty/atak/co się dzieje w nocy), `DescLabel`/`ResultLabel` (duża
+  kartka po prawej — opis fabularny, zamieniany na wynik wyboru), `ContinueButton`
+  (kartka „Dalej" w dolnej 1/3 dużej kartki) i `ChoiceButtons` (Control na 3 sloty
+  wyboru w dolnych 2/3, pozycje `NIGHT_CHOICE_SLOTS` dopasowane do asymetrycznych
+  karteczek w art). Wszystkie zakotwiczenia to przybliżone ułamki zmierzone z
+  wygenerowanego PNG (piksel-scan przez headless Godota) — zgrubne, do ręcznego
+  doszlifowania w edytorze jak przy `confirm_popup`/`secure_popup`.
+- **`run.gd`**: `NightCardView`/`CARD_BACK`-na-dwóch-węzłach zastąpione JEDNYM
+  `TextureRect` (`_night_illustration`), które samo flipuje się z rewersu
+  (`CARD_BACK["event"/"monster"]`) na właściwą ilustrację (`_night_illustration_
+  texture`, ta sama ścieżka co `CardView._illustration_path` dla zdarzeń/potworów,
+  bez potrzeby instancjonowania `CardView`). Cała choreografia FX (spotlight/glow/
+  burst/shine/dust, `HOLD` przed flipem) zachowana 1:1, tylko przepięta na jeden
+  węzeł zamiast dwóch. `_night_panel_texture(is_monster, has_choices)` wybiera
+  właściwe tło; `_build_night_choices` tworzy przyciski z zakotwiczeniem w
+  konkretny slot zamiast `VBoxContainer`. Usunięte: `NIGHT_CARD_VIEW_SCENE`,
+  `NIGHT_CARD_SIZE`, `NIGHT_NOTE_BASE`/`NIGHT_LAYOUT_GAP`/`_place_overlay_panel`
+  (dawny dwupanelowy fit zastąpiony jednym `_fit_centered_panel`, jak przy
+  `LevelUpOverlay`/`PauseOverlay`).
+- Weryfikacja: `--import` 0 błędów, cała czternastka testów zielona (smoke 30/50,
+  balans bez zmian — to czysto wizualna przebudowa UI, logika `SurvivalSystem`
+  nietknięta). `ui/night_card_view.tscn`/`.gd` nie jest już używany przez `run.gd`,
+  ale zostaje w repo — `tests/ui_layout_test.gd` nadal go instancjonuje jako
+  niezależny regression-check karty w ramce event/monster (przydatny, gdyby
+  card-frame'owy wygląd wrócił gdzie indziej, np. w innym popupie).
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).
