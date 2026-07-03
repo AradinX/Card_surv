@@ -19,7 +19,7 @@
 | Automatyczne testy Godot | ✅ 14 testów |
 | Balans klas i aktów | 🟡 |
 | Eksport/CI | ✅ |
-| Dokumentacja licencji audio | 🟡 (manifest gotowy, weryfikacja prawna przed wydaniem) |
+| Dokumentacja licencji audio | 🟡 (manifest + regulamin Suno zweryfikowany 2026-07-03; zostaje dowód subskrypcji) |
 
 ## Klasy postaci
 
@@ -249,7 +249,8 @@ aktualny regulamin Suno dla użytego planu i zachować dowód subskrypcji z dat 
 
 ✅ Test zapisu runu oraz osobny test kosztu, odblokowania i zapisu meta-progresji.
 
-🟡 Brak ręcznego zapisu, wielu slotów i wersjonowania/migracji starych zapisów.
+🟡 Brak ręcznego zapisu i wielu slotów. Zapis ma wersję schematu
+(`RunState.SAVE_VERSION`) — niekompatybilny zapis jest odrzucany; migracji brak.
 
 🔴 Brak kolekcji kart, odblokowań biomów/katastrof i drabinki trudności.
 
@@ -284,7 +285,5 @@ oraz przygotowanie rejonów na BUM.
 
 1. Balans Aktu II po BUM 20–26, zabezpieczeniach rejonów i droższej decyzji
    przygotowawczej.
-2. Uzupełnienie licencji audio i creditsów.
-3. Wersjonowanie/migracja zapisów.
-4. Ograniczenie rozmiaru repozytorium.
-5. Dalsza meta-progresja (kolekcja, odblokowania) i pełny zwiad nieodkrytych biomów.
+2. Dowód subskrypcji Suno z dat generacji (checklista w `assets/audio/LICENSES.txt`).
+3. Dalsza meta-progresja (kolekcja, odblokowania) i pełny zwiad nieodkrytych biomów.

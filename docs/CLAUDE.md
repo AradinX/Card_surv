@@ -2044,6 +2044,27 @@ Poprawki w 3 etapach wg decyzji gracza:
 - Narzędzia one-off w `tools/` i `docs/asset_plan/` celowo zostają. Cała
   czternastka testów zielona po reimporcie.
 
+### Przygotowanie do wydania: wersja zapisu, CI, metadane exe, licencje, repo (2026-07-03)
+
+- **Wersjonowanie zapisu runu.** `RunState.SAVE_VERSION` (= 1); `to_dict()`
+  zapisuje ją, a `from_dict()` ODRZUCA zapis z inną wersją (zwraca `null` →
+  GameManager kasuje plik). Patch zmieniający schemat już nigdy nie wczyta
+  połowicznie starego zapisu; przy niekompatybilnej zmianie bump SAVE_VERSION.
+  `save_load_test` sprawdza odrzucenie zapisu z przyszłą wersją.
+- **CI:** dopisany brakujący `bum_preparation_test.gd` do listy w
+  `godot-ci.yml` (workflow miał 13 z 14 testów).
+- **Metadane exe** (`export_presets.cfg`): file/product_version 1.0.0.0,
+  company_name/copyright AradinX. Codesign świadomie wyłączony — dystrybucja
+  przez Steam.
+- **Licencje Suno zweryfikowane** (oficjalna baza wiedzy, 2026-07-03; wyniki
+  i checklista właściciela konta w `assets/audio/LICENSES.txt`): Pro w momencie
+  generacji = własność + prawa komercyjne (gry wideo wprost dozwolone),
+  prawa zostają po zakończeniu subskrypcji, NIE działają wstecz na plan
+  darmowy. Do zrobienia ręcznie: dowód subskrypcji z dat generacji.
+- **Repo spakowane:** `git gc --aggressive --prune=now` na 1,22 GiB luźnych
+  obiektów (5287 plików, zero packów). Duże usunięte assety wciąż są w
+  HISTORII — jeśli potrzebny lekki klon, osobna decyzja o `git filter-repo`.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).

@@ -161,10 +161,9 @@ nocy/BUM oraz prezentację efektów.
 
 1. Balans Aktu II po przesunięciu BUM na dzień 20–26 i dodaniu zabezpieczeń
    rejonów; pacing/odbudowa wymagają kolejnych ręcznych playtestów.
-2. Ręczny playtest skrajnie różnych klas (spread Zielarka↔Informatyk).
-3. Uzupełnienie źródeł i licencji audio oraz ekran creditsów.
-4. Wersjonowanie/migracja zapisów (zmiana schematu `RunState` psuje stare zapisy).
-5. Rozszerzenie meta-progresji (kolekcja, odblokowania) i pełnego podglądu
+2. Ręczny playtest skrajnie różnych klas (spread Zielarka↔Informatyk);
+   Budowlaniec 3/30 u bota — kandydat do strojenia.
+3. Rozszerzenie meta-progresji (kolekcja, odblokowania) i pełnego podglądu
    nieodkrytych biomów.
 
 CI (testy + build Windows + release) działa już w
@@ -179,6 +178,8 @@ eksportu `Windows` jest śledzony w `export_presets.cfg`.
 - autozapis działa na granicy dni, bez ręcznych slotów zapisu;
 - brak drabinki trudności i kolekcji kart (ulepszanie kart już działa);
 - karty zwiadu nie oferują jeszcze pełnego podglądu nieodkrytego kafla;
-- brak wersjonowania/migracji starszych zapisów;
-- `assets/audio/LICENSES.txt` jest wypełniony (manifest Suno Pro, 23 pliki);
-  przed wydaniem zostaje tylko weryfikacja prawna regulaminu Suno.
+- zapis runu ma wersję schematu (`RunState.SAVE_VERSION`) — niekompatybilny
+  zapis jest czysto odrzucany; migracji między wersjami nadal nie ma;
+- `assets/audio/LICENSES.txt` jest wypełniony i regulamin Suno zweryfikowany
+  (2026-07-03: Pro = własność + prawa komercyjne, gry wideo dozwolone);
+  do zrobienia ręcznie zostaje dowód subskrypcji z dat generacji.

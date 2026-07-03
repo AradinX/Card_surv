@@ -65,6 +65,7 @@ jobs:
             card_upgrade_test.gd
             hand_draw_test.gd
             biome_camp_test.gd
+            bum_preparation_test.gd
           )
 
           commit_name="$(git log -1 --pretty=%s)"

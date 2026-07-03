@@ -71,6 +71,14 @@ func _init() -> void:
 			])
 			failures += 1
 
+	# A save from a different schema version must be rejected outright
+	# (a post-release patch must never half-load an incompatible save).
+	var future_save: Dictionary = survival.state.to_dict()
+	future_save["version"] = RunState.SAVE_VERSION + 1
+	if RunState.from_dict(future_save, _save_catalog(character_class, biome_pool, catalog, disaster_pool)) != null:
+		push_error("save with a mismatched version should be rejected")
+		failures += 1
+
 	# The resumed system must start its day without errors and expose the
 	# current tile's gather actions (proves helpers were rebuilt).
 	resumed.begin()

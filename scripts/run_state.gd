@@ -16,6 +16,10 @@ const MAX_FOOD := 8
 const MAX_WATER := 8
 const MAX_WOOD := 12
 const MAX_MATERIALS := 12
+## Save schema version. Bump on any incompatible to_dict()/from_dict() change;
+## from_dict rejects other versions so a post-release patch never half-loads
+## an old save into a broken run.
+const SAVE_VERSION := 1
 enum Season {SPRING, SUMMER, AUTUMN, WINTER}
 
 @export var day: int = 1
@@ -85,7 +89,7 @@ func to_dict() -> Dictionary:
 		if card != null:
 			deck_ids.append(card.id)
 	return {
-		"version": 1,
+		"version": SAVE_VERSION,
 		"day": day,
 		"season": season,
 		"max_health": max_health,
@@ -122,6 +126,8 @@ func to_dict() -> Dictionary:
 ## Returns null when the data is not a usable save (caller deletes it).
 static func from_dict(data: Variant, catalog: Dictionary) -> RunState:
 	if not (data is Dictionary):
+		return null
+	if _read_int(data, "version", 0) != SAVE_VERSION:
 		return null
 	var classes: Dictionary = catalog.get("classes", {})
 	var character: CharacterClassData = classes.get(str(data.get("class_id", "")))

@@ -42,11 +42,28 @@ Całość audio wygenerowana w **Suno (plan Pro)** z promptów projektowych.
 Plan Pro Suno przyznaje użytkownikowi prawa do komercyjnego wykorzystania
 wygenerowanego outputu (zgodnie z regulaminem Suno). Zachowaj dowód subskrypcji.
 
-DO ZROBIENIA PRZED PUBLICZNYM WYDANIEM (właściciel projektu):
-  - potwierdzić aktualny regulamin Suno dla planu, na którym wygenerowano audio,
-    i zachować potwierdzenie subskrypcji/zakupu z dat generacji;
-  - uzupełnić rzeczywiste daty generacji per plik, jeśli różnią się od 2026-06-22.
-  (To nie jest porada prawna — to checklista. Zweryfikuj regulamin przed wydaniem.)
+WERYFIKACJA REGULAMINU SUNO — 2026-07-03 (oficjalna baza wiedzy Suno):
+  - Pro/Premier w momencie generacji = użytkownik jest WŁAŚCICIELEM utworu
+    z pełnymi prawami komercyjnymi; użycie w grach wideo jest wymienione
+    wprost jako dozwolone (help.suno.com/en/articles/9601665).
+  - Prawa komercyjne ZOSTAJĄ po zakończeniu subskrypcji — decyduje aktywny
+    plan płatny w chwili tworzenia (help.suno.com/en/articles/2416769).
+  - Prawa NIE działają wstecz na utwory z planu darmowego — wszystkie 23 pliki
+    muszą pochodzić z okresu aktywnego Pro (help.suno.com/en/articles/2425729).
+  - Brak wymogu atrybucji; Suno nie rości udziału w przychodach.
+  - ZASTRZEŻENIE: prawa komercyjne ≠ ochrona prawnoautorska. Czysto AI-owy
+    output w wielu jurysdykcjach (m.in. USA) nie podlega ochronie copyright —
+    monetyzacja legalna, ale słaba pozycja wobec kopiujących.
+
+DO ZROBIENIA PRZED PUBLICZNYM WYDANIEM (tylko właściciel konta może):
+  - [ ] zachować dowód aktywnej subskrypcji Pro obejmującej daty generacji
+        (screenshot/faktura z panelu Suno — billing history);
+  - [ ] potwierdzić, że wszystkie 23 pliki wygenerowano NA KONCIE z aktywnym
+        Pro (nie na darmowym przed subskrypcją — prawa nie działają wstecz);
+  - [ ] uzupełnić rzeczywiste daty generacji per plik, jeśli różnią się
+        od 2026-06-22.
+  (To nie jest porada prawna — to checklista na podstawie bazy wiedzy Suno
+  z 2026-07-03.)
 
 Skrót tych informacji widnieje też w grze: Menu główne -> „Twórcy"
 (ekran creditsów, ui/credits_overlay). Pełny manifest pozostaje tutaj.
