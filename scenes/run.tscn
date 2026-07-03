@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://bfy4qx1pqw7b7"]
+[gd_scene load_steps=11 format=3 uid="uid://bfy4qx1pqw7b7"]
 
 [ext_resource type="Script" uid="uid://d3xjy4e2jqie5" path="res://scenes/run.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bddvngethakv0" path="res://assets/art/board/backgrounds/bg_biome_board_act1.png" id="2_run_bg"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://butp5oqb6kx5i" path="res://assets/art/ui/panels/log_panel_act1.png" id="5_log_panel_act1"]
 [ext_resource type="PackedScene" path="res://ui/settings_overlay.tscn" id="6_settings"]
 [ext_resource type="PackedScene" path="res://ui/night_popup_single.tscn" id="7_night_popup_single"]
+[ext_resource type="Script" path="res://ui/night_overlay_view.gd" id="8_night_overlay"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_log"]
 
@@ -334,6 +335,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.02, 0.025, 0.02, 0.72)
+script = ExtResource("8_night_overlay")
 
 [node name="Panel" parent="NightEventOverlay" instance=ExtResource("7_night_popup_single")]
 [node name="PauseOverlay" type="ColorRect" parent="."]
