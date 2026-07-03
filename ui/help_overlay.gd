@@ -18,7 +18,7 @@ const TUTORIAL_PAGES := [
 	},
 	{
 		"title": "Zabezpieczenie rejonu",
-		"body": "Gdy na aktualnym kaflu stoi budynek, w prawym dolnym rogu kafla pojawia się przycisk zabezpieczenia rejonu.\n\nTo ciężka decyzja przygotowawcza przed BUM: płacisz głównie kamieniem, do tego energią i drewnem. W zamian budynki w tym rejonie dostają mniejsze obrażenia BUM i mają tylko część szansy na codzienne lub użytkowe zużycie HP w Akcie I. Limit zabezpieczonych rejonów jest niski, więc wybieraj bazę świadomie.",
+		"body": "Gdy na aktualnym kaflu stoi budynek, w prawym dolnym rogu kafla pojawia się przycisk zabezpieczenia rejonu.\n\nTo ciężka decyzja przygotowawcza na wypadek katastrofy: płacisz głównie kamieniem, do tego energią i drewnem. W zamian budynki w tym rejonie dostają mniejsze obrażenia i mają tylko część szansy na codzienne lub użytkowe zużycie HP przed kryzysem. Limit zabezpieczonych rejonów jest niski, więc wybieraj bazę świadomie.",
 	},
 	{
 		"title": "Akcje budynków",
@@ -33,8 +33,8 @@ const TUTORIAL_PAGES := [
 		"body": "Drugiego dnia zwykle wybierasz kierunek: budować produkcję, odkrywać kafel albo ratować potrzeby.\n\nOdkrycie nowego biomu daje więcej opcji, ale też dokłada jego nocne zagrożenia. Jeśli masz mało zasobów, czasem lepiej najpierw wzmocnić obecny kafel.",
 	},
 	{
-		"title": "BUM",
-		"body": "BUM jest losowany w dalszej części Aktu I. Zanim uderzy, log zacznie pokazywać omeny.\n\nZabezpieczone rejony mają większą szansę dowieźć kluczowe budynki do Aktu II. Po BUM odbudowa jest droższa, więc naprawiaj to, co przetrwało, rozbieraj ruiny i pilnuj ciepła, wody oraz jedzenia.",
+		"title": "Katastrofa",
+		"body": "Katastrofa nadejdzie dopiero w dalszej części wyprawy. Zanim uderzy, log zacznie pokazywać niepokojące omeny.\n\nZabezpieczone rejony mają większą szansę ocalić kluczowe budynki. Po katastrofie odbudowa jest droższa, więc naprawiaj to, co przetrwało, rozbieraj ruiny i pilnuj ciepła, wody oraz jedzenia.",
 	},
 ]
 

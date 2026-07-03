@@ -13,7 +13,7 @@ extends RefCounted
 static func trigger(sys: SurvivalSystem) -> void:
 	var state := sys.state
 	state.bum_happened = true
-	sys.log_message.emit("=== BUM ===")
+	sys.log_message.emit("=== KATASTROFA ===")
 	sys.log_message.emit("Niebo pęka. %s" % state.disaster.description)
 
 	for tile in state.board:
@@ -37,12 +37,12 @@ static func trigger(sys: SurvivalSystem) -> void:
 				defense_reduction, secure_reduction, durability_reduction
 			)
 			if not built.is_ruined:
-				sys.log_message.emit("%s: BUM %d%% -> %d%%%s (HP %d/%d)." % [
+				sys.log_message.emit("%s: katastrofa %d%% -> %d%%%s (HP %d/%d)." % [
 					built.data.display_name, raw_percent, percent,
 					reduction_text, built.hp, max_hp
 				])
 			else:
-				sys.log_message.emit("%s nie wytrzymuje: BUM %d%% -> %d%%%s." % [
+				sys.log_message.emit("%s nie wytrzymuje: katastrofa %d%% -> %d%%%s." % [
 					built.data.display_name, raw_percent, percent, reduction_text
 				])
 		tile.bum_secured = false
@@ -130,7 +130,7 @@ static func can_secure_current_tile(sys: SurvivalSystem) -> String:
 	if not sys._day_active:
 		return "Dzień dobiegł końca."
 	if sys.state.bum_happened:
-		return "Po BUM jest już za późno na fortyfikacje."
+		return "Po katastrofie jest już za późno na fortyfikacje."
 	if sys.current_tile().buildings.is_empty():
 		return "Najpierw postaw tu przynajmniej jeden budynek."
 	if sys.current_tile().bum_secured:
@@ -157,7 +157,7 @@ static func secure_current_tile(sys: SurvivalSystem) -> void:
 	sys.state.wood -= int(cost["wood"])
 	sys.state.materials -= int(cost["materials"])
 	sys.current_tile().bum_secured = true
-	sys.log_message.emit("Zabezpieczasz rejon: %s (%s; -%d%% obrażeń BUM, %d%% szans na zużycie HP w Akcie I)." % [
+	sys.log_message.emit("Zabezpieczasz rejon: %s (%s; -%d%% obrażeń w razie katastrofy, %d%% szans na zwykłe zużycie HP przed kryzysem)." % [
 		sys._tile_name(sys.current_tile()),
 		secure_current_tile_summary(sys),
 		sys.BUM_SECURE_DAMAGE_REDUCTION,

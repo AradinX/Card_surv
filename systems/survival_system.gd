@@ -1503,7 +1503,7 @@ func _tutorial_day_hint() -> String:
 		2:
 			return "SAMOUCZEK: kliknij zbudowany budynek na biomie, sprawd\u017a jego akcj\u0119 i opis. U\u017cyj budynku, zagraj kart\u0119 rozpoznania albo odkryj s\u0105siedni kafel."
 		3:
-			return "SAMOUCZEK: cz\u0119\u015b\u0107 prowadzona zako\u0144czona. Dalej grasz normalnie: rozwijaj tali\u0119, osad\u0119 i przygotuj si\u0119 na BUM."
+			return "SAMOUCZEK: cz\u0119\u015b\u0107 prowadzona zako\u0144czona. Dalej grasz normalnie: rozwijaj tali\u0119, osad\u0119 i przygotuj si\u0119 na nadchodz\u0105cy kryzys."
 		_:
 			return ""
 
@@ -2220,5 +2220,6 @@ func _gather_key(card: ActionCardData) -> String:
 
 func _tile_name(tile: TileState) -> String:
 	if tile.is_corrupted:
-		return tile.biome.corrupted_display_name
+		var disaster_id := state.disaster.id if state != null and state.disaster != null else ""
+		return tile.biome.corrupted_name_for(disaster_id)
 	return tile.biome.display_name

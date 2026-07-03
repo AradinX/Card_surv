@@ -237,7 +237,7 @@ func setup(
 		_setup_unknown_tile(tile, is_current, block_reason, tile_tooltip)
 		return
 
-	var biome_name := tile.biome.corrupted_display_name if tile.is_corrupted \
+	var biome_name := tile.biome.corrupted_name_for(disaster_id) if tile.is_corrupted \
 		else tile.biome.display_name
 	_title_label.text = biome_name
 	_slots_label.text = "%d/%d" % [tile.buildings.size(), tile.biome.building_slots]

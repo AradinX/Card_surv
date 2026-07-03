@@ -101,7 +101,7 @@ func _build_telemetry_summary(won: bool) -> String:
 	if not won and str(s.get("cause", "")) != "":
 		lines.append("Przyczyna: %s" % s["cause"])
 	if int(s.get("bum_day", 0)) > 0:
-		lines.append("Katastrofa: %s (BUM: dzień %d, po BUM: %d dni)" % [
+		lines.append("Katastrofa: %s (dzień %d, po katastrofie: %d dni)" % [
 			s.get("disaster", "?"),
 			s["bum_day"],
 			s.get("days_after_bum", 0),

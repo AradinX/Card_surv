@@ -50,16 +50,16 @@ func setup_max_values() -> void:
 	_energy_bar.max_value = RunState.MAX_ENERGY
 
 
-func set_day(day: int, win_day: int, season: int = RunState.Season.SPRING) -> void:
+func set_day(day: int, win_day: int, season: int = RunState.Season.SPRING, disaster: DisasterData = null) -> void:
 	_day_label.text = "Dzień %d/%d  %s" % [day, win_day, RunState.season_name(season)]
 
 
 	_season_label.text = RunState.season_name(season)
 	_day_label.text = _day_label.text.get_slice("  ", 0)
-	_apply_season_style(season)
+	_apply_season_style(season, disaster)
 
 
-func _apply_season_style(season: int) -> void:
+func _apply_season_style(season: int, disaster: DisasterData = null) -> void:
 	var color := Color(0.98, 0.9, 0.76, 1.0)
 	var tooltip := ""
 	match season:
@@ -75,6 +75,8 @@ func _apply_season_style(season: int) -> void:
 		RunState.Season.WINTER:
 			color = Color(0.62, 0.84, 1.0, 1.0)
 			tooltip = "Zima\nBuff: brak.\nDebuff: nocny spadek ciepła jest o 1 mocniejszy."
+	if disaster != null and disaster.act2_rule_text != "":
+		tooltip += "\n\nKatastrofa: %s\n%s" % [disaster.display_name, disaster.act2_rule_text]
 	_season_label.add_theme_color_override("font_color", color)
 	_season_label.tooltip_text = tooltip
 	_season_label.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -126,7 +128,7 @@ func set_state(state: RunState, xp_to_next: int, resource_caps: Dictionary = {})
 	_set_tooltip(_food_label, "Jedzenie\nZapas automatycznie zjadany nocą, gdy sytość jest niska.")
 	_set_tooltip(_water_label, "Woda\nZapas automatycznie pity nocą, gdy nawodnienie jest niskie.")
 	_set_tooltip(_wood_label, "Drewno\nBudowa, naprawy, dokładanie do ogniska i część akcji budynków.")
-	_set_tooltip(_materials_label, "Kamień\nKoszty budynków, zabezpieczanie rejonów i odbudowa po BUM.")
+	_set_tooltip(_materials_label, "Kamień\nKoszty budynków, zabezpieczanie rejonów i odbudowa po katastrofie.")
 	_set_tooltip(_tools_label, "Narzędzia\nGdy są gotowe, karty z jedzeniem i drewnem dają większy zysk.")
 
 

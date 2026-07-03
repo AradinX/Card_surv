@@ -183,8 +183,8 @@ func _ready() -> void:
 	if _survival.state != null and _survival.state.bum_happened and _survival.state.disaster != null:
 		var key := _survival.state.disaster.id
 		_act2_look = ACT2_LOOK.get(key, ACT2_LOOK["plague"])
-		AudioManager.play_act2_music(_survival.state.disaster.id)
-		AudioManager.play_act2_ambience(_survival.state.disaster.id)
+		AudioManager.play_act2_music(key)
+		AudioManager.stop_ambience()
 		_apply_act2_look()
 	else:
 		AudioManager.play_music("act1")
@@ -412,7 +412,7 @@ func _tutorial_step_copy() -> Dictionary:
 		TUTORIAL_SECURE_REGION:
 			return {
 				"title": "7/13 Zabezpieczenie rejonu",
-				"body": "Przycisk w prawym dolnym rogu aktualnego kafla pozwala zabezpieczy\u0107 ca\u0142y rejon przed BUM. To kosztowna decyzja: du\u017co kamienia, energia i drewno za mniejsze obra\u017cenia BUM oraz mniej zu\u017cycia budynk\u00f3w w Akcie I. Nie musisz robi\u0107 tego teraz."
+				"body": "Przycisk w prawym dolnym rogu aktualnego kafla pozwala zabezpieczyć cały rejon na wypadek katastrofy. To kosztowna decyzja: dużo kamienia, energia i drewno za mniejsze szkody oraz wolniejsze zużycie budynków przed kryzysem. Nie musisz robić tego teraz."
 			}
 		TUTORIAL_CLICK_BUILDING:
 			return {
@@ -688,7 +688,7 @@ func _on_secure_region_pressed(_anchor_rect: Rect2, tile_index: int) -> void:
 		return
 	var title := "Zabezpieczyć rejon?"
 	var cost_text := "Koszt:\n%s" % _survival.secure_current_tile_summary()
-	var effect_text := "Efekt:\n-%d%% obrażeń BUM\n%d%% szans na zużycie HP w Akcie I\nLimit: %d rejony\nZużywa się przy BUM." % [
+	var effect_text := "Efekt:\n-%d%% obrażeń w razie katastrofy\n%d%% szans na zwykłe zużycie HP przed kryzysem\nLimit: %d rejony\nZużywa się podczas katastrofy." % [
 		SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
 		SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
 		SurvivalSystem.BUM_SECURED_TILE_LIMIT,
@@ -742,7 +742,7 @@ func _on_end_day_pressed() -> void:
 
 
 func _on_day_started(day: int) -> void:
-	_top_status_bar.set_day(day, SurvivalSystem.WIN_DAY, _survival.state.season)
+	_top_status_bar.set_day(day, SurvivalSystem.WIN_DAY, _survival.state.season, _survival.state.disaster if _survival.state.bum_happened else null)
 	_fx.update_weather(_survival.state.season)
 	_update_forecast()
 	if GameManager.tutorial_mode:
@@ -755,7 +755,7 @@ func _on_day_started(day: int) -> void:
 
 
 func _on_stats_changed(state: RunState) -> void:
-	_top_status_bar.set_day(state.day, SurvivalSystem.WIN_DAY, state.season)
+	_top_status_bar.set_day(state.day, SurvivalSystem.WIN_DAY, state.season, state.disaster if state.bum_happened else null)
 	_top_status_bar.set_state(state, _survival.xp_to_next_level(), _resource_caps())
 	_refresh_playability()
 	_refresh_tiles(state)
@@ -815,12 +815,13 @@ func _refresh_tiles(state: RunState) -> void:
 		var tile := state.board[i]
 		var button := _tile_buttons[i]
 		var block_reason := "" if i == state.current_tile else _survival.can_move(i)
+		var disaster_id := state.disaster.id if state.disaster != null else ""
 		var tooltip := ""
 		if not tile.is_discovered:
 			tooltip = block_reason if block_reason != "" \
 				else "Nieznany teren. Wejście odkryje ten kafel."
 		elif i == state.current_tile:
-			tooltip = tile.biome.corrupted_description if tile.is_corrupted \
+			tooltip = tile.biome.corrupted_description_for(disaster_id) if tile.is_corrupted \
 				else tile.biome.description
 		else:
 			tooltip = block_reason if block_reason != "" \
@@ -829,7 +830,7 @@ func _refresh_tiles(state: RunState) -> void:
 		for built in tile.buildings:
 			building_tooltips.append(_building_tooltip(built, tile))
 		if tile.bum_secured and not state.bum_happened:
-			tooltip += "\n\nZabezpieczony rejon: -%d%% obrażeń BUM, %d%% szans na zużycie HP w Akcie I. Zabezpieczenie zużyje się przy BUM." % [
+			tooltip += "\n\nZabezpieczony rejon: -%d%% obrażeń w razie katastrofy, %d%% szans na zwykłe zużycie HP przed kryzysem. Zabezpieczenie zużyje się podczas katastrofy." % [
 				SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
 				SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
 			]
@@ -840,7 +841,6 @@ func _refresh_tiles(state: RunState) -> void:
 			and not tile.buildings.is_empty()
 		var secure_block := _survival.can_secure_current_tile() if secure_visible else ""
 		var secure_tooltip := _secure_region_button_tooltip(secure_block) if secure_visible else ""
-		var disaster_id := state.disaster.id if state.disaster != null else ""
 		button.setup(
 			tile,
 			i == state.current_tile,
@@ -860,8 +860,8 @@ func _secure_region_button_tooltip(block_reason: String) -> String:
 	var lines: PackedStringArray = [
 		"Zabezpiecz rejon",
 		"Koszt: %s" % _survival.secure_current_tile_summary(),
-		"Efekt: -%d%% obrażeń BUM dla budynków tutaj." % SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
-		"W Akcie I budynki mają tylko %d%% szans na zużycie HP." % SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
+		"Efekt: -%d%% obrażeń dla budynków tutaj w razie katastrofy." % SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
+		"Przed kryzysem budynki mają tylko %d%% szans na zwykłe zużycie HP." % SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
 		"Limit: %d zabezpieczone rejony." % SurvivalSystem.BUM_SECURED_TILE_LIMIT,
 	]
 	if block_reason != "":
@@ -1444,7 +1444,7 @@ func _on_bum_struck(disaster: DisasterData) -> void:
 	_act2_look = ACT2_LOOK.get(key, ACT2_LOOK["plague"])
 	AudioManager.play_sfx("bum")
 	AudioManager.play_act2_music(key)
-	AudioManager.play_act2_ambience(key)
+	AudioManager.stop_ambience()
 	_fx.play_bum_fx(_act2_look, _apply_act2_look)
 
 
@@ -1501,6 +1501,7 @@ func _apply_button_skin() -> void:
 		_energy_button,
 		_health_button,
 		_card_button,
+		_build_toggle_button,
 		_end_day_button,
 	]
 	if _deck_button != null:
