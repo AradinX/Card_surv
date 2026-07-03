@@ -74,7 +74,7 @@ Klasą startową jest **Skaut**. Pozostałe klasy odblokowuje ruletka:
 - wygrany run daje 1 złotą monetę;
 - losowanie kosztuje 1 monetę;
 - ruletka wybiera jedną z jeszcze zablokowanych klas;
-- monety i odblokowania zapisują się w `user://meta_state.tres`.
+- monety i odblokowania zapisują się w `user://meta_state.json`.
 
 Dostępne klasy: Skaut, Kucharz, Budowlaniec, Zielarka, Łowca, Strateg,
 Wędrowiec, Wojskowy i Informatyk.

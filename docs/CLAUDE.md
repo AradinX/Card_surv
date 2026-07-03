@@ -2000,6 +2000,30 @@ Poprawki w 3 etapach wg decyzji gracza:
   wciąż ledwo lepsza od bezpiecznej; dwie karty o nazwie „Głęboki sen"
   (deep_sleep i rest_up „Odpoczynek: Głęboki sen").
 
+### Bezpieczny format zapisów: JSON zamiast .tres (2026-07-03)
+
+- **Powód (security).** `ResourceLoader.load()` na `.tres` z `user://` potrafi
+  wykonać GDScript osadzony w spreparowanym pliku (znane ryzyko z dokumentacji
+  Godota — „never load .tres from untrusted sources"). Podmieniony/udostępniony
+  save = wykonanie dowolnego kodu. Oba zapisy przeszły na JSON.
+- **Run:** `user://run_save.json`. `RunState.to_dict()` serializuje skalary
+  wprost, a zasoby autorskie po **id** (klasa, talia, biomy, budynki,
+  katastrofa); `RunState.from_dict(data, catalog)` waliduje typy każdego pola
+  (`_read_int`/`_read_bool`), clampuje zakresy i odtwarza referencje z katalogu
+  `res://` (`GameManager._save_catalog()`); zwraca `null` dla uszkodzonych
+  danych (wtedy zapis jest kasowany). Nieznane id kart/budynków są pomijane
+  z warningiem; zasoby NIE są clampowane do bazowych `MAX_*` (magazyny
+  podnoszą capy). `CardLibrary.DECK_CARD_DIRS`/`load_deck_card_lookup()` —
+  wspólna lista katalogów kart, jakie może zawierać talia (akcje + signature/
+  upgrades/corrupted + budynki).
+- **Meta:** `user://meta_state.json` (te same pola co dotąd). Stary
+  `meta_state.tres` jest migrowany jednorazowo przy starcie (jedyny pozostały
+  odczyt ResourceLoaderem z `user://` — własny plik gry, kasowany zaraz po
+  odczycie). Stary `run_save.tres` nie jest migrowany (run w toku przepada
+  przy aktualizacji) — `delete_saved_run()` sprząta też legacy plik.
+- Testy `save_load_test` / `meta_progression_test` przepisane na nowy format;
+  cała czternastka zielona.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).

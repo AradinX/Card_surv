@@ -5,7 +5,7 @@ extends SceneTree
 ## Run:
 ##   godot --headless --path . -s tests/meta_progression_test.gd
 
-const SAVE_PATH := "user://test_meta_state.tres"
+const SAVE_PATH := "user://test_meta_state.json"
 
 
 func _init() -> void:

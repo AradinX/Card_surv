@@ -3,6 +3,26 @@ extends RefCounted
 ## Loads authored data resources (.tres) from data directories.
 ## Keeps game data fully decoupled from game logic and UI.
 
+## All dirs whose cards can end up in a run's deck: base actions plus the
+## non-reward subdirs (class signatures, card upgrades, corrupted variants).
+## Used to rebuild a saved deck from card ids (RunState.from_dict).
+const DECK_CARD_DIRS: Array[String] = [
+	"res://data/cards/actions",
+	"res://data/cards/actions/signature",
+	"res://data/cards/actions/upgrades",
+	"res://data/cards/actions/corrupted",
+]
+
+
+## id -> CardData lookup covering every card a saved deck may reference.
+static func load_deck_card_lookup() -> Dictionary:
+	var cards: Dictionary = {}
+	for dir_path in DECK_CARD_DIRS:
+		for card in load_cards_from_dir(dir_path):
+			cards[card.id] = card
+	return cards
+
+
 static func load_cards_from_dir(dir_path: String) -> Array[CardData]:
 	var cards: Array[CardData] = []
 	for resource in load_resources_from_dir(dir_path):

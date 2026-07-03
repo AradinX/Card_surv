@@ -16,7 +16,9 @@ const DISASTERS_DIR := "res://data/disasters"
 const CLASSES_DIR := "res://data/classes"
 const START_TRANSITION_IMAGE := "res://assets/art/backgrounds/run_screen/start_screen.png"
 ## Single autosave slot for an in-progress run (one playthrough at a time).
-const RUN_SAVE_PATH := "user://run_save.tres"
+const RUN_SAVE_PATH := "user://run_save.json"
+## Pre-JSON autosave (unsafe ResourceLoader format) — never loaded, only cleaned up.
+const LEGACY_RUN_SAVE_PATH := "user://run_save.tres"
 const RECENT_LOG_LIMIT := 8
 const DREAM_IMAGE_FADE_TIME := 0.65
 const DREAM_IMAGE_HOLD := 0.85
@@ -155,10 +157,11 @@ func continue_run() -> void:
 	if not has_saved_run():
 		return
 	tutorial_mode = false
-	var loaded: Resource = ResourceLoader.load(
-		RUN_SAVE_PATH, "", ResourceLoader.CACHE_MODE_IGNORE
-	)
-	if not (loaded is RunState):
+	var file := FileAccess.open(RUN_SAVE_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var loaded := RunState.from_dict(JSON.parse_string(file.get_as_text()), _save_catalog())
+	if loaded == null:
 		delete_saved_run()
 		return
 	_recent_run_logs.clear()
@@ -173,7 +176,7 @@ func continue_run() -> void:
 	for resource in CardLibrary.load_cards_from_dir(BUILDINGS_DIR):
 		if resource is BuildingCardData:
 			building_catalog.append(resource)
-	survival.resume(loaded as RunState, event_cards, card_pool, building_catalog)
+	survival.resume(loaded, event_cards, card_pool, building_catalog)
 
 	_change_scene(RUN_SCENE, true)
 
@@ -185,12 +188,40 @@ func has_saved_run() -> bool:
 ## Persists the current run's state (called at every dawn via day_started).
 func save_run() -> void:
 	if survival != null and survival.state != null:
-		ResourceSaver.save(survival.state, RUN_SAVE_PATH)
+		var file := FileAccess.open(RUN_SAVE_PATH, FileAccess.WRITE)
+		if file != null:
+			file.store_string(JSON.stringify(survival.state.to_dict()))
 
 
 func delete_saved_run() -> void:
-	if FileAccess.file_exists(RUN_SAVE_PATH):
-		DirAccess.remove_absolute(RUN_SAVE_PATH)
+	for path in [RUN_SAVE_PATH, LEGACY_RUN_SAVE_PATH]:
+		if FileAccess.file_exists(path):
+			DirAccess.remove_absolute(path)
+
+
+## Lookup tables (id -> authored res:// resource) used by RunState.from_dict.
+## Deck entries can be action OR building cards, so both land in "cards".
+func _save_catalog() -> Dictionary:
+	var cards: Dictionary = CardLibrary.load_deck_card_lookup()
+	var buildings: Dictionary = {}
+	for card in CardLibrary.load_cards_from_dir(BUILDINGS_DIR):
+		if card is BuildingCardData:
+			buildings[card.id] = card
+			cards[card.id] = card
+	var biomes: Dictionary = {}
+	for biome in CardLibrary.load_biomes_from_dir(BIOMES_DIR):
+		biomes[biome.id] = biome
+	var disasters: Dictionary = {}
+	for resource in CardLibrary.load_resources_from_dir(DISASTERS_DIR):
+		if resource is DisasterData:
+			disasters[resource.id] = resource
+	return {
+		"classes": class_catalog,
+		"cards": cards,
+		"biomes": biomes,
+		"buildings": buildings,
+		"disasters": disasters,
+	}
 
 
 func _on_day_started_autosave(_day: int) -> void:

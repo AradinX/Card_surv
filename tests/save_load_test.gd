@@ -1,12 +1,12 @@
 extends SceneTree
-## Round-trips a run through ResourceSaver/Loader and resume(): a saved RunState
-## must reload with identical persistent fields and rebuild into a working
-## SurvivalSystem.
+## Round-trips a run through the JSON save format (to_dict -> file -> from_dict)
+## and resume(): a saved RunState must reload with identical persistent fields
+## and rebuild into a working SurvivalSystem.
 ##
 ## Run:
 ##   godot --headless --path . -s tests/save_load_test.gd
 
-const SAVE_PATH := "user://test_run_save.tres"
+const SAVE_PATH := "user://test_run_save.json"
 
 
 func _init() -> void:
@@ -42,20 +42,26 @@ func _init() -> void:
 
 	var before := _snapshot(survival.state)
 
-	var save_err := ResourceSaver.save(survival.state, SAVE_PATH)
-	if save_err != OK:
-		push_error("ResourceSaver.save failed: %d" % save_err)
+	var save_file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if save_file == null:
+		push_error("cannot open save file for writing: %d" % FileAccess.get_open_error())
 		quit(1)
 		return
+	save_file.store_string(JSON.stringify(survival.state.to_dict()))
+	save_file.close()
 
-	var loaded: Resource = ResourceLoader.load(SAVE_PATH, "", ResourceLoader.CACHE_MODE_IGNORE)
-	if not (loaded is RunState):
-		push_error("loaded save is not a RunState")
+	var read_file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+	var loaded := RunState.from_dict(
+		JSON.parse_string(read_file.get_as_text()),
+		_save_catalog(character_class, biome_pool, catalog, disaster_pool)
+	)
+	if loaded == null:
+		push_error("loaded save is not a valid RunState")
 		quit(1)
 		return
 
 	var resumed := SurvivalSystem.new()
-	resumed.resume(loaded as RunState, event_cards, card_pool, catalog)
+	resumed.resume(loaded, event_cards, card_pool, catalog)
 	var after := _snapshot(resumed.state)
 
 	for key in before:
@@ -81,6 +87,32 @@ func _init() -> void:
 			int(before["day"]), int(before["discovered"])
 		])
 	quit(0 if failures == 0 else 1)
+
+
+func _save_catalog(
+	character_class: CharacterClassData,
+	biome_pool: Array[BiomeData],
+	building_catalog: Array[BuildingCardData],
+	disaster_pool: Array[DisasterData],
+) -> Dictionary:
+	var cards: Dictionary = CardLibrary.load_deck_card_lookup()
+	var buildings: Dictionary = {}
+	for building in building_catalog:
+		buildings[building.id] = building
+		cards[building.id] = building
+	var biomes: Dictionary = {}
+	for biome in biome_pool:
+		biomes[biome.id] = biome
+	var disasters: Dictionary = {}
+	for disaster in disaster_pool:
+		disasters[disaster.id] = disaster
+	return {
+		"classes": {character_class.id: character_class},
+		"cards": cards,
+		"biomes": biomes,
+		"buildings": buildings,
+		"disasters": disasters,
+	}
 
 
 func _snapshot(state: RunState) -> Dictionary:
