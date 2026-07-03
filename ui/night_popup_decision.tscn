@@ -1,0 +1,238 @@
+[gd_scene load_steps=5 format=3 uid="uid://deie26jne0y66"]
+
+[ext_resource type="Texture2D" uid="uid://pqpjnswobqc" path="res://assets/art/ui/panels/night_popup_panel_event_choice.png" id="1_panel"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_70ver"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_l04tq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_r5ctm"]
+
+[node name="Panel2" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -315.0
+offset_right = 420.0
+offset_bottom = 315.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Illustration" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.136
+anchor_top = 0.216
+anchor_right = 0.49300003
+anchor_bottom = 0.592
+offset_left = -0.2400055
+offset_top = -0.08000183
+offset_right = -0.120025635
+offset_bottom = 0.040008545
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PanelArt" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_panel")
+expand_mode = 1
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.337
+anchor_top = 0.104
+anchor_right = 0.664
+anchor_bottom = 0.178
+offset_left = 25.919983
+offset_top = 3.4799957
+offset_right = -22.759949
+offset_bottom = 0.8600006
+theme_override_colors/font_color = Color(0.9, 0.8, 0.58, 1)
+theme_override_font_sizes/font_size = 18
+text = "Nocna decyzja"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="EffectsLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.098
+anchor_top = 0.625
+anchor_right = 0.461
+anchor_bottom = 0.905
+offset_left = 68.68
+offset_top = 29.25
+offset_right = -18.23999
+offset_bottom = -21.149963
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 2
+clip_text = true
+
+[node name="DescLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.545
+anchor_top = 0.26700002
+anchor_right = 0.85
+anchor_bottom = 0.43800002
+offset_left = 0.19998169
+offset_top = -0.21000671
+offset_bottom = 0.05999756
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 2
+clip_text = true
+
+[node name="ResultLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.545
+anchor_top = 0.268
+anchor_right = 0.84400004
+anchor_bottom = 0.638
+offset_left = 13.199982
+offset_top = 19.159988
+offset_right = -9.960022
+offset_bottom = -138.94
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="ChoiceButtons" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.518
+anchor_top = 0.49
+anchor_right = 0.88000005
+anchor_bottom = 0.95100003
+offset_top = 0.2999878
+offset_right = -0.20007324
+offset_bottom = -0.13000488
+mouse_filter = 2
+
+[node name="ChoiceButton1" type="Button" parent="ChoiceButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.095000006
+anchor_top = 0.034
+anchor_right = 0.90500003
+anchor_bottom = 0.215
+offset_left = 0.011425018
+offset_top = 0.038051605
+offset_right = -0.13137817
+offset_bottom = 3.650013
+theme_override_styles/normal = SubResource("StyleBoxEmpty_70ver")
+clip_text = true
+
+[node name="ChoiceButton2" type="Button" parent="ChoiceButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.08800001
+anchor_top = 0.293
+anchor_right = 0.90500003
+anchor_bottom = 0.52400005
+offset_left = 0.13858604
+offset_top = 0.02999878
+offset_right = -0.13137817
+offset_bottom = 0.039993286
+theme_override_styles/normal = SubResource("StyleBoxEmpty_l04tq")
+clip_text = true
+
+[node name="ChoiceButton3" type="Button" parent="ChoiceButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.085
+anchor_top = 0.57600003
+anchor_right = 0.91400003
+anchor_bottom = 0.98600006
+offset_left = 0.050188065
+offset_top = -0.039993286
+offset_right = 0.13366699
+offset_bottom = 0.05999756
+theme_override_styles/normal = SubResource("StyleBoxEmpty_r5ctm")
+clip_text = true
+
+[node name="ChoiceText1" type="Label" parent="ChoiceButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.026
+anchor_top = 0.02
+anchor_right = 1.0
+anchor_bottom = 0.22800002
+offset_left = 18.979147
+offset_top = 1.9012146
+offset_right = -24.99997
+offset_bottom = -0.11998749
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="ChoiceText2" type="Label" parent="ChoiceButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.287
+anchor_right = 0.98
+anchor_bottom = 0.551
+offset_left = 18.802427
+offset_top = 2.769989
+offset_right = -27.631165
+offset_bottom = -10.078171
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="ChoiceText3" type="Label" parent="ChoiceButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.02
+anchor_top = 0.591
+anchor_right = 0.98
+anchor_bottom = 0.98
+offset_left = 23.802427
+offset_top = 6.339447
+offset_right = -24.922363
+offset_bottom = -6.200012
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="ContinueButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.563
+anchor_top = 0.77800006
+anchor_right = 0.84400004
+anchor_bottom = 0.92200005
+offset_left = 0.07998657
+offset_top = -0.14004517
+offset_right = 0.039978027
+offset_bottom = 0.13995361
+theme_override_font_sizes/font_size = 18
+text = "Dalej"
+clip_text = true

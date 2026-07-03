@@ -9,6 +9,10 @@ const BUILDING_POPUP_VIEW_SCENE := preload("res://ui/building_popup_view.tscn")
 const CONFIRM_POPUP_SCENE := preload("res://ui/confirm_popup.tscn")
 const DECK_POPUP_SCENE := preload("res://ui/deck_popup.tscn")
 const SECURE_POPUP_SCENE := preload("res://ui/secure_popup.tscn")
+const NIGHT_POPUP_SINGLE_SCENE := preload("res://ui/night_popup_single.tscn")
+const NIGHT_POPUP_DECISION_SCENE := preload("res://ui/night_popup_decision.tscn")
+const NIGHT_POPUP_DECISION_TWO_SCENE := preload("res://ui/night_popup_decision_two.tscn")
+const NIGHT_POPUP_MONSTER_SCENE := preload("res://ui/night_popup_monster.tscn")
 const CARD_DROP_ZONE_SCRIPT := preload("res://ui/card_drop_zone.gd")
 const MAX_GATHER_CARD_VIEWS := 3
 const LOG_PANEL_ACT2 := "res://assets/art/ui/panels/log_panel_act2.png"
@@ -66,11 +70,6 @@ const ACT2_LOOK := {
 		"log_text": Color(0.72, 0.92, 0.92, 1.0),
 	},
 }
-## Night event popup: backs to flip the illustration from, fullscreen accent FX.
-const CARD_BACK := {
-	"event": "res://assets/art/cards/backs/card_back_event.png",
-	"monster": "res://assets/art/cards/backs/card_back_monster.png",
-}
 const NIGHT_FX := {
 	"spotlight": "res://assets/art/ui/overlay_night_spotlight.png",
 	"glow": "res://assets/art/fx/cards/fx_card_reveal_glow.png",
@@ -78,20 +77,8 @@ const NIGHT_FX := {
 	"shine": "res://assets/art/fx/cards/fx_card_shine_sweep.png",
 	"dust": "res://assets/art/fx/cards/fx_card_dust_puff.png",
 }
-## Night popup background swaps by card type: monster gets the sinister
-## blood-moon skin, decision events get the 3-note choice layout, everything
-## else uses the plain event panel. All three share identical zone anchors.
-const NIGHT_PANEL_EVENT := "res://assets/art/ui/panels/night_popup_panel_event.png"
-const NIGHT_PANEL_EVENT_CHOICE := "res://assets/art/ui/panels/night_popup_panel_event_choice.png"
-const NIGHT_PANEL_MONSTER := "res://assets/art/ui/panels/night_popup_panel_monster.png"
-## Choice buttons are pinned to 3 asymmetric note slots baked into the choice
-## panel art (bottom two-thirds of the description sheet); fractions are local
-## to the ChoiceButtons container (0..1 top to bottom).
-const NIGHT_CHOICE_SLOTS := [
-	Vector2(0.0, 0.267),
-	Vector2(0.267, 0.571),
-	Vector2(0.571, 1.0),
-]
+const NIGHT_BUTTON_HOVER_COLOR := Color(0.96, 0.72, 0.28, 1.0)
+const NIGHT_BUTTON_HOVER_SCALE := Vector2(1.045, 1.045)
 ## Ambient / feedback FX (all optional — guarded by ResourceLoader.exists, so a
 ## missing or mid-regeneration asset simply skips the effect).
 const WEATHER_RAIN := "res://assets/art/fx/weather/fx_rain_overlay.png"
@@ -229,6 +216,10 @@ var _tutorial_hand_played := {}
 var _tutorial_delay_token := 0
 var _night_fx: Array[Node] = []
 var _night_tween: Tween
+var _night_hover_tweens: Dictionary = {}
+var _night_popup_kind := ""
+var _night_choice_buttons: Array[Button] = []
+var _night_choice_labels: Array[Label] = []
 var _weather_overlay: TextureRect
 var _frost_overlay: TextureRect
 var _low_hp_overlay: TextureRect
@@ -255,6 +246,8 @@ func _ready() -> void:
 	_card_choices.custom_minimum_size = Vector2(0, 232)
 	_top_status_bar.setup_max_values()
 	_setup_overlay_layers()
+	_night_overlay.visible = false
+	_use_night_popup_scene(false, false)
 	_apply_button_skin()
 	_create_weather_overlay()
 	_create_low_hp_overlay()
@@ -303,7 +296,6 @@ func _ready() -> void:
 	_energy_button.pressed.connect(_on_reward_energy)
 	_health_button.pressed.connect(_on_reward_health)
 	_card_button.pressed.connect(_on_reward_card)
-	_night_continue_button.pressed.connect(_on_night_continue)
 	ButtonSkin.apply_minimal_many([
 		_pause_resume_button, _pause_settings_button, _pause_menu_button
 	])
@@ -2010,7 +2002,6 @@ func _apply_button_skin() -> void:
 		_health_button,
 		_card_button,
 		_end_day_button,
-		_night_continue_button,
 	]
 	if _deck_button != null:
 		buttons.append(_deck_button)
@@ -2030,18 +2021,188 @@ func _apply_close_button_skin() -> void:
 	_building_close_button.add_theme_constant_override("shadow_offset_y", 1)
 
 
+func _night_popup_scene(is_monster: bool, has_choices: bool, choice_count: int = 0) -> PackedScene:
+	if is_monster:
+		return NIGHT_POPUP_MONSTER_SCENE
+	if has_choices and choice_count == 2:
+		return NIGHT_POPUP_DECISION_TWO_SCENE
+	if has_choices:
+		return NIGHT_POPUP_DECISION_SCENE
+	return NIGHT_POPUP_SINGLE_SCENE
+
+
+func _use_night_popup_scene(is_monster: bool, has_choices: bool, choice_count: int = 0) -> void:
+	var kind := "monster" if is_monster else ("decision_two" if has_choices and choice_count == 2 else ("decision" if has_choices else "single"))
+	if _night_popup_kind == kind and is_instance_valid(_night_panel):
+		_bind_night_popup_nodes()
+		return
+	_night_popup_kind = kind
+	if is_instance_valid(_night_panel):
+		_night_overlay.remove_child(_night_panel)
+		_night_panel.queue_free()
+	_night_panel = _night_popup_scene(is_monster, has_choices, choice_count).instantiate() as Control
+	_night_overlay.add_child(_night_panel)
+	_night_overlay.move_child(_night_panel, 0)
+	_bind_night_popup_nodes()
+	_apply_responsive_layout()
+
+
+func _bind_night_popup_nodes() -> void:
+	_night_panel_art = _night_panel.get_node("PanelArt") as TextureRect
+	_night_title = _night_panel.get_node("TitleLabel") as Label
+	_night_illustration = _night_panel.get_node("Illustration") as TextureRect
+	_night_summary = _night_panel.get_node("EffectsLabel") as Label
+	_night_desc = _night_panel.get_node("DescLabel") as Label
+	_night_continue_button = _night_panel.get_node("ContinueButton") as Button
+	_night_choices = _night_panel.get_node("ChoiceButtons") as Control
+	_night_result = _night_panel.get_node("ResultLabel") as Label
+	_collect_night_choice_controls()
+	var continue_callable := Callable(self, "_on_night_continue")
+	if not _night_continue_button.pressed.is_connected(continue_callable):
+		_night_continue_button.pressed.connect(continue_callable)
+	_clear_night_button_chrome(_night_continue_button)
+	_setup_night_button_hover(_night_continue_button)
+	if _button_act == 2:
+		_night_summary.add_theme_color_override("font_color", _act2_look["log_text"])
+		_night_desc.add_theme_color_override("font_color", _act2_look["log_text"])
+		_night_result.add_theme_color_override("font_color", _act2_look["log_text"])
+	for i in range(_night_choice_buttons.size()):
+		var button := _night_choice_buttons[i]
+		_clear_night_button_chrome(button)
+		var label: Control = _night_choice_labels[i] if i < _night_choice_labels.size() else null
+		_setup_night_button_hover(button, label)
+		button.text = ""
+
+
+func _clear_night_button_chrome(button: Button) -> void:
+	if button == null:
+		return
+	var empty_style := StyleBoxEmpty.new()
+	button.flat = true
+	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
+		button.add_theme_stylebox_override(state, empty_style)
+
+
+func _setup_night_button_hover(button: Button, target: Control = null) -> void:
+	if button == null:
+		return
+	var visual: Control = target if target != null else button
+	visual.pivot_offset = visual.size * 0.5
+	if not button.has_meta("night_hover_normal_color"):
+		button.set_meta("night_hover_normal_color", visual.get_theme_color("font_color"))
+	var enter_callable := Callable(self, "_on_night_button_hover_changed").bind(button, target, true)
+	var exit_callable := Callable(self, "_on_night_button_hover_changed").bind(button, target, false)
+	if not button.mouse_entered.is_connected(enter_callable):
+		button.mouse_entered.connect(enter_callable)
+	if not button.mouse_exited.is_connected(exit_callable):
+		button.mouse_exited.connect(exit_callable)
+	if not button.focus_entered.is_connected(enter_callable):
+		button.focus_entered.connect(enter_callable)
+	if not button.focus_exited.is_connected(exit_callable):
+		button.focus_exited.connect(exit_callable)
+	_on_night_button_hover_changed(button, target, false)
+
+
+func _on_night_button_hover_changed(button: Button, target: Control, hovered: bool) -> void:
+	if button == null or not is_instance_valid(button):
+		return
+	var visual: Control = target if target != null and is_instance_valid(target) else button
+	if visual == null or not is_instance_valid(visual):
+		return
+	var normal_color: Color = button.get_meta("night_hover_normal_color", visual.get_theme_color("font_color"))
+	var target_scale := NIGHT_BUTTON_HOVER_SCALE if hovered and not button.disabled else Vector2.ONE
+	var target_color := NIGHT_BUTTON_HOVER_COLOR if hovered and not button.disabled else normal_color
+	visual.pivot_offset = visual.size * 0.5
+	var key := visual.get_instance_id()
+	var existing: Tween = _night_hover_tweens.get(key) as Tween
+	if existing != null:
+		existing.kill()
+	var tween := create_tween().set_parallel(true)
+	_night_hover_tweens[key] = tween
+	tween.tween_property(visual, "scale", target_scale, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(func() -> void:
+		_night_hover_tweens.erase(key)
+	).set_delay(0.1)
+	if visual is Label or visual is Button:
+		visual.add_theme_color_override("font_color", target_color)
+
+
+func _reset_night_button_hover(button: Button, target: Control = null) -> void:
+	if button == null or not is_instance_valid(button):
+		return
+	var visual: Control = target if target != null and is_instance_valid(target) else button
+	if visual == null or not is_instance_valid(visual):
+		return
+	var key := visual.get_instance_id()
+	var existing: Tween = _night_hover_tweens.get(key) as Tween
+	if existing != null:
+		existing.kill()
+	_night_hover_tweens.erase(key)
+	visual.scale = Vector2.ONE
+	var normal_color: Color = button.get_meta("night_hover_normal_color", visual.get_theme_color("font_color"))
+	if visual is Label or visual is Button:
+		visual.add_theme_color_override("font_color", normal_color)
+
+
+func _collect_night_choice_controls() -> void:
+	_night_choice_buttons.clear()
+	_night_choice_labels.clear()
+	for i in range(1, 4):
+		var button := _night_panel.get_node_or_null("ChoiceButtons/ChoiceButton%d" % i) as Button
+		if button != null:
+			_night_choice_buttons.append(button)
+		var label := _night_panel.get_node_or_null("ChoiceButtons/ChoiceText%d" % i) as Label
+		if label != null:
+			_night_choice_labels.append(label)
+
+
+func _ordered_night_choice_indices(choices: Array) -> Array[int]:
+	var regular_indices: Array[int] = []
+	var risk_indices: Array[int] = []
+	for i in range(choices.size()):
+		if _night_choice_is_risky(choices[i]):
+			risk_indices.append(i)
+		else:
+			regular_indices.append(i)
+	regular_indices.append_array(risk_indices)
+	return regular_indices
+
+
+func _night_choice_is_risky(choice) -> bool:
+	if choice == null:
+		return false
+	var label := str(choice.get("label")).to_lower()
+	return int(choice.get("risk_chance")) > 0 or label.find("ryzyko") != -1
+
+
+func _disconnect_night_choice_button(button: Button) -> void:
+	for connection in button.pressed.get_connections():
+		var callable: Callable = connection.get("callable")
+		if callable.get_object() != self:
+			continue
+		var method := str(callable.get_method())
+		if method == "_on_night_choice" or method == "_on_night_choice_button_pressed":
+			button.pressed.disconnect(callable)
+
+
+func _on_night_choice_button_pressed(button: Button) -> void:
+	var choice_index := int(button.get_meta("choice_index", -1))
+	if choice_index >= 0:
+		_on_night_choice(choice_index)
+
+
 func _on_night_card_drawn(card: CardData) -> void:
 	_clear_night_card()
 	_night_overlay.visible = true
 	if GameManager.tutorial_mode and _tutorial_step == TUTORIAL_END_DAY:
 		_tutorial_set_step(TUTORIAL_NIGHT_EVENT)
+	var is_monster := card is MonsterCardData
+	var has_choices := card is EventCardData and not (card as EventCardData).choices.is_empty()
+	var choice_count := (card as EventCardData).choices.size() if card is EventCardData else 0
+	_use_night_popup_scene(is_monster, has_choices, choice_count)
 	# Locked until the reveal animation finishes, so the card is always read
 	# before its effects resolve (re-enabled on the reveal tween's `finished`).
 	_night_continue_button.disabled = true
-
-	var is_monster := card is MonsterCardData
-	var has_choices := card is EventCardData and not (card as EventCardData).choices.is_empty()
-	_night_panel_art.texture = load(_night_panel_texture(is_monster, has_choices))
 	_night_title.text = card.display_name
 	# The choice panel's description sheet only keeps its top third clear (the
 	# lower two-thirds are the 3 pinned choice notes baked into the art).
@@ -2053,21 +2214,10 @@ func _on_night_card_drawn(card: CardData) -> void:
 	_night_summary.text = _night_summary_text(card)
 	_night_summary.visible = true
 	_build_night_choices(card)
-	_play_night_reveal(_night_illustration_texture(card), "monster" if is_monster else "event", _night_tint(card))
+	_play_night_reveal(_night_illustration_texture(card), _night_tint(card))
 	if is_monster:
 		AudioManager.play_sfx("monster")
 		_spawn_claw_flash()
-
-
-## Background art swaps by card type: monster gets the sinister blood-moon
-## skin, decision events get the 3-note choice layout, everything else uses
-## the plain event panel. All three share identical zone anchors.
-func _night_panel_texture(is_monster: bool, has_choices: bool) -> String:
-	if is_monster:
-		return NIGHT_PANEL_MONSTER
-	if has_choices:
-		return NIGHT_PANEL_EVENT_CHOICE
-	return NIGHT_PANEL_EVENT
 
 
 ## Same lookup CardView uses for events/monsters, without needing a CardView
@@ -2085,13 +2235,12 @@ func _night_illustration_texture(card: CardData) -> Texture2D:
 	return null
 
 
-## Decision events show one button per choice (with its effect summary) instead
-## of a single "Dalej", pinned to the 3 asymmetric note slots baked into the
-## choice panel art. Buttons start disabled and unlock when the reveal ends.
+## Decision events show one button per choice (with its effect summary), pinned
+## to note slots baked into the active popup scene. Buttons start disabled and
+## unlock when the reveal ends.
 func _build_night_choices(card: CardData) -> void:
-	for child in _night_choices.get_children():
-		child.queue_free()
 	var choices: Array = card.get("choices") if card is EventCardData else []
+	_reset_night_choice_controls()
 	if choices == null or choices.is_empty():
 		_night_choices.visible = false
 		_night_continue_button.visible = true
@@ -2099,29 +2248,46 @@ func _build_night_choices(card: CardData) -> void:
 	_night_choices.visible = true
 	_night_result.visible = false
 	_night_continue_button.visible = false
-	for i in choices.size():
-		var choice = choices[i]
-		var button := Button.new()
-		var slot: Vector2 = NIGHT_CHOICE_SLOTS[i]
-		button.set_anchors_preset(Control.PRESET_TOP_LEFT)
-		button.anchor_left = 0.0
-		button.anchor_right = 1.0
-		button.anchor_top = slot.x
-		button.anchor_bottom = slot.y
-		button.offset_left = 0.0
-		button.offset_top = 0.0
-		button.offset_right = 0.0
-		button.offset_bottom = 0.0
-		var block_reason := _survival.night_choice_block_reason(i) if _survival != null else ""
+	var choice_indices := _ordered_night_choice_indices(choices)
+	for i in range(_night_choice_buttons.size()):
+		var button := _night_choice_buttons[i]
+		var hover_label: Control = _night_choice_labels[i] if i < _night_choice_labels.size() else null
+		_reset_night_button_hover(button, hover_label)
+		var label: Label = _night_choice_labels[i] if i < _night_choice_labels.size() else null
+		var has_choice := i < choice_indices.size()
+		button.visible = has_choice
+		if label != null:
+			label.visible = has_choice
+		if not has_choice:
+			continue
+		var choice_index := choice_indices[i]
+		var choice = choices[choice_index]
+		var block_reason := _survival.night_choice_block_reason(choice_index) if _survival != null else ""
 		button.disabled = true
-		button.text = _choice_button_text(choice, block_reason)
 		button.set_meta("choice_block_reason", block_reason)
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.add_theme_font_size_override("font_size", 12)
-		ButtonSkin.apply_minimal(button)
-		button.pressed.connect(_on_night_choice.bind(i))
-		_night_choices.add_child(button)
+		button.set_meta("choice_index", choice_index)
+		button.tooltip_text = block_reason
+		button.text = ""
+		if label != null:
+			label.text = _choice_button_text(choice, block_reason)
+		_disconnect_night_choice_button(button)
+		button.pressed.connect(Callable(self, "_on_night_choice_button_pressed").bind(button))
 
+
+func _reset_night_choice_controls() -> void:
+	for i in range(_night_choice_buttons.size()):
+		var button := _night_choice_buttons[i]
+		var label: Control = _night_choice_labels[i] if i < _night_choice_labels.size() else null
+		_reset_night_button_hover(button, label)
+		button.visible = false
+		button.disabled = true
+		button.text = ""
+		button.tooltip_text = ""
+		button.set_meta("choice_block_reason", "")
+		button.set_meta("choice_index", -1)
+	for label in _night_choice_labels:
+		label.visible = false
+		label.text = ""
 
 ## Full choice copy: clear risk odds plus explicit success/failure outcomes.
 func _choice_button_text(choice, block_reason: String = "") -> String:
@@ -2297,8 +2463,7 @@ func _has_standing_special(special: String) -> bool:
 ## player reads what happened and clicks „Dalej" to settle the night.
 func _on_night_choice(index: int) -> void:
 	var summary := _survival.apply_night_choice(index)
-	for button in _night_choices.get_children():
-		(button as Button).queue_free()
+	_reset_night_choice_controls()
 	_night_choices.visible = false
 	_night_desc.visible = false
 	# The result reclaims the full description sheet now that the choice
@@ -2336,14 +2501,15 @@ func _night_tint(card: CardData) -> Color:
 			return Color(1.0, 0.92, 0.72)
 
 
-## The illustration flips from its card back to the real art while a
-## spotlight, glow, sparks, a shine sweep and a dust puff sell the reveal.
+## The night illustration appears directly in the panel; accent FX sell the
+## reveal without rotating or folding the image inside the frame.
 ## Spotlight + glow linger behind the panel; the rest are one-shot. `tint`
 ## colours the glow/burst per category.
-func _play_night_reveal(illustration: Texture2D, back_key: String, tint: Color) -> void:
-	_night_illustration.texture = load(CARD_BACK[back_key])
+func _play_night_reveal(illustration: Texture2D, tint: Color) -> void:
+	_night_illustration.texture = illustration
 	_night_illustration.pivot_offset = _night_illustration.size * 0.5
-	_night_illustration.scale = Vector2(1.0, 1.0)
+	_night_illustration.scale = Vector2.ONE
+	_night_illustration.modulate.a = 0.0
 
 	# Backdrop glow behind the panel (does not wash the illustration).
 	var spotlight := _spawn_night_fx("spotlight", get_viewport_rect().size, true, Color.WHITE, 0)
@@ -2355,8 +2521,7 @@ func _play_night_reveal(illustration: Texture2D, back_key: String, tint: Color) 
 	var dust := _spawn_night_fx("dust", Vector2(360, 180), true, tint, -1)
 	dust.position.y += 120.0
 
-	# Hold on the card back so the player reads it before it flips.
-	const HOLD := 0.95
+	const REVEAL_DELAY := 0.18
 
 	if _night_tween != null:
 		_night_tween.kill()
@@ -2364,40 +2529,31 @@ func _play_night_reveal(illustration: Texture2D, back_key: String, tint: Color) 
 	# Dust puff as the card lands (at the very start).
 	_night_tween.tween_property(dust, "modulate:a", 0.7, 0.15)
 	_night_tween.tween_property(dust, "modulate:a", 0.0, 0.4).set_delay(0.2)
-	# Spotlight settles in immediately and frames the held back.
+	# Spotlight settles in immediately and frames the panel.
 	_night_tween.tween_property(spotlight, "modulate:a", 0.55, 0.45)
-	# Glow blooms as the flip begins.
-	_night_tween.tween_property(glow, "modulate:a", 0.7, 0.45).set_delay(HOLD)
-	# The flip: back turns to edge, swap back->illustration, then turns back out.
-	# Both halves happen on the same node (pivoted at its centre), so the
-	# illustration stays centred in its frame throughout.
-	_night_tween.tween_property(_night_illustration, "scale", Vector2(0.0, 1.0), 0.22) \
-		.set_delay(HOLD).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-	_night_tween.tween_callback(func() -> void:
-		_night_illustration.texture = illustration
-	).set_delay(HOLD + 0.22)
-	_night_tween.tween_property(_night_illustration, "scale", Vector2(1.0, 1.0), 0.24) \
-		.set_delay(HOLD + 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-	# Shine sweeps across during the flip.
+	# Fade the final illustration in place, without scale/rotation tricks.
+	_night_tween.tween_property(_night_illustration, "modulate:a", 1.0, 0.22) \
+		.set_delay(REVEAL_DELAY).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	_night_tween.tween_property(glow, "modulate:a", 0.7, 0.45).set_delay(REVEAL_DELAY)
+	# Shine sweeps across after the image is visible.
 	var sx := shine.position.x
-	_night_tween.tween_property(shine, "modulate:a", 0.85, 0.15).set_delay(HOLD + 0.15)
+	_night_tween.tween_property(shine, "modulate:a", 0.85, 0.15).set_delay(REVEAL_DELAY + 0.1)
 	_night_tween.tween_property(shine, "position:x", sx + 90.0, 0.4) \
-		.set_delay(HOLD + 0.15).set_trans(Tween.TRANS_SINE)
-	_night_tween.tween_property(shine, "modulate:a", 0.0, 0.2).set_delay(HOLD + 0.45)
+		.set_delay(REVEAL_DELAY + 0.1).set_trans(Tween.TRANS_SINE)
+	_night_tween.tween_property(shine, "modulate:a", 0.0, 0.2).set_delay(REVEAL_DELAY + 0.4)
 	# Burst pops at the reveal moment.
-	_night_tween.tween_property(burst, "modulate:a", 0.9, 0.1).set_delay(HOLD + 0.3)
+	_night_tween.tween_property(burst, "modulate:a", 0.9, 0.1).set_delay(REVEAL_DELAY + 0.2)
 	_night_tween.tween_property(burst, "scale", Vector2(1.35, 1.35), 0.55) \
-		.set_delay(HOLD + 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	_night_tween.tween_property(burst, "modulate:a", 0.0, 0.4).set_delay(HOLD + 0.55)
-	# Card has been revealed and read — let the player acknowledge / choose.
+		.set_delay(REVEAL_DELAY + 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_night_tween.tween_property(burst, "modulate:a", 0.0, 0.4).set_delay(REVEAL_DELAY + 0.45)
+	# Card has been revealed and read - let the player acknowledge / choose.
 	_night_tween.finished.connect(func() -> void:
 		if is_instance_valid(_night_continue_button):
 			_night_continue_button.disabled = false
-		for button in _night_choices.get_children():
-			var choice_button := button as Button
-			choice_button.disabled = str(choice_button.get_meta("choice_block_reason", "")) != ""
+		for choice_button in _night_choice_buttons:
+			if choice_button.visible:
+				choice_button.disabled = str(choice_button.get_meta("choice_block_reason", "")) != ""
 	)
-
 
 func _spawn_night_fx(id: String, fx_size: Vector2, additive: bool, tint: Color, behind: int) -> TextureRect:
 	var layer := TextureRect.new()
@@ -2442,10 +2598,16 @@ func _clear_night_card() -> void:
 		if is_instance_valid(node):
 			node.queue_free()
 	_night_fx.clear()
+	_reset_night_button_hover(_night_continue_button)
+	for tween in _night_hover_tweens.values():
+		var hover_tween: Tween = tween as Tween
+		if hover_tween != null:
+			hover_tween.kill()
+	_night_hover_tweens.clear()
 	_night_illustration.texture = null
 	_night_illustration.scale = Vector2.ONE
-	for child in _night_choices.get_children():
-		child.queue_free()
+	_night_illustration.modulate.a = 1.0
+	_reset_night_choice_controls()
 	_night_result.visible = false
 	_night_result.text = ""
 	_night_desc.visible = false

@@ -6,7 +6,7 @@
 [ext_resource type="Theme" uid="uid://c51mgd2a42ybb" path="res://ui/button_theme_act1.tres" id="4_button_theme"]
 [ext_resource type="Texture2D" uid="uid://butp5oqb6kx5i" path="res://assets/art/ui/panels/log_panel_act1.png" id="5_log_panel_act1"]
 [ext_resource type="PackedScene" path="res://ui/settings_overlay.tscn" id="6_settings"]
-[ext_resource type="Texture2D" uid="uid://xtv26457els4" path="res://assets/art/ui/panels/night_popup_panel_event.png" id="7_night_event"]
+[ext_resource type="PackedScene" path="res://ui/night_popup_single.tscn" id="7_night_popup_single"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_log"]
 
@@ -326,6 +326,7 @@ layout_mode = 2
 theme_override_constants/separation = 12
 
 [node name="NightEventOverlay" type="ColorRect" parent="."]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -334,130 +335,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.02, 0.025, 0.02, 0.72)
 
-[node name="Panel" type="Control" parent="NightEventOverlay"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -420.0
-offset_top = -315.0
-offset_right = 420.0
-offset_bottom = 315.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Illustration" type="TextureRect" parent="NightEventOverlay/Panel"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.136
-anchor_top = 0.216
-anchor_right = 0.49300003
-anchor_bottom = 0.592
-offset_left = -0.2400055
-offset_top = -0.08000183
-offset_right = -0.120025635
-offset_bottom = 0.040008545
-mouse_filter = 2
-expand_mode = 1
-stretch_mode = 6
-
-[node name="PanelArt" type="TextureRect" parent="NightEventOverlay/Panel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-texture = ExtResource("7_night_event")
-expand_mode = 1
-
-[node name="TitleLabel" type="Label" parent="NightEventOverlay/Panel"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.337
-anchor_top = 0.104
-anchor_right = 0.664
-anchor_bottom = 0.178
-offset_left = 25.919983
-offset_top = 3.4799957
-offset_right = -22.759949
-offset_bottom = 0.8600006
-theme_override_colors/font_color = Color(0.9, 0.8, 0.58, 1)
-theme_override_font_sizes/font_size = 18
-text = "Nocne zdarzenie"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-clip_text = true
-
-[node name="EffectsLabel" type="Label" parent="NightEventOverlay/Panel"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.098
-anchor_top = 0.625
-anchor_right = 0.461
-anchor_bottom = 0.905
-offset_left = 68.68
-offset_top = 29.25
-offset_right = -18.23999
-offset_bottom = -21.149963
-theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
-theme_override_font_sizes/font_size = 13
-autowrap_mode = 2
-clip_text = true
-
-[node name="DescLabel" type="Label" parent="NightEventOverlay/Panel"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.545
-anchor_top = 0.26700002
-anchor_right = 0.85
-anchor_bottom = 0.624
-offset_left = 0.19998169
-offset_top = -0.21000671
-offset_bottom = -0.11999512
-theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
-theme_override_font_sizes/font_size = 14
-autowrap_mode = 2
-clip_text = true
-
-[node name="ResultLabel" type="Label" parent="NightEventOverlay/Panel"]
-visible = false
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.518
-anchor_top = 0.224
-anchor_right = 0.867
-anchor_bottom = 0.678
-theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
-theme_override_font_sizes/font_size = 14
-horizontal_alignment = 1
-autowrap_mode = 2
-clip_text = true
-
-[node name="ContinueButton" type="Button" parent="NightEventOverlay/Panel"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.518
-anchor_top = 0.678
-anchor_right = 0.867
-anchor_bottom = 0.906
-theme = ExtResource("4_button_theme")
-theme_override_font_sizes/font_size = 18
-text = "Dalej"
-clip_text = true
-
-[node name="ChoiceButtons" type="Control" parent="NightEventOverlay/Panel"]
-layout_mode = 1
-anchor_left = 0.518
-anchor_top = 0.466
-anchor_right = 0.867
-anchor_bottom = 0.904
-mouse_filter = 2
-
+[node name="Panel" parent="NightEventOverlay" instance=ExtResource("7_night_popup_single")]
 [node name="PauseOverlay" type="ColorRect" parent="."]
 visible = false
 layout_mode = 1

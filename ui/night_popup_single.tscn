@@ -1,0 +1,137 @@
+[gd_scene load_steps=3 format=3 uid="uid://bsriwl020gvv4"]
+
+[ext_resource type="Texture2D" uid="uid://xtv26457els4" path="res://assets/art/ui/panels/night_popup_panel_event.png" id="1_panel"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ew1fi"]
+
+[node name="Panel" type="Control"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -420.0
+offset_top = -315.0
+offset_right = 420.0
+offset_bottom = 315.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Illustration" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.136
+anchor_top = 0.216
+anchor_right = 0.49300003
+anchor_bottom = 0.592
+offset_left = -0.2400055
+offset_top = -0.08000183
+offset_right = -0.120025635
+offset_bottom = 0.040008545
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="PanelArt" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("1_panel")
+expand_mode = 1
+
+[node name="TitleLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.337
+anchor_top = 0.104
+anchor_right = 0.664
+anchor_bottom = 0.178
+offset_left = 25.919983
+offset_top = 3.4799957
+offset_right = -22.759949
+offset_bottom = 0.8600006
+theme_override_colors/font_color = Color(0.9, 0.8, 0.58, 1)
+theme_override_font_sizes/font_size = 18
+text = "Nocne zdarzenie"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="EffectsLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.098
+anchor_top = 0.625
+anchor_right = 0.461
+anchor_bottom = 0.905
+offset_left = 68.68
+offset_top = 29.25
+offset_right = -18.23999
+offset_bottom = -21.149963
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 13
+autowrap_mode = 2
+clip_text = true
+
+[node name="DescLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.545
+anchor_top = 0.26700002
+anchor_right = 0.85
+anchor_bottom = 0.678
+offset_left = 5.1999817
+offset_top = -0.21000671
+offset_right = -7.0
+offset_bottom = -49.139984
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 2
+clip_text = true
+
+[node name="ResultLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.545
+anchor_top = 0.268
+anchor_right = 0.84400004
+anchor_bottom = 0.638
+offset_left = 3.1999817
+offset_top = 4.1599884
+offset_right = -2.960022
+offset_bottom = 0.05999756
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/font_size = 14
+horizontal_alignment = 1
+autowrap_mode = 2
+clip_text = true
+
+[node name="ChoiceButtons" type="Control" parent="."]
+layout_mode = 1
+anchor_left = 0.518
+anchor_top = 0.466
+anchor_right = 0.867
+anchor_bottom = 0.904
+mouse_filter = 2
+
+[node name="ContinueButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.574
+anchor_top = 0.73
+anchor_right = 0.827
+anchor_bottom = 0.84900004
+offset_left = -5.1600037
+offset_top = -3.9000244
+offset_right = -4.6799927
+offset_bottom = -3.869995
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxEmpty_ew1fi")
+text = "Dalej"
+clip_text = true
