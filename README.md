@@ -153,9 +153,12 @@ tests/      testy headless uruchamiane przez Godot -s
 assets/     grafika, FX i audio
 ```
 
-Największe moduły to `systems/survival_system.gd` i `scenes/run.gd`.
-Przed dodawaniem kolejnych dużych systemów warto wydzielić z nich obsługę
-nocy/BUM oraz prezentację efektów.
+Obsługa nocy i BUM jest wydzielona z `survival_system.gd` do
+`systems/night_resolver.gd` i `systems/bum_resolver.gd` (statyczne funkcje na
+przekazanym systemie; stan i sygnały zostają na `SurvivalSystem`). Po stronie
+UI popup nocy żyje w `ui/night_overlay_view.gd` (skrypt węzła `NightEventOverlay`
+w `run.tscn`), a FX (sekwencja BUM, pogoda, winiety, world FX) w
+`scenes/run_fx.gd`.
 
 ## Aktualne priorytety
 

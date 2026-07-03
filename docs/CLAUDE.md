@@ -2065,6 +2065,40 @@ Poprawki w 3 etapach wg decyzji gracza:
   obiektów (5287 plików, zero packów). Duże usunięte assety wciąż są w
   HISTORII — jeśli potrzebny lekki klon, osobna decyzja o `git filter-repo`.
 
+### Refactor: noc/BUM/FX wydzielone z dwóch molochów (2026-07-03)
+
+Realizacja zalecenia z README („wydzielić obsługę nocy/BUM oraz prezentację
+efektów") przed wydaniem. Cztery kroki, każdy osobnym commitem z zielonymi
+testami; publiczne API `SurvivalSystem` i sygnały BEZ ZMIAN (delegaty),
+więc run.gd/testy/bot nie wymagały przepisania.
+
+- **`systems/bum_resolver.gd`** (BumResolver): uderzenie BUM, zabezpieczanie
+  rejonów, omeny. Wzorzec: klasa ze STATYCZNYMI funkcjami przyjmującymi
+  `sys: SurvivalSystem` — cały stan, stałe (testy/run.gd czytają
+  `SurvivalSystem.BUM_*`) i sygnały zostają na systemie; zero cykli
+  referencji RefCounted, zero zmian lifecycle. `bum_preparation_test`
+  przepięty z `survival.call("_trigger_bum")` na `BumResolver.trigger()`.
+- **`systems/night_resolver.gd`** (NightResolver, ten sam wzorzec): pula
+  nocna (rebuild/kandydaci/faza), rozliczenie karty (zdarzenie / wybór z
+  ryzykiem / atak potwora), pasywy i zużycie budynków, paliwo ogniska,
+  psucie i bilans potrzeb. `survival_system.gd`: 3068 → **2224 linii**.
+- **`ui/night_overlay_view.gd`** (NightOverlayView): skrypt zawieszony na
+  węźle `NightEventOverlay` w `run.tscn` — swap panelu per typ karty,
+  przyciski wyborów, hover/blokady, reveal FX + pazur potwora, rozliczenie
+  przez `_survival`. run.gd trzyma tylko hook tutoriala i SFX potwora
+  (konwencja: ui/ bez odwołań do autoloadów, żeby skrypty ładowały się w
+  testach `-s`; stąd `AudioManager.play_sfx("monster")` został w run.gd).
+  Sygnał `log_line` → log runu. Zweryfikowane headless: instancjacja +
+  show_card dla zdarzenia/decyzji (2 przyciski wyboru)/potwora.
+- **`scenes/run_fx.gd`** (RunFx, RefCounted na węzłach sceny): sekwencja BUM
+  (`play_bum_fx(look, on_flash_peak)` — callback podmienia wygląd Aktu II
+  w szczycie błysku), pogoda sezonowa, world/card FX, winiety krytycznych
+  statów. `run.gd`: 2875 → **1817 linii**.
+- Weryfikacja: `--import` czysty, cała czternastka testów zielona po każdym
+  kroku, smoke po krokach 20/50 i 25/50 (baseline 22/50 — szum RNG, rozkład
+  zgonów Akt I/II zgodny). Wymagany RĘCZNY playtest popupu nocy i animacji
+  BUM w edytorze (UI-only zmiany niewidoczne dla headless).
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).
