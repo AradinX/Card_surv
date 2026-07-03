@@ -21,13 +21,13 @@ config/icon="res://assets/art/promotional/dzien_50_icon_1024.png"
 AudioManager="*res://scripts/audio_manager.gd"
 GameManager="*res://scripts/game_manager.gd"
 
-[gui]
-
-theme/custom="res://ui/theme_default.tres"
-
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
+
+[gui]
+
+theme/custom="res://ui/theme_default.tres"
