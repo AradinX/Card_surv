@@ -530,74 +530,26 @@ func repair(building_index: int) -> void:
 	board_changed.emit(state)
 
 
+# Region securing lives in BumResolver; these stay as the stable public API.
 func secured_tile_count() -> int:
-	var count := 0
-	for tile in state.board:
-		if tile.bum_secured:
-			count += 1
-	return count
+	return BumResolver.secured_tile_count(self)
 
 
 func secure_current_tile_cost() -> Dictionary:
-	var secured := secured_tile_count()
-	return {
-		"energy": BUM_SECURE_BASE_ENERGY_COST + secured * BUM_SECURE_EXTRA_ENERGY_COST,
-		"food": 0,
-		"thirst": 0,
-		"wood": BUM_SECURE_BASE_WOOD_COST + secured * BUM_SECURE_EXTRA_WOOD_COST,
-		"materials": BUM_SECURE_BASE_MATERIALS_COST + secured * BUM_SECURE_EXTRA_MATERIALS_COST,
-	}
+	return BumResolver.secure_current_tile_cost(self)
 
 
 func secure_current_tile_summary() -> String:
-	var cost := secure_current_tile_cost()
-	var parts: PackedStringArray = []
-	_append_cost_part(parts, int(cost["energy"]), "energii")
-	_append_cost_part(parts, int(cost["wood"]), "drewna")
-	_append_cost_part(parts, int(cost["materials"]), "kamienia")
-	return ", ".join(parts)
+	return BumResolver.secure_current_tile_summary(self)
 
 
 ## Returns "" when the current tile/base region can be prepared for BUM.
 func can_secure_current_tile() -> String:
-	if not _day_active:
-		return "Dzień dobiegł końca."
-	if state.bum_happened:
-		return "Po BUM jest już za późno na fortyfikacje."
-	if current_tile().buildings.is_empty():
-		return "Najpierw postaw tu przynajmniej jeden budynek."
-	if current_tile().bum_secured:
-		return "Ten rejon jest już zabezpieczony."
-	if secured_tile_count() >= BUM_SECURED_TILE_LIMIT:
-		return "Limit zabezpieczonych rejonów: %d." % BUM_SECURED_TILE_LIMIT
-	var cost := secure_current_tile_cost()
-	if state.energy < int(cost["energy"]):
-		return "Za mało energii (potrzeba %d)." % int(cost["energy"])
-	if state.wood < int(cost["wood"]):
-		return "Za mało drewna (potrzeba %d)." % int(cost["wood"])
-	if state.materials < int(cost["materials"]):
-		return "Za mało kamienia (potrzeba %d)." % int(cost["materials"])
-	return ""
+	return BumResolver.can_secure_current_tile(self)
 
 
 func secure_current_tile() -> void:
-	var block_reason := can_secure_current_tile()
-	if block_reason != "":
-		log_message.emit(block_reason)
-		return
-	var cost := secure_current_tile_cost()
-	state.energy -= int(cost["energy"])
-	state.wood -= int(cost["wood"])
-	state.materials -= int(cost["materials"])
-	current_tile().bum_secured = true
-	log_message.emit("Zabezpieczasz rejon: %s (%s; -%d%% obrażeń BUM, %d%% szans na zużycie HP w Akcie I)." % [
-		_tile_name(current_tile()),
-		secure_current_tile_summary(),
-		BUM_SECURE_DAMAGE_REDUCTION,
-		ACT1_SECURED_WEAR_CHANCE_PERCENT,
-	])
-	stats_changed.emit(state)
-	board_changed.emit(state)
+	BumResolver.secure_current_tile(self)
 
 
 ## Card verb "repair_tile": patch the most-damaged standing (non-ruined) building
@@ -1386,9 +1338,9 @@ func _start_day() -> void:
 
 	if not state.bum_happened and state.disaster != null:
 		if state.day >= state.bum_day:
-			_trigger_bum()
+			BumResolver.trigger(self)
 		elif is_bum_omen_window():
-			_log_omen()
+			BumResolver.log_omen(self)
 	# Hard cap at max energy (no overflow). The active disaster can sap a flat
 	# amount in Act II (Zaćmienie: dark, restless nights).
 	state.energy = clampi(
@@ -2119,92 +2071,7 @@ func _resolve_explore() -> void:
 
 
 # --- BUM and Act II (README sections 5-6) ---
-
-
-## The catastrophe: tiles flip to their corrupted faces, every building
-## rolls a damage percent (>= 50% = ruin), and the event deck is rebuilt
-## with corrupted biome hazards, disaster events and monster cards.
-func _trigger_bum() -> void:
-	state.bum_happened = true
-	log_message.emit("=== BUM ===")
-	log_message.emit("Niebo pęka. %s" % state.disaster.description)
-
-	for tile in state.board:
-		tile.is_corrupted = true
-		var bum_defense_reduction := _bum_defense_damage_reduction(tile)
-		for built in tile.buildings:
-			var max_hp := building_max_hp(built.data)
-			var raw_percent := _rng.randi_range(
-				BUM_DAMAGE_PERCENT_MIN, BUM_DAMAGE_PERCENT_MAX
-			)
-			var defense_reduction := bum_defense_reduction
-			var secure_reduction := BUM_SECURE_DAMAGE_REDUCTION if tile.bum_secured else 0
-			var durability_reduction := _bum_durability_damage_reduction(max_hp)
-			var percent := maxi(
-				raw_percent - defense_reduction - secure_reduction - durability_reduction,
-				BUM_MIN_EFFECTIVE_DAMAGE_PERCENT
-			)
-			built.hp = maxi(built.hp - roundi(max_hp * percent / 100.0), 0)
-			_check_ruin(built)
-			var reduction_text := _bum_reduction_text(
-				defense_reduction, secure_reduction, durability_reduction
-			)
-			if not built.is_ruined:
-				log_message.emit("%s: BUM %d%% -> %d%%%s (HP %d/%d)." % [
-					built.data.display_name, raw_percent, percent,
-					reduction_text, built.hp, max_hp
-				])
-			else:
-				log_message.emit("%s nie wytrzymuje: BUM %d%% -> %d%%%s." % [
-					built.data.display_name, raw_percent, percent, reduction_text
-				])
-		tile.bum_secured = false
-
-	_rebuild_event_deck()
-
-	log_message.emit("Świat już nie jest ten sam. Przetrwaj do dnia %d." % WIN_DAY)
-	if state.disaster != null and state.disaster.act2_rule_text != "":
-		log_message.emit(state.disaster.act2_rule_text)
-	bum_struck.emit(state.disaster)
-	board_changed.emit(state)
-
-
-## Defense (Palisada/Wieża/Bastion) protects the whole settlement, not just the
-## tile it stands on — a wall on one side of the camp still slows the disaster
-## down everywhere. The tile param is unused now but kept for call-site parity.
-func _bum_defense_damage_reduction(_tile: TileState) -> int:
-	var defense := 0
-	for board_tile in state.board:
-		for built in board_tile.buildings:
-			if not built.is_ruined:
-				defense += built.data.defense
-	return mini(
-		defense * BUM_DEFENSE_DAMAGE_REDUCTION_PER_POINT,
-		BUM_DEFENSE_DAMAGE_REDUCTION_MAX
-	)
-
-
-func _bum_durability_damage_reduction(max_hp: int) -> int:
-	return clampi(
-		max_hp - BUM_DURABILITY_BASELINE_HP,
-		0,
-		BUM_DURABILITY_DAMAGE_REDUCTION_MAX
-	)
-
-
-func _bum_reduction_text(
-	defense_reduction: int, secure_reduction: int, durability_reduction: int
-) -> String:
-	var parts: PackedStringArray = []
-	if defense_reduction > 0:
-		parts.append("obrona rejonu -%d%%" % defense_reduction)
-	if secure_reduction > 0:
-		parts.append("zabezpieczenie -%d%%" % secure_reduction)
-	if durability_reduction > 0:
-		parts.append("wytrzymałość -%d%%" % durability_reduction)
-	if parts.is_empty():
-		return ""
-	return " (%s)" % ", ".join(parts)
+# The strike itself, region securing and omens live in systems/bum_resolver.gd.
 
 
 func _rebuild_event_deck() -> void:
@@ -2257,47 +2124,7 @@ func _night_phase() -> int:
 
 
 func is_bum_omen_window() -> bool:
-	return not state.bum_happened \
-		and state.disaster != null \
-		and state.bum_day > 0 \
-		and state.day >= state.bum_day - BUM_OMEN_LEAD_DAYS
-
-
-## Per-disaster foreshadowing lines (keyed by DisasterData.id). Plague reads as
-## rot/sickness, Eclipse as cold/dark; unknown disasters fall back to plague.
-const BUM_OMENS := {
-	"plague": [
-		"Martwe ptaki leżą pod drzewami. Żadne zwierzę ich nie tyka.",
-		"Ziemia zadrżała. Na horyzoncie stoi zielonkawa łuna.",
-		"Sny są coraz cięższe. Coś nadchodzi.",
-		"Zwierzyna ucichła. Las wstrzymuje oddech.",
-	],
-	"eclipse": [
-		"Słońce wschodzi blade i zimne. Cień trwa dłużej niż powinien.",
-		"Woda w naczyniach pokryła się rano cienkim lodem.",
-		"Sny są coraz cięższe. Coś nadchodzi.",
-		"Ptaki odleciały na południe za wcześnie. Robi się cicho i mroźno.",
-	],
-	"rift": [
-		"Ziemia drży coraz częściej. W skałach pojawiają się rysy.",
-		"Ze szczelin w gruncie unosi się gorący, siarkowy pył.",
-		"Sny są coraz cięższe. Coś nadchodzi.",
-		"Nocą słychać głuchy huk gdzieś w głębi ziemi.",
-	],
-	"flood": [
-		"Rzeki wezbrały, a deszcz nie ustaje od dni.",
-		"Woda podchodzi pod obóz. Grunt zamienia się w błoto.",
-		"Sny są coraz cięższe. Coś nadchodzi.",
-		"Powietrze jest ciężkie od wilgoci. Wszystko pleśnieje.",
-	],
-}
-
-
-## Foreshadowing in the last days before BUM (the player senses SOMETHING).
-func _log_omen() -> void:
-	var key := state.disaster.id if state.disaster != null else ""
-	var omens: Array = BUM_OMENS.get(key, BUM_OMENS["plague"])
-	log_message.emit("Omen: %s" % omens[state.day % omens.size()])
+	return BumResolver.is_omen_window(self)
 
 
 ## A monster card drawn at night: it claws the player and one building,
@@ -2379,23 +2206,12 @@ func _apply_building_wear(
 ) -> bool:
 	if built == null or built.is_ruined or amount <= 0:
 		return false
-	if _secured_tile_absorbs_wear(tile, built):
+	if BumResolver.secured_tile_absorbs_wear(self, tile, built):
 		return false
 	built.hp = maxi(built.hp - amount, 0)
 	if message != "":
 		log_message.emit(message)
 	_check_ruin(built)
-	return true
-
-
-func _secured_tile_absorbs_wear(tile: TileState, built: BuildingState) -> bool:
-	if tile == null:
-		tile = _tile_for_building(built)
-	if tile == null or state.bum_happened or not tile.bum_secured:
-		return false
-	if _rng.randi_range(0, 99) < ACT1_SECURED_WEAR_CHANCE_PERCENT:
-		return false
-	log_message.emit("Zabezpieczony rejon chroni %s przed zużyciem." % built.data.display_name)
 	return true
 
 

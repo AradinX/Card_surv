@@ -61,25 +61,12 @@ func _init() -> void:
 		push_error("Expected palisade and campfire to be built on the current tile.")
 		quit(1)
 		return
-	var current_defense_reduction: int = survival.call(
-		"_bum_defense_damage_reduction", survival.current_tile()
-	)
-	if current_defense_reduction <= 0:
-		push_error("Expected palisade defense to reduce BUM damage on its own tile.")
+	# Defense is settlement-wide by design (no per-tile parameter anymore).
+	var defense_reduction := BumResolver.defense_damage_reduction(survival)
+	if defense_reduction <= 0:
+		push_error("Expected palisade defense to reduce BUM damage.")
 		quit(1)
 		return
-	for tile_index in survival.state.board.size():
-		if tile_index == survival.state.current_tile:
-			continue
-		var other_defense_reduction: int = survival.call(
-			"_bum_defense_damage_reduction", survival.state.board[tile_index]
-		)
-		if other_defense_reduction != current_defense_reduction:
-			push_error("BUM defense should stack globally, got %d on another tile, expected %d." %
-				[other_defense_reduction, current_defense_reduction])
-			quit(1)
-			return
-		break
 
 	var secured_for_limit := 0
 	for tile_index in survival.state.board.size():
@@ -103,7 +90,7 @@ func _init() -> void:
 		return
 	survival.secure_current_tile()
 
-	survival.call("_trigger_bum")
+	BumResolver.trigger(survival)
 
 	var failures := 0
 	for built in survival.current_tile().buildings:
