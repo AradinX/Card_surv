@@ -3,29 +3,6 @@ extends ColorRect
 ## Paged "how to play" overlay (used by the main menu, auto-shown on first launch).
 ## Pure text — pages defined here; call open() to show from page 1.
 
-const PAGES := [
-	{
-		"title": "Dzień 50 — cel",
-		"body": "Cała rozgrywka to sen. Przetrwaj do dnia 50, a obudzisz się wyspany.\n\nPilnuj 4 statystyk: Zdrowie, Sytość, Nawodnienie i Ciepło. Gdy Zdrowie spadnie do zera — budzik wyrywa cię z koszmaru (przegrana).",
-	},
-	{
-		"title": "Dzień i karty",
-		"body": "Każdego dnia masz pulę Energii. Za nią: zagrywasz karty z ręki, używasz akcji biomu (każda 1×/dzień), stawiasz budynki i przemieszczasz się między kaflami (1 energia).\n\nNa dole widzisz PROGNOZĘ NOCY — ile stracisz i ile masz zapasów. Gdy skończysz, kliknij „Koniec dnia”.",
-	},
-	{
-		"title": "Plansza i mgła",
-		"body": "Osada to 6 kafli biomów. Na starcie widzisz tylko jeden — reszta to nieznany teren.\n\nWejście na sąsiedni kafel (lub karta zwiadu, np. „Rozejrzyj się”) odkrywa go. UWAGA: odkrycie aktywuje też jego NOCNE ZAGROŻENIA. Las daje drewno, Góry kamień — te biomy są zawsze.",
-	},
-	{
-		"title": "Noc i wybory",
-		"body": "Po „Końcu dnia” losuje się nocne zdarzenie — przeczytaj kartę i kliknij „Dalej”. Niektóre zdarzenia dają WYBÓR (np. nakarmić obcego czy go okraść) — decyzja należy do ciebie, część opcji jest ryzykowna.\n\nBuduj produkcję wcześnie i nie zaniedbuj Ciepła.",
-	},
-	{
-		"title": "BUM — katastrofa",
-		"body": "BUM uderza później w Akcie I. Kafle gniją albo marzną, budynki dostają ciężkie obrażenia, a nocą pojawiają się potwory.\n\nPrzed BUM możesz zabezpieczyć maksymalnie dwa rejony przyciskiem na aktualnym kaflu. Kosztuje to dużo kamienia, energię i drewno, ale zmniejsza obrażenia BUM i zużycie budynków w Akcie I. Po BUM odbuduj się INACZEJ: specjalne budynki Aktu II, naprawy i rozbiórka ruin.",
-	},
-]
-
 const TUTORIAL_PAGES := [
 	{
 		"title": "Szybki start",

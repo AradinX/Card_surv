@@ -16,10 +16,6 @@ const NIGHT_POPUP_MONSTER_SCENE := preload("res://ui/night_popup_monster.tscn")
 const CARD_DROP_ZONE_SCRIPT := preload("res://ui/card_drop_zone.gd")
 const MAX_GATHER_CARD_VIEWS := 3
 const LOG_PANEL_ACT2 := "res://assets/art/ui/panels/log_panel_act2.png"
-const LOG_PANEL_ACT1 := "res://assets/art/ui/panels/log_panel_act1.png"
-const LOG_TEXT_ACT2 := Color(0.82, 0.78, 0.64, 1.0)
-const REPAIR_ICON := "res://assets/art/ui/icons/icon_repair_round.png"
-const RUIN_ICON := "res://assets/art/ui/icons/icon_ruin_round.png"
 ## BUM transition FX (fullscreen overlays). Additive ones sit on black, the
 ## rest are chroma-keyed to alpha; see tools/chroma_key_blue.gd.
 const BUM_FX := {
@@ -1205,26 +1201,6 @@ func _on_building_info_demolish_pressed(building_index: int) -> void:
 	_confirm_demolish(building_index)
 
 
-func _add_building_interaction(row: HBoxContainer, building_index: int) -> void:
-	var action := _survival.building_action(building_index)
-	if action.is_empty():
-		return
-	var block := str(action.get("block", ""))
-	var title := str(action.get("title", "Akcja"))
-	var summary := str(action.get("summary", ""))
-	var tooltip := block if block != "" else "%s\n%s" % [title, summary]
-	var action_idx := building_index
-	row.add_child(_make_text_action_button(
-		"Użyj",
-		tooltip,
-		block != "",
-		func() -> void:
-			_survival.use_building(action_idx)
-			AudioManager.play_sfx("card_play")
-			_refresh_building_actions()
-	))
-
-
 func _demolish_refund_summary(built) -> String:
 	var divisor := SurvivalSystem.DEMOLISH_REFUND_DIVISOR if built.is_ruined \
 		else SurvivalSystem.DEMOLISH_STANDING_REFUND_DIVISOR
@@ -1442,22 +1418,6 @@ func _show_deck_dialog() -> void:
 	_deck_popup.open(_survival.state.deck)
 
 
-func _deck_summary() -> String:
-	var counts := _deck_counts()
-	if counts.is_empty():
-		return "Talia jest pusta."
-	var lines: PackedStringArray = ["Karty w talii: %d" % _survival.state.deck.size(), ""]
-	var names: Array[String] = []
-	for id in counts.keys():
-		names.append(str(id))
-	names.sort()
-	for id in names:
-		var item: Dictionary = counts[id]
-		var card: CardData = item["card"]
-		lines.append("%s x%d" % [card.display_name, int(item["count"])])
-	return "\n".join(lines)
-
-
 func _deck_counts() -> Dictionary:
 	var counts := {}
 	for card in _survival.state.deck:
@@ -1542,64 +1502,6 @@ func _build_cost_summary(b: BuildingCardData) -> String:
 	if biome_label != "":
 		parts.append(biome_label)
 	return ", ".join(parts)
-
-
-func _make_building_cost_label(text: String) -> Label:
-	var label := Label.new()
-	label.custom_minimum_size = Vector2(210, 60)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.size_flags_vertical = Control.SIZE_FILL
-	label.text = text
-	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.clip_text = true
-	label.add_theme_font_size_override("font_size", 12)
-	label.add_theme_color_override("font_color", Color(0.88, 0.78, 0.55, 1.0))
-	label.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 1.0))
-	label.add_theme_constant_override("shadow_offset_x", 1)
-	label.add_theme_constant_override("shadow_offset_y", 1)
-	return label
-
-
-func _make_icon_action_button(
-	icon_path: String,
-	button_tooltip: String,
-	is_disabled: bool,
-	on_pressed: Callable
-) -> Button:
-	var button := Button.new()
-	var empty_style := StyleBoxEmpty.new()
-	for state in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
-		button.add_theme_stylebox_override(state, empty_style)
-	button.custom_minimum_size = Vector2(60, 60)
-	button.icon = load(icon_path)
-	button.expand_icon = true
-	button.disabled = is_disabled
-	button.tooltip_text = button_tooltip
-	button.pressed.connect(on_pressed)
-	return button
-
-
-func _make_text_action_button(
-	text: String,
-	button_tooltip: String,
-	is_disabled: bool,
-	on_pressed: Callable
-) -> Button:
-	var button := Button.new()
-	button.custom_minimum_size = Vector2(74, 42)
-	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	button.text = text
-	button.clip_text = true
-	button.disabled = is_disabled
-	button.tooltip_text = button_tooltip
-	button.pressed.connect(on_pressed)
-	ButtonSkin.apply_minimal(button)
-	button.add_theme_font_size_override("font_size", 13)
-	button.add_theme_color_override("font_color", Color(0.96, 0.88, 0.68, 1.0))
-	button.add_theme_color_override("font_hover_color", Color(1.0, 0.96, 0.78, 1.0))
-	button.add_theme_color_override("font_disabled_color", Color(0.52, 0.46, 0.34, 0.85))
-	return button
 
 ## BUM: the board background flips to its corrupted Act II face and the
 ## whole screen darkens for the rest of the run.
@@ -2867,17 +2769,6 @@ func _resolve_building_card(payload: Dictionary) -> BuildingCardData:
 		if building != null and building.id == card_id:
 			return building
 	return null
-
-
-func _card_cost_summary(card: CardData) -> String:
-	if card is ActionCardData:
-		var action := card as ActionCardData
-		var parts: PackedStringArray = ["%d energii" % action.energy_cost]
-		if action.food_cost > 0: parts.append("%d jedzenia" % action.food_cost)
-		if action.wood_cost > 0: parts.append("%d drewna" % action.wood_cost)
-		if action.materials_cost > 0: parts.append("%d kamienia" % action.materials_cost)
-		return ", ".join(parts)
-	return "brak"
 
 
 ## Energy/resources may change without the hand changing (e.g. Rest), so

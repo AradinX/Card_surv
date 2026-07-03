@@ -2024,6 +2024,26 @@ Poprawki w 3 etapach wg decyzji gracza:
 - Testy `save_load_test` / `meta_progression_test` przepisane na nowy format;
   cała czternastka zielona.
 
+### Porządki: nieużywane assety i martwy kod (2026-07-03)
+
+- Usunięte z repo: `assets/_reference/` (121 MB konceptów/źródeł), śledzony
+  `tmp/` (32 MB raw z imagegen; katalog dodany do `.gitignore`), ~60 MB
+  nieużywanej grafiki (stare ilustracje kart sprzed `*_candidates`, stare
+  9-slice'y, `card_backs`, duble FX, `assets/placeholders/`), martwe wpisy
+  `web/` w `.gitignore`, `.gitkeep`-y w niepustych katalogach.
+- UWAGA: pliki `.wav` w `assets/audio/` NIE są dublami `.ogg` — katalog
+  AudioManagera pisze ścieżki `.ogg`, ale `_resolve()` dobiera rozszerzenie
+  i większość efektów istnieje tylko jako `.wav`. Zostają.
+- Martwy kod: `ui/night_card_view.gd/.tscn` (stary flip nocnej karty,
+  zastąpiony panelami 2026-07-01; wycięty też z `ui_layout_test`),
+  w `scenes/run.gd` funkcje `_add_building_interaction`, `_deck_summary`,
+  `_make_building_cost_label`, `_make_icon_action_button`,
+  `_make_text_action_button`, `_card_cost_summary` + stałe `LOG_PANEL_ACT1`,
+  `LOG_TEXT_ACT2`, `REPAIR_ICON`, `RUIN_ICON`; w `ui/help_overlay.gd` stary
+  `PAGES` (używany jest `TUTORIAL_PAGES`).
+- Narzędzia one-off w `tools/` i `docs/asset_plan/` celowo zostają. Cała
+  czternastka testów zielona po reimporcie.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).

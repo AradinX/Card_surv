@@ -4,7 +4,6 @@ extends SceneTree
 ## that the logic smoke tests do not touch.
 
 const CARD_VIEW_SCENE := preload("res://ui/card_view.tscn")
-const NIGHT_CARD_VIEW_SCENE := preload("res://ui/night_card_view.tscn")
 const BIOME_TILE_VIEW_SCENE := preload("res://ui/biome_tile_view.tscn")
 const TOP_STATUS_BAR_SCENE := preload("res://ui/top_status_bar_view.tscn")
 
@@ -56,20 +55,6 @@ func _run() -> void:
 		if view.get_node("CostLabel").visible:
 			_assert_label_text_visible(view.get_node("CostLabel"))
 		view.queue_free()
-
-	for card in cards:
-		if not (card is EventCardData or card is MonsterCardData):
-			continue
-		var night_view: NightCardView = NIGHT_CARD_VIEW_SCENE.instantiate()
-		root_control.add_child(night_view)
-		night_view.setup(card, "")
-		await process_frame
-		assert(night_view.get_node("CostLabel").visible == false)
-		assert(night_view.get_node("NameLabel").get_theme_font_size("font_size") >= 8)
-		assert(night_view.get_node("DescLabel").get_theme_font_size("font_size") >= 7)
-		_assert_label_text_visible(night_view.get_node("NameLabel"))
-		_assert_label_text_visible(night_view.get_node("DescLabel"))
-		night_view.queue_free()
 
 	var biomes := CardLibrary.load_biomes_from_dir("res://data/biomes")
 	assert(not biomes.is_empty(), "expected biomes to instantiate BiomeTileView")

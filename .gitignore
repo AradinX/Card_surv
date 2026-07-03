@@ -12,7 +12,5 @@ Thumbs.db
 # Tymczasowe artefakty testów headless (pliki zaczynające się od _)
 tests/_*
 
-# Port webowy — lokalne narzędzia (przenośny Node, Chrome, zrzuty) i paczka
-web/_tools/
-web/_refs/
-web/dzien50.zip
+# Robocze pliki generowania assetów
+tmp/
