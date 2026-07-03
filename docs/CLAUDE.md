@@ -1676,6 +1676,25 @@ tekstem na przypiętych kartkach pergaminu namalowanych na panelu.
   niezależny regression-check karty w ramce event/monster (przydatny, gdyby
   card-frame'owy wygląd wrócił gdzie indziej, np. w innym popupie).
 
+### Tła skorumpowanych biomów per katastrofa (2026-07-03)
+
+- Wygenerowany brakujący komplet teł Aktu II wg
+  `docs/asset_plan/ASSET_PROMPTS_DISASTER_BIOME_BACKGROUNDS.md`: 24 pliki
+  (8 biomów × Zaćmienie/Powódź/Pęknięcie) w
+  `assets/art/biomes/backgrounds/corrupted/biome_<biom>_<katastrofa>_bg.png`,
+  ten sam rozmiar/styl co istniejący komplet Plagi.
+- Domknięty dług z wpisu 2026-06-19 („skażone twarze kafli pozostają zielone
+  dla obu katastrof"): oba miejsca hardkodujące sufiks `plague` niezależnie od
+  wylosowanej katastrofy naprawione. `ui/biome_tile_view.gd _background_path()`
+  i `setup()` przyjmują teraz `disaster_id` (przekazywane z `run.gd
+  _refresh_tiles` jako `state.disaster.id`); `run.gd
+  _secure_region_preview_texture()` też czyta realną katastrofę. Fallback
+  zostaje trzystopniowy: art danej katastrofy → art Plagi (zawsze jest) →
+  `biome_forest_normal_bg.png` — brak ryzyka czarnego ekranu, jeśli kiedyś
+  zabraknie pliku dla nowej katastrofy.
+- Weryfikacja: `--import` 0 błędów, cała czternastka testów zielona, smoke
+  22/50 (zgodne z baseline — czysto wizualna zmiana, `SurvivalSystem` nietknięty).
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

@@ -231,6 +231,7 @@ func setup(
 	secure_visible: bool = false,
 	secure_disabled: bool = true,
 	secure_tooltip: String = "",
+	disaster_id: String = "",
 ) -> void:
 	if not tile.is_discovered:
 		_setup_unknown_tile(tile, is_current, block_reason, tile_tooltip)
@@ -247,7 +248,7 @@ func setup(
 	self_modulate = Color(0.68, 0.68, 0.68, 1.0) if disabled and not is_current \
 		else Color.WHITE
 
-	_background.texture = load(_background_path(tile))
+	_background.texture = load(_background_path(tile, disaster_id))
 	_background.self_modulate = Color.WHITE
 	_frame.texture = load(CORRUPTION_FRAME if tile.is_corrupted else TILE_FRAME)
 	_frame.visible = not tile.bum_secured
@@ -391,15 +392,21 @@ func _label_box_size(label: Label) -> Vector2:
 	)
 
 
-func _background_path(tile: TileState) -> String:
+func _background_path(tile: TileState, disaster_id: String) -> String:
 	var art_id := str(BIOME_ART_IDS.get(tile.biome.id, tile.biome.id))
-	var file_name := "biome_%s_%s_bg.png" % [
-		art_id, "plague" if tile.is_corrupted else "normal"
-	]
-	var dir := CORRUPTED_BG_DIR if tile.is_corrupted else NORMAL_BG_DIR
-	var path := "%s/%s" % [dir, file_name]
-	if ResourceLoader.exists(path):
-		return path
+	if not tile.is_corrupted:
+		var normal_path := "%s/biome_%s_normal_bg.png" % [NORMAL_BG_DIR, art_id]
+		if ResourceLoader.exists(normal_path):
+			return normal_path
+		return "%s/biome_forest_normal_bg.png" % NORMAL_BG_DIR
+	if disaster_id != "":
+		var disaster_path := "%s/biome_%s_%s_bg.png" % [CORRUPTED_BG_DIR, art_id, disaster_id]
+		if ResourceLoader.exists(disaster_path):
+			return disaster_path
+	## Fallback: plague art (always present) if the disaster-specific tile is missing.
+	var plague_path := "%s/biome_%s_plague_bg.png" % [CORRUPTED_BG_DIR, art_id]
+	if ResourceLoader.exists(plague_path):
+		return plague_path
 	return "%s/biome_forest_normal_bg.png" % NORMAL_BG_DIR
 
 

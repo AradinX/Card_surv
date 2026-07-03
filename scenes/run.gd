@@ -840,6 +840,7 @@ func _refresh_tiles(state: RunState) -> void:
 			and not tile.buildings.is_empty()
 		var secure_block := _survival.can_secure_current_tile() if secure_visible else ""
 		var secure_tooltip := _secure_region_button_tooltip(secure_block) if secure_visible else ""
+		var disaster_id := state.disaster.id if state.disaster != null else ""
 		button.setup(
 			tile,
 			i == state.current_tile,
@@ -848,7 +849,8 @@ func _refresh_tiles(state: RunState) -> void:
 			building_tooltips,
 			secure_visible,
 			secure_block != "",
-			secure_tooltip
+			secure_tooltip,
+			disaster_id
 		)
 		button.set_accept_card_drops(i == state.current_tile)
 	_refresh_building_actions()
@@ -1303,11 +1305,20 @@ func _on_action_confirmed() -> void:
 func _secure_region_preview_texture() -> Texture2D:
 	var tile := _survival.current_tile()
 	var art_id := str(BIOME_PREVIEW_ART_IDS.get(tile.biome.id, tile.biome.id))
-	var state_suffix := "plague" if tile.is_corrupted else "normal"
 	var directory := BIOME_CORRUPTED_BG_DIR if tile.is_corrupted else BIOME_NORMAL_BG_DIR
-	var path := "%s/biome_%s_%s_bg.png" % [directory, art_id, state_suffix]
-	if ResourceLoader.exists(path):
-		return load(path) as Texture2D
+	if tile.is_corrupted:
+		var disaster_id := _survival.state.disaster.id if _survival.state.disaster != null else ""
+		if disaster_id != "":
+			var disaster_path := "%s/biome_%s_%s_bg.png" % [directory, art_id, disaster_id]
+			if ResourceLoader.exists(disaster_path):
+				return load(disaster_path) as Texture2D
+		var plague_path := "%s/biome_%s_plague_bg.png" % [directory, art_id]
+		if ResourceLoader.exists(plague_path):
+			return load(plague_path) as Texture2D
+	else:
+		var path := "%s/biome_%s_normal_bg.png" % [directory, art_id]
+		if ResourceLoader.exists(path):
+			return load(path) as Texture2D
 	var fallback := "%s/biome_forest_normal_bg.png" % BIOME_NORMAL_BG_DIR
 	if ResourceLoader.exists(fallback):
 		return load(fallback) as Texture2D
