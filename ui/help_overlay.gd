@@ -91,3 +91,8 @@ func _show_page(index: int) -> void:
 	_counter.text = "%d / %d" % [_page + 1, TUTORIAL_PAGES.size()]
 	_prev.disabled = _page == 0
 	_next.disabled = _page == TUTORIAL_PAGES.size() - 1
+	## Panel size can change with the new text (different page length); the
+	## scale/pivot computed in _ready() used the placeholder "..." body, so it
+	## must be redone once the container has actually resized to fit the real
+	## text (deferred: Label autowrap height only settles after a sort pass).
+	call_deferred("_apply_responsive_layout")
