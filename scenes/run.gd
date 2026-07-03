@@ -12,27 +12,6 @@ const SECURE_POPUP_SCENE := preload("res://ui/secure_popup.tscn")
 const CARD_DROP_ZONE_SCRIPT := preload("res://ui/card_drop_zone.gd")
 const MAX_GATHER_CARD_VIEWS := 3
 const LOG_PANEL_ACT2 := "res://assets/art/ui/panels/log_panel_act2.png"
-## BUM transition FX (fullscreen overlays). Additive ones sit on black, the
-## rest are chroma-keyed to alpha; see tools/chroma_key_blue.gd.
-const BUM_FX := {
-	"omen": "res://assets/art/fx/bum/fx_omen_glow.png",
-	"flash": "res://assets/art/fx/bum/fx_bum_flash.png",
-	"shock": "res://assets/art/fx/bum/fx_shockwave_ring.png",
-	"petals": "res://assets/art/fx/bum/fx_blast_petals.png",
-	"rift1": "res://assets/art/fx/bum/fx_sky_rift_01.png",
-	"rift2": "res://assets/art/fx/bum/fx_sky_rift_02.png",
-	"crack": "res://assets/art/fx/bum/fx_screen_crack_overlay.png",
-	"wilt": "res://assets/art/fx/bum/fx_wilt_overlay.png",
-	"rot": "res://assets/art/fx/corruption/fx_rot_wipe.png",
-	"cloud1": "res://assets/art/fx/corruption/fx_plague_cloud_01.png",
-	"cloud2": "res://assets/art/fx/corruption/fx_plague_cloud_02.png",
-	"vignette": "res://assets/art/fx/corruption/fx_corruption_vignette.png",
-	"motes": "res://assets/art/fx/corruption/fx_spore_motes_loop.png",
-}
-const BUM_FX_ADDITIVE := ["omen", "flash", "motes"]
-## Corruption FX layers that get recolored per disaster (the blast itself stays
-## natural). Plague keeps them green; Eclipse tints them icy blue.
-const ACT2_TINT_LAYERS := ["rot", "cloud1", "cloud2", "wilt", "petals", "vignette", "motes"]
 ## Per-disaster Act II palette. Keyed by DisasterData.id; "" / unknown falls back
 ## to plague. fx_tint recolors the corruption overlays, scrim is the screen wash,
 ## board cools the (plague-themed) Act II board art, log_text recolors the log.
@@ -62,18 +41,9 @@ const ACT2_LOOK := {
 		"log_text": Color(0.72, 0.92, 0.92, 1.0),
 	},
 }
-## Ambient / feedback FX (all optional — guarded by ResourceLoader.exists, so a
-## missing or mid-regeneration asset simply skips the effect).
-const WEATHER_RAIN := "res://assets/art/fx/weather/fx_rain_overlay.png"
-const WEATHER_SNOW := "res://assets/art/fx/weather/fx_snow_overlay.png"
-const WEATHER_FROST := "res://assets/art/fx/weather/fx_frost_edges.png"
-const HEAL_FX := "res://assets/art/fx/cards/fx_heal_spark.png"
-const RESOURCE_FX := "res://assets/art/fx/cards/fx_resource_gain.png"
+## One-shot FX paths used at call sites here; the FX layers themselves live in
+## RunFx (scenes/run_fx.gd). All optional — guarded by ResourceLoader.exists.
 const EAT_DRINK_FX := "res://assets/art/fx/cards/fx_eat_drink_feedback.png"
-## Pre-wired (assets not yet generated — guarded by ResourceLoader.exists).
-const LOW_HP_FX := "res://assets/art/fx/ui/fx_low_hp_vignette.png"
-const LOW_HUNGER_FX := "res://assets/art/fx/ui/fx_low_hunger_vignette.png"
-const LOW_THIRST_FX := "res://assets/art/fx/ui/fx_low_thirst_vignette.png"
 const BUILD_PLACE_FX := "res://assets/art/fx/buildings/fx_build_place.png"
 const REPAIR_FX := "res://assets/art/fx/buildings/fx_repair_sparkle.png"
 const COLLAPSE_FX := "res://assets/art/fx/buildings/fx_ruin_collapse.png"
@@ -89,19 +59,6 @@ const BIOME_PREVIEW_ART_IDS := {
 	"wasteland": "wasteland",
 	"caves": "caves",
 	"coast": "coast",
-}
-## Low-HP danger vignette shows at or below this fraction of max health.
-const LOW_HP_FRACTION := 0.3
-const NEED_WARNING_FRACTION := 0.3
-const NEED_WARNING_COLORS := {
-	"hunger": Color(1.0, 0.55, 0.18, 1.0),
-	"thirst": Color(0.22, 0.62, 1.0, 1.0),
-	"warmth": Color(0.78, 0.95, 1.0, 1.0),
-}
-const NEED_WARNING_FX := {
-	"hunger": LOW_HUNGER_FX,
-	"thirst": LOW_THIRST_FX,
-	"warmth": WEATHER_FROST,
 }
 const DESIGN_VIEWPORT := Vector2(1280, 720)
 const OVERLAY_PADDING := Vector2(32, 32)
@@ -186,12 +143,7 @@ var _tutorial_next_button: Button
 var _tutorial_step := TUTORIAL_BIOME_CARDS
 var _tutorial_hand_played := {}
 var _tutorial_delay_token := 0
-var _weather_overlay: TextureRect
-var _frost_overlay: TextureRect
-var _low_hp_overlay: TextureRect
-var _low_hp_tween: Tween
-var _need_warning_overlays: Dictionary = {}
-var _need_warning_tweens: Dictionary = {}
+var _fx: RunFx
 var _dragging_play_card := false
 ## Active Act II palette (set when BUM strikes; drives _apply_act2_look and the
 ## per-disaster tint of the corruption FX layers).
@@ -215,9 +167,8 @@ func _ready() -> void:
 	_night_overlay.setup(_survival)
 	_night_overlay.log_line.connect(_on_log_message)
 	_apply_button_skin()
-	_create_weather_overlay()
-	_create_low_hp_overlay()
-	_create_need_warning_overlays()
+	_fx = RunFx.new(self, _background, _background_art)
+	_fx.create_overlays()
 	# Before the resume act2 look below, so a resumed post-BUM run skins them too.
 	_setup_confirm_popups()
 	_setup_deck_dialog()
@@ -792,7 +743,7 @@ func _on_end_day_pressed() -> void:
 
 func _on_day_started(day: int) -> void:
 	_top_status_bar.set_day(day, SurvivalSystem.WIN_DAY, _survival.state.season)
-	_update_weather()
+	_fx.update_weather(_survival.state.season)
 	_update_forecast()
 	if GameManager.tutorial_mode:
 		if day == 2 and _tutorial_step <= TUTORIAL_NIGHT_EVENT:
@@ -808,8 +759,8 @@ func _on_stats_changed(state: RunState) -> void:
 	_top_status_bar.set_state(state, _survival.xp_to_next_level(), _resource_caps())
 	_refresh_playability()
 	_refresh_tiles(state)
-	_update_low_hp_vignette(state)
-	_update_need_warning_vignettes(state)
+	_fx.update_low_hp_vignette(state)
+	_fx.update_need_warning_vignettes(state)
 	_update_forecast()
 	if _build_mode:
 		_refresh_build_playability()
@@ -1483,7 +1434,7 @@ func _on_bum_struck(disaster: DisasterData) -> void:
 	AudioManager.play_sfx("bum")
 	AudioManager.play_act2_music(key)
 	AudioManager.play_act2_ambience(key)
-	_play_bum_fx()
+	_fx.play_bum_fx(_act2_look, _apply_act2_look)
 
 
 ## Swap the whole screen to its Act II look. Triggered at the flash peak of the
@@ -1508,192 +1459,6 @@ func _apply_act2_look() -> void:
 		_deck_popup.set_act2()
 
 
-## Cataclysm: a layered fullscreen sequence — dread glow, blast (flash +
-## shockwave + torn petals), the sky tearing, then creeping rot/plague that
-## wipes the lush board over to its corrupted Act II face. A dark vignette and
-## drifting spores stay for the rest of the run.
-func _play_bum_fx() -> void:
-	for id in BUM_FX:
-		if not ResourceLoader.exists(BUM_FX[id]):
-			_apply_act2_look()
-			return
-
-	var fx := Control.new()
-	add_child(fx)
-	fx.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var center := size * 0.5
-	var omen := _make_fx_layer("omen", fx)
-	var flash := _make_fx_layer("flash", fx)
-	var shock := _make_fx_layer("shock", fx)
-	shock.pivot_offset = center
-	shock.scale = Vector2(0.15, 0.15)
-	var petals := _make_fx_layer("petals", fx)
-	petals.pivot_offset = center
-	petals.scale = Vector2(0.6, 0.6)
-	var rift1 := _make_fx_layer("rift1", fx)
-	var rift2 := _make_fx_layer("rift2", fx)
-	var crack := _make_fx_layer("crack", fx)
-	var wilt := _make_fx_layer("wilt", fx)
-	var rot := _make_fx_layer("rot", fx)
-	var cloud1 := _make_fx_layer("cloud1", fx)
-	var cloud2 := _make_fx_layer("cloud2", fx)
-	# Persistent Act II atmosphere — parented to the scene, then moved to sit
-	# just above the board background and BELOW the gameplay UI, so it blends
-	# into the backdrop instead of covering the HUD and cards. The transient fx
-	# container stays on top (added later) for the blast.
-	var vignette := _make_fx_layer("vignette", self)
-	var motes := _make_fx_layer("motes", self)
-	var bg_index := _background_art.get_index()
-	move_child(vignette, bg_index + 1)
-	move_child(motes, bg_index + 2)
-
-	var t := create_tween().set_parallel(true)
-	# 1) Dread glow swells and fades.
-	t.tween_property(omen, "modulate:a", 0.7, 0.25)
-	t.tween_property(omen, "modulate:a", 0.0, 0.6).set_delay(0.55)
-	# 2) Blast: flash, expanding shockwave ring and torn petals. The Act II look
-	# is swapped in under the flash peak.
-	t.tween_property(flash, "modulate:a", 1.0, 0.08).set_delay(0.25)
-	t.tween_property(flash, "modulate:a", 0.0, 0.5).set_delay(0.42)
-	t.tween_callback(_apply_act2_look).set_delay(0.34)
-	t.tween_property(shock, "modulate:a", 0.9, 0.1).set_delay(0.26)
-	t.tween_property(shock, "scale", Vector2(1.55, 1.55), 0.6) \
-		.set_delay(0.26).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	t.tween_property(shock, "modulate:a", 0.0, 0.35).set_delay(0.55)
-	t.tween_property(petals, "modulate:a", 1.0, 0.12).set_delay(0.28)
-	t.tween_property(petals, "scale", Vector2(1.3, 1.3), 0.75) \
-		.set_delay(0.28).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	t.tween_property(petals, "modulate:a", 0.0, 0.5).set_delay(0.62)
-	# 3) The sky tears (rift_01 -> rift_02) and the screen cracks.
-	t.tween_property(rift1, "modulate:a", 0.95, 0.2).set_delay(0.5)
-	t.tween_property(rift1, "modulate:a", 0.0, 0.3).set_delay(0.82)
-	t.tween_property(rift2, "modulate:a", 0.95, 0.3).set_delay(0.8)
-	t.tween_property(crack, "modulate:a", 0.8, 0.25).set_delay(0.6)
-	# 4) Rot and plague creep in and wipe the board to Act II; the pretty Act I
-	# flowers wilt and brown along the ground.
-	t.tween_property(rot, "modulate:a", 1.0, 0.65).set_delay(0.85)
-	t.tween_property(wilt, "modulate:a", 1.0, 0.7).set_delay(0.8)
-	t.tween_property(cloud1, "modulate:a", 0.9, 0.7).set_delay(0.9)
-	t.tween_property(cloud2, "modulate:a", 0.85, 0.7).set_delay(1.05)
-	# 5) Persistent atmosphere settles in.
-	t.tween_property(vignette, "modulate:a", 1.0, 0.8).set_delay(1.45)
-	t.tween_property(motes, "modulate:a", 0.5, 1.0).set_delay(1.6)
-	# 6) Transient corruption fades out, revealing the settled Act II board.
-	t.tween_property(rift2, "modulate:a", 0.0, 0.6).set_delay(1.7)
-	t.tween_property(crack, "modulate:a", 0.0, 0.7).set_delay(1.7)
-	t.tween_property(rot, "modulate:a", 0.0, 0.9).set_delay(2.0)
-	t.tween_property(wilt, "modulate:a", 0.0, 0.9).set_delay(2.05)
-	t.tween_property(cloud1, "modulate:a", 0.0, 0.8).set_delay(2.1)
-	t.tween_property(cloud2, "modulate:a", 0.0, 0.8).set_delay(2.2)
-
-	t.finished.connect(func() -> void:
-		if is_instance_valid(fx):
-			fx.queue_free()
-		_loop_spore_motes(motes)
-	)
-
-
-func _make_fx_layer(id: String, parent: Control) -> TextureRect:
-	var layer := TextureRect.new()
-	layer.texture = load(BUM_FX[id])
-	layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	layer.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	layer.modulate.a = 0.0
-	if id in ACT2_TINT_LAYERS:
-		# self_modulate tints RGB while the alpha fade rides on modulate.a.
-		layer.self_modulate = _act2_look["fx_tint"]
-	parent.add_child(layer)
-	layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	if id in BUM_FX_ADDITIVE:
-		var mat := CanvasItemMaterial.new()
-		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-		layer.material = mat
-	return layer
-
-
-## Gentle breathing loop for the lingering spore haze.
-func _loop_spore_motes(motes: TextureRect) -> void:
-	if not is_instance_valid(motes):
-		return
-	var loop := create_tween().set_loops()
-	loop.tween_property(motes, "modulate:a", 0.28, 3.5).set_trans(Tween.TRANS_SINE)
-	loop.tween_property(motes, "modulate:a", 0.5, 3.5).set_trans(Tween.TRANS_SINE)
-
-
-# --- Ambient & feedback FX ---
-
-
-## A subtle weather layer behind the gameplay UI (above the scrim, below the
-## board), swapped by season. Never covers popups since it sits under the UI.
-func _create_weather_overlay() -> void:
-	_weather_overlay = _make_ambient_overlay(0.5)
-	_frost_overlay = _make_ambient_overlay(0.45)
-
-
-## A full-screen ambient layer above the scrim but below the gameplay UI, so it
-## never covers popups.
-func _make_ambient_overlay(alpha: float) -> TextureRect:
-	var overlay := TextureRect.new()
-	overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	overlay.modulate.a = alpha
-	overlay.visible = false
-	add_child(overlay)
-	overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	move_child(overlay, _background.get_index() + 1)
-	return overlay
-
-
-## Rain in spring/autumn, snow + frost vignette in winter, clear in summer.
-func _update_weather() -> void:
-	if _weather_overlay == null:
-		return
-	var path := ""
-	match _survival.state.season:
-		RunState.Season.WINTER:
-			path = WEATHER_SNOW
-		RunState.Season.SPRING, RunState.Season.AUTUMN:
-			path = WEATHER_RAIN
-		_:
-			path = ""
-	if path != "" and ResourceLoader.exists(path):
-		_weather_overlay.texture = load(path)
-		_weather_overlay.visible = true
-	else:
-		_weather_overlay.visible = false
-
-	var is_winter := _survival.state.season == RunState.Season.WINTER
-	if is_winter and ResourceLoader.exists(WEATHER_FROST):
-		_frost_overlay.texture = load(WEATHER_FROST)
-		_frost_overlay.visible = true
-	else:
-		_frost_overlay.visible = false
-
-
-## Pops a heal/resource sparkle over a just-played card.
-func _card_feedback_fx(card: CardData, view: Control) -> void:
-	_card_feedback_fx_at(card, view.global_position + view.size * 0.5)
-
-
-func _card_feedback_fx_at(card: CardData, center: Vector2) -> void:
-	if not (card is ActionCardData):
-		return
-	var action := card as ActionCardData
-	var path := ""
-	if action.health_delta > 0:
-		path = HEAL_FX
-	elif action.food_gain > 0 or action.water_gain > 0 \
-			or action.wood_gain > 0 or action.materials_gain > 0:
-		path = RESOURCE_FX
-	if path == "" or not ResourceLoader.exists(path):
-		return
-	_spawn_world_fx(path, center, Vector2(150, 150))
-
-
 ## Overnight the survivor auto-ate/drank from stock — a small feedback glow over
 ## the top stat bars (where hunger/thirst live). Additive (asset sits on black).
 func _on_needs_consumed(food_eaten: int, water_drunk: int) -> void:
@@ -1706,32 +1471,7 @@ func _on_needs_consumed(food_eaten: int, water_drunk: int) -> void:
 	var rect := _top_status_bar.get_global_rect()
 	# Left third of the HUD holds the stat bars; nudge the glow over them.
 	var center := Vector2(rect.position.x + rect.size.x * 0.28, rect.get_center().y)
-	_spawn_world_fx(EAT_DRINK_FX, center, Vector2(220, 120))
-
-
-## A one-shot FX at a screen point, auto-freed when it finishes. Additive glows
-## (sparks) on black; cut-out FX (dust, rubble) keep normal blending.
-func _spawn_world_fx(path: String, center: Vector2, fx_size: Vector2, additive := true) -> void:
-	var fx := TextureRect.new()
-	fx.texture = load(path)
-	fx.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	fx.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fx.size = fx_size
-	fx.position = center - fx_size * 0.5
-	fx.pivot_offset = fx_size * 0.5
-	fx.modulate.a = 0.0
-	fx.scale = Vector2(0.7, 0.7)
-	if additive:
-		var mat := CanvasItemMaterial.new()
-		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-		fx.material = mat
-	add_child(fx)
-	var t := create_tween()
-	t.tween_property(fx, "modulate:a", 1.0, 0.1)
-	t.parallel().tween_property(fx, "scale", Vector2(1.2, 1.2), 0.32)
-	t.tween_property(fx, "modulate:a", 0.0, 0.3)
-	t.tween_callback(fx.queue_free)
+	_fx.spawn_world_fx(EAT_DRINK_FX, center, Vector2(220, 120))
 
 
 ## A one-shot FX centered on the player's current tile (build/repair/collapse).
@@ -1742,100 +1482,7 @@ func _spawn_tile_fx(path: String, additive: bool) -> void:
 	if idx < 0 or idx >= _tile_buttons.size():
 		return
 	var rect := _tile_buttons[idx].get_global_rect()
-	_spawn_world_fx(path, rect.get_center(), rect.size * 1.05, additive)
-
-
-# --- Critical-HP danger vignette ---
-
-
-func _create_low_hp_overlay() -> void:
-	_low_hp_overlay = TextureRect.new()
-	_low_hp_overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_low_hp_overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	_low_hp_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_low_hp_overlay.modulate.a = 0.0
-	_low_hp_overlay.visible = false
-	if ResourceLoader.exists(LOW_HP_FX):
-		_low_hp_overlay.texture = load(LOW_HP_FX)
-	add_child(_low_hp_overlay)
-	_low_hp_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-
-
-## Pulsing red vignette when health is critically low (skipped if asset absent).
-func _update_low_hp_vignette(state: RunState) -> void:
-	if _low_hp_overlay == null or _low_hp_overlay.texture == null:
-		return
-	var critical := state.health > 0 \
-		and state.health <= int(ceil(state.max_health * LOW_HP_FRACTION))
-	if critical and not _low_hp_overlay.visible:
-		_low_hp_overlay.visible = true
-		_low_hp_tween = create_tween().set_loops()
-		_low_hp_tween.tween_property(_low_hp_overlay, "modulate:a", 0.7, 0.6) \
-			.set_trans(Tween.TRANS_SINE)
-		_low_hp_tween.tween_property(_low_hp_overlay, "modulate:a", 0.28, 0.6) \
-			.set_trans(Tween.TRANS_SINE)
-	elif not critical and _low_hp_overlay.visible:
-		if _low_hp_tween != null:
-			_low_hp_tween.kill()
-			_low_hp_tween = null
-		_low_hp_overlay.visible = false
-		_low_hp_overlay.modulate.a = 0.0
-
-
-func _create_need_warning_overlays() -> void:
-	for id in NEED_WARNING_COLORS.keys():
-		var texture_path := str(NEED_WARNING_FX.get(id, ""))
-		if not ResourceLoader.exists(texture_path):
-			texture_path = LOW_HP_FX
-		if not ResourceLoader.exists(texture_path):
-			continue
-		var overlay := TextureRect.new()
-		overlay.texture = load(texture_path)
-		overlay.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		overlay.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var color: Color = NEED_WARNING_COLORS[id]
-		color.a = 0.0
-		overlay.modulate = color
-		overlay.visible = false
-		add_child(overlay)
-		overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		_need_warning_overlays[id] = overlay
-
-
-func _update_need_warning_vignettes(state: RunState) -> void:
-	_update_need_warning_vignette("hunger", state.hunger, RunState.MAX_HUNGER, 0.42, 0.16)
-	_update_need_warning_vignette("thirst", state.thirst, RunState.MAX_THIRST, 0.46, 0.18)
-	_update_need_warning_vignette("warmth", state.warmth, RunState.MAX_WARMTH, 0.44, 0.16)
-
-
-func _update_need_warning_vignette(
-	id: String, current: int, maximum: int, high_alpha: float, low_alpha: float
-) -> void:
-	var overlay := _need_warning_overlays.get(id) as TextureRect
-	if overlay == null:
-		return
-	var critical := current <= int(ceil(maximum * NEED_WARNING_FRACTION))
-	if critical and not overlay.visible:
-		overlay.visible = true
-		var color: Color = NEED_WARNING_COLORS[id]
-		color.a = low_alpha
-		overlay.modulate = color
-		var peak_alpha := high_alpha + 0.12 if current <= 0 else high_alpha
-		var base_alpha := low_alpha + 0.06 if current <= 0 else low_alpha
-		var tween := create_tween().set_loops()
-		tween.tween_property(overlay, "modulate:a", peak_alpha, 0.65) \
-			.set_trans(Tween.TRANS_SINE)
-		tween.tween_property(overlay, "modulate:a", base_alpha, 0.65) \
-			.set_trans(Tween.TRANS_SINE)
-		_need_warning_tweens[id] = tween
-	elif not critical and overlay.visible:
-		var tween := _need_warning_tweens.get(id) as Tween
-		if tween != null:
-			tween.kill()
-			_need_warning_tweens[id] = null
-		overlay.visible = false
-		overlay.modulate.a = 0.0
+	_fx.spawn_world_fx(path, rect.get_center(), rect.size * 1.05, additive)
 
 
 func _apply_button_skin() -> void:
@@ -1911,7 +1558,7 @@ func _rebuild_cards(
 			)
 		else:
 			view.pressed.connect(func() -> void:
-				_card_feedback_fx(card, view)
+				_fx.card_feedback_fx(card, view)
 				on_pressed.call(index, card))
 
 
@@ -2000,7 +1647,7 @@ func _play_dragged_hand_card(payload: Dictionary, feedback_position: Vector2) ->
 	if block != "":
 		_on_log_message(block)
 		return
-	_card_feedback_fx_at(card, feedback_position)
+	_fx.card_feedback_fx_at(card, feedback_position)
 	_survival.play_card(index)
 	_tutorial_on_card_played("hand", card.id)
 
@@ -2014,7 +1661,7 @@ func _play_dragged_gather_card(payload: Dictionary, feedback_position: Vector2) 
 	if block != "":
 		_on_log_message(block)
 		return
-	_card_feedback_fx_at(action, feedback_position)
+	_fx.card_feedback_fx_at(action, feedback_position)
 	_survival.play_gather(action)
 	_tutorial_on_card_played("gather", action.id)
 
