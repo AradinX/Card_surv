@@ -133,11 +133,10 @@ Aktualny zestaw obejmuje:
 - ulepszenia kart (podmiana w talii), owned-only dobór ręki oraz flagę
   `gather_only`, modyfikatory kafla (camp) i przygotowanie rejonów pod BUM.
 
-Kontrolne pomiary smoke testu (2026-07-02, po przeglądzie kart): główny przebieg
-**22/50** dla naiwnego bota, średnio 37,7 dnia; zgony: Akt I 8 (śr. dzień 10,3),
-Akt II 20. Wyraźna poprawa względem 0/50 z 2026-07-01 (bot ginął na drogim
-zabezpieczaniu rejonów); Akt I wciąż powyżej historycznego ideału ~0–2 zgonów —
-sygnał do dalszego strojenia, nie twarda bramka.
+Kontrolne pomiary smoke testu (2026-07-04, po passie balansu przed wydaniem):
+główny przebieg **27/50**, średnio 43,2 dnia; zgony: Akt I **1**, Akt II 22 —
+Akt I wrócił do ideału ~0–2, trudność siedzi w Akcie II zgodnie z założeniem.
+Smoke raportuje teraz histogram przyczyn śmierci (ogółem i per klasa).
 
 ## Architektura
 
@@ -162,12 +161,13 @@ w `run.tscn`), a FX (sekwencja BUM, pogoda, winiety, world FX) w
 
 ## Aktualne priorytety
 
-1. Balans Aktu II po przesunięciu BUM na dzień 20–26 i dodaniu zabezpieczeń
-   rejonów; pacing/odbudowa wymagają kolejnych ręcznych playtestów.
-2. Ręczny playtest skrajnie różnych klas (spread Zielarka↔Informatyk);
-   Budowlaniec 3/30 u bota — kandydat do strojenia.
+1. Wydanie na Steam: lokalizacja PL+EN, strona sklepu (assety i teksty w
+   `assets/art/promotional/steam/` + `docs/STEAM_STORE_TEXTS.md`), depot wg
+   `docs/STEAM_RELEASE.md`.
+2. Ręczny playtest po passie balansu 2026-07-04 (Budowlaniec 19/30 u bota po
+   podmianach talii; Wojskowy 8/30 — głód, kandydat do przyjrzenia się).
 3. Rozszerzenie meta-progresji (kolekcja, odblokowania) i pełnego podglądu
-   nieodkrytych biomów.
+   nieodkrytych biomów — po wydaniu.
 
 CI (testy + build Windows + release) działa już w
 [`.github/workflows/godot-ci.yml`](.github/workflows/godot-ci.yml); preset

@@ -47,6 +47,9 @@ func _init() -> void:
 	# Act I (early game) deaths = losses BEFORE the cataclysm (bum never struck).
 	var act1_deaths := 0
 	var act1_death_days := 0
+	# Cause-of-death histograms per act (from run_summary) — the tuning signal.
+	var act1_causes := {}
+	var act2_causes := {}
 	for run_index in RUNS:
 		var outcome := _play_run(
 			character_class, biome_pool, event_cards, card_pool, disaster_pool, building_catalog, rng
@@ -59,11 +62,14 @@ func _init() -> void:
 		total_days += outcome.days
 		total_levels += outcome.level
 		if not outcome.won:
+			var cause: String = outcome.cause if outcome.cause != "" else "?"
 			if outcome.bum:
 				bum_deaths += 1
+				act2_causes[cause] = int(act2_causes.get(cause, 0)) + 1
 			else:
 				act1_deaths += 1
 				act1_death_days += outcome.days
+				act1_causes[cause] = int(act1_causes.get(cause, 0)) + 1
 	var act1_avg_day := (float(act1_death_days) / act1_deaths) if act1_deaths > 0 else 0.0
 	print("Smoke test OK: %d/%d runs won (cel: dzień %d), śr. %.1f dni, śr. poziom %.1f" % [
 		wins, RUNS, SurvivalSystem.WIN_DAY,
@@ -72,6 +78,10 @@ func _init() -> void:
 	print("  Zgony: Akt I (przed BUM) = %d (śr. dzień %.1f), Akt II (po BUM) = %d" % [
 		act1_deaths, act1_avg_day, bum_deaths
 	])
+	if not act1_causes.is_empty():
+		print("  Przyczyny Akt I: %s" % _format_causes(act1_causes))
+	if not act2_causes.is_empty():
+		print("  Przyczyny Akt II: %s" % _format_causes(act2_causes))
 
 	# Per-class balance signal — the new classes have their own starter decks.
 	print("Talie klas (%d runów każda):" % CLASS_SAMPLE)
@@ -81,6 +91,7 @@ func _init() -> void:
 		var cclass := resource as CharacterClassData
 		var class_wins := 0
 		var class_days := 0
+		var class_causes := {}
 		for i in CLASS_SAMPLE:
 			var outcome := _play_run(
 				cclass, biome_pool, event_cards, card_pool, disaster_pool, building_catalog, rng
@@ -91,8 +102,13 @@ func _init() -> void:
 				return
 			class_wins += 1 if outcome.won else 0
 			class_days += outcome.days
-		print("  [%s] %d/%d wygranych, śr. %.1f dni" % [
-			cclass.display_name, class_wins, CLASS_SAMPLE, float(class_days) / CLASS_SAMPLE
+			if not outcome.won:
+				var act := "II" if outcome.bum else "I"
+				var cause: String = "%s (Akt %s)" % [outcome.cause if outcome.cause != "" else "?", act]
+				class_causes[cause] = int(class_causes.get(cause, 0)) + 1
+		print("  [%s] %d/%d wygranych, śr. %.1f dni%s" % [
+			cclass.display_name, class_wins, CLASS_SAMPLE, float(class_days) / CLASS_SAMPLE,
+			("" if class_causes.is_empty() else " — " + _format_causes(class_causes))
 		])
 	quit(0)
 
@@ -107,7 +123,7 @@ func _play_run(
 	rng: RandomNumberGenerator,
 ) -> Dictionary:
 	var survival := SurvivalSystem.new()
-	var outcome := {"ended": false, "won": false, "days": 0, "level": 1, "bum": false}
+	var outcome := {"ended": false, "won": false, "days": 0, "level": 1, "bum": false, "cause": ""}
 	survival.run_ended.connect(func(won: bool, days: int) -> void:
 		outcome.ended = true
 		outcome.won = won
@@ -122,7 +138,17 @@ func _play_run(
 		_play_day(survival, outcome, rng)
 	outcome.level = survival.state.level
 	outcome.bum = survival.state.bum_happened
+	outcome.cause = str(survival.run_summary().get("cause", ""))
 	return outcome
+
+
+func _format_causes(causes: Dictionary) -> String:
+	var parts: PackedStringArray = []
+	var keys := causes.keys()
+	keys.sort_custom(func(a, b): return int(causes[a]) > int(causes[b]))
+	for key in keys:
+		parts.append("%s ×%d" % [key, causes[key]])
+	return ", ".join(parts)
 
 
 func _play_day(
@@ -146,6 +172,15 @@ func _play_day(
 						survival.claim_max_energy()
 					else:
 						survival.claim_card(_pick_reward(survival, rewards, rng))
+
+		# A reasonable player secures a heat source before anything else: with no
+		# campfire standing anywhere, build one the moment it's affordable —
+		# otherwise the greedy card loop drains energy first and the bot freezes.
+		if not _has_standing_campfire(survival):
+			var campfire := _catalog_building(survival, "building_campfire")
+			if campfire != null and survival.can_build(campfire) == "":
+				survival.build(campfire)
+				continue
 
 		# Greedy: first playable hand card — but a reasonable player won't burn
 		# health or satiety they can't spare (trade/tempo cards are opt-in).
@@ -246,6 +281,21 @@ func _play_day(
 	# Step guard tripped — end the day to keep the run moving.
 	survival.end_day()
 	survival.resolve_night()
+
+
+func _has_standing_campfire(survival: SurvivalSystem) -> bool:
+	for tile in survival.state.board:
+		for built in tile.buildings:
+			if built.data.id == "building_campfire" and not built.is_ruined:
+				return true
+	return false
+
+
+func _catalog_building(survival: SurvivalSystem, id: String) -> BuildingCardData:
+	for building in survival.building_catalog():
+		if building.id == id:
+			return building
+	return null
 
 
 ## A reasonable player's reward pick: take an upgrade of an owned card if offered

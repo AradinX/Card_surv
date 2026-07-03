@@ -41,22 +41,23 @@ odpowiednich taliach startowych.
 ✅ Skaut jest zawsze odblokowany. Wygrany run daje 1 monetę, ruletka kosztuje
 1 monetę i losuje jedną z zablokowanych klas.
 
-🟡 Aktualny sygnał balansowy z 30 runów bota na klasę (2026-07-02):
+🟡 Aktualny sygnał balansowy z 30 runów bota na klasę (2026-07-04, po passie
+balansu przed wydaniem — Budowlaniec dostał Bukłak i Suszone mięso w talii):
 
 | Klasa | Wygrane |
 |---|---:|
-| Zielarka | 28/30 |
-| Skaut | 19/30 |
-| Strateg | 19/30 |
-| Wędrowiec | 17/30 |
-| Łowca | 10/30 |
-| Kucharz | 9/30 |
-| Wojskowy | 7/30 |
-| Budowlaniec | 3/30 |
-| Informatyk | 0/30 |
+| Zielarka | 26/30 |
+| Skaut | 24/30 |
+| Wędrowiec | 22/30 |
+| Strateg | 22/30 |
+| Łowca | 20/30 |
+| Budowlaniec | 19/30 |
+| Kucharz | 17/30 |
+| Wojskowy | 8/30 |
+| Informatyk | 4/30 |
 
-To nie jest finalny balans. Informatyk ma być trudny, ale rozrzut wymaga
-playtestów człowieka.
+Informatyk ma być trudny (challenge). Wojskowy ginie z głodu (malus +1/dzień) —
+kandydat do przyjrzenia się po ręcznym playteście.
 
 ## Biomy i plansza
 

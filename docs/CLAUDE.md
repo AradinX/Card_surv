@@ -1695,6 +1695,32 @@ tekstem na przypiętych kartkach pergaminu namalowanych na panelu.
 - Weryfikacja: `--import` 0 błędów, cała czternastka testów zielona, smoke
   22/50 (zgodne z baseline — czysto wizualna zmiana, `SurvivalSystem` nietknięty).
 
+### Pass balansu przed wydaniem: diagnoza przyczyn + Akt I + Budowlaniec (2026-07-04)
+
+- **Smoke test raportuje przyczyny śmierci** (histogram z `run_summary()["cause"]`,
+  rozbity na Akt I/II, także per klasa) — koniec strojenia w ciemno. Nowy one-off
+  `tools/balance_trace.gd` odtwarza runy bota i zrzuca pełny log pierwszego runu
+  zakończonego śmiercią z mrozu w Akcie I (bot-pętla skopiowana ze smoke; trzymać
+  w synchronizacji tylko póki diagnostyka potrzebna).
+- **Diagnoza Aktu I (12 zgonów/50, w tym Mróz ×10):** bot dochodził do gałęzi
+  „buduj" dopiero przy wyczerpanej energii (zachłanne karty najpierw), więc NIGDY
+  nie stawiał ogniska → ciepło 0 od dnia ~4 → −2 HP/noc do śmierci ~dzień 11.
+  Poprawka BOTA (rozsądny gracz stawia ognisko od razu): jeśli nigdzie nie stoi
+  ognisko, bot buduje je na początku kroku, zanim zagra karty. Akt I: 12 → **0–1**
+  zgonów; główny przebieg 20 → **27–29/50**.
+- **Budowlaniec (3–8/30, zgony: Odwodnienie ×9 / Głód ×8 w Akcie II):** talia
+  czystej ekonomii drewna/kamienia bez zaplecza potrzeb. Dwie podmiany w
+  `builder_deck.tres`: `momentum` → **Bukłak** (woda) i drugi `gather_sticks` →
+  **Suszone mięso** (jedzenie). Efekt: **19/30**. Przy okazji usunięty MARTWY malus
+  `food_hunger_multiplier = 0.8` z `builder.tres` — `round(2×0.8) = 2` znaczyło
+  zero realnego efektu, a opis klasy okłamywał gracza („Jedzenie syci mniej −20%").
+- **Pomiar końcowy (smoke):** 27/50 (śr. 43,2 dnia), Akt I 1 zgon, Akt II 22.
+  Klasy: Zielarka 26, Skaut 24, Wędrowiec/Strateg 22, Łowca 20, Budowlaniec 19,
+  Kucharz 17, **Wojskowy 8** (Głód ×11 — malus +1 głodu/dzień; kandydat do
+  przyjrzenia się po ręcznym playteście), Informatyk 4 (challenge by design).
+- Cała czternastka testów zielona (season_test raz segfault Godota przy wyjściu —
+  flake, po powtórce zielony).
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

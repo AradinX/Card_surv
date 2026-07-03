@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DeckData" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="DeckData" load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scripts/resources/deck_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://data/cards/actions/signature/builder_signature.tres" id="2_sig"]
@@ -10,8 +10,9 @@
 [ext_resource type="Resource" path="res://data/cards/actions/find_water.tres" id="8_water"]
 [ext_resource type="Resource" path="res://data/cards/actions/rest.tres" id="9_rest"]
 [ext_resource type="Resource" path="res://data/cards/actions/haul_wood.tres" id="10_haul"]
-[ext_resource type="Resource" path="res://data/cards/actions/momentum.tres" id="11_mom"]
+[ext_resource type="Resource" path="res://data/cards/actions/waterskin.tres" id="11_mom"]
+[ext_resource type="Resource" path="res://data/cards/actions/dried_meat.tres" id="12_meat"]
 
 [resource]
 script = ExtResource("1_script")
-cards = [ExtResource("2_sig"), ExtResource("3_sticks"), ExtResource("3_sticks"), ExtResource("4_wood"), ExtResource("5_tools"), ExtResource("6_aid"), ExtResource("7_forage"), ExtResource("8_water"), ExtResource("9_rest"), ExtResource("10_haul"), ExtResource("11_mom")]
+cards = [ExtResource("2_sig"), ExtResource("3_sticks"), ExtResource("12_meat"), ExtResource("4_wood"), ExtResource("5_tools"), ExtResource("6_aid"), ExtResource("7_forage"), ExtResource("8_water"), ExtResource("9_rest"), ExtResource("10_haul"), ExtResource("11_mom")]
