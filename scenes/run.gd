@@ -217,6 +217,7 @@ var _tutorial_delay_token := 0
 var _night_fx: Array[Node] = []
 var _night_tween: Tween
 var _night_hover_tweens: Dictionary = {}
+var _night_block_tweens: Dictionary = {}
 var _night_popup_kind := ""
 var _night_choice_buttons: Array[Button] = []
 var _night_choice_labels: Array[Label] = []
@@ -2110,8 +2111,10 @@ func _on_night_button_hover_changed(button: Button, target: Control, hovered: bo
 	if visual == null or not is_instance_valid(visual):
 		return
 	var normal_color: Color = button.get_meta("night_hover_normal_color", visual.get_theme_color("font_color"))
-	var target_scale := NIGHT_BUTTON_HOVER_SCALE if hovered and not button.disabled else Vector2.ONE
-	var target_color := NIGHT_BUTTON_HOVER_COLOR if hovered and not button.disabled else normal_color
+	var block_reason := str(button.get_meta("choice_block_reason", ""))
+	var can_hover := hovered and not button.disabled and block_reason == ""
+	var target_scale := NIGHT_BUTTON_HOVER_SCALE if can_hover else Vector2.ONE
+	var target_color := NIGHT_BUTTON_HOVER_COLOR if can_hover else normal_color
 	visual.pivot_offset = visual.size * 0.5
 	var key := visual.get_instance_id()
 	var existing: Tween = _night_hover_tweens.get(key) as Tween
@@ -2186,9 +2189,62 @@ func _disconnect_night_choice_button(button: Button) -> void:
 
 
 func _on_night_choice_button_pressed(button: Button) -> void:
+	var block_reason := str(button.get_meta("choice_block_reason", ""))
+	if block_reason != "":
+		_play_night_choice_blocked_feedback(button, block_reason)
+		return
 	var choice_index := int(button.get_meta("choice_index", -1))
 	if choice_index >= 0:
 		_on_night_choice(choice_index)
+
+
+func _play_night_choice_blocked_feedback(button: Button, reason: String) -> void:
+	if button == null or not is_instance_valid(button):
+		return
+	button.tooltip_text = reason
+	_on_log_message(reason)
+	var frame := _ensure_night_choice_feedback_frame(button)
+	frame.visible = true
+	var key := button.get_instance_id()
+	var existing: Tween = _night_block_tweens.get(key) as Tween
+	if existing != null:
+		existing.kill()
+	button.position.x = round(button.position.x)
+	var base_position := button.position
+	frame.modulate.a = 1.0
+	var tween := create_tween()
+	_night_block_tweens[key] = tween
+	tween.tween_property(button, "position:x", base_position.x - 6.0, 0.04)
+	tween.tween_property(button, "position:x", base_position.x + 6.0, 0.06)
+	tween.tween_property(button, "position:x", base_position.x - 4.0, 0.05)
+	tween.tween_property(button, "position:x", base_position.x + 3.0, 0.05)
+	tween.tween_property(button, "position:x", base_position.x, 0.05)
+	tween.tween_property(frame, "modulate:a", 0.0, 0.25)
+	tween.finished.connect(func() -> void:
+		_night_block_tweens.erase(key)
+		if is_instance_valid(frame):
+			frame.visible = false
+	)
+
+
+func _ensure_night_choice_feedback_frame(button: Button) -> Panel:
+	var frame := button.get_node_or_null("BlockFeedbackFrame") as Panel
+	if frame != null:
+		return frame
+	frame = Panel.new()
+	frame.name = "BlockFeedbackFrame"
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var box := StyleBoxFlat.new()
+	box.bg_color = Color(0.45, 0.02, 0.02, 0.0)
+	box.border_color = Color(1.0, 0.1, 0.04, 0.95)
+	box.set_border_width_all(3)
+	box.set_corner_radius_all(6)
+	frame.add_theme_stylebox_override("panel", box)
+	button.add_child(frame)
+	button.move_child(frame, button.get_child_count() - 1)
+	frame.visible = false
+	return frame
 
 
 func _on_night_card_drawn(card: CardData) -> void:
@@ -2267,9 +2323,11 @@ func _build_night_choices(card: CardData) -> void:
 		button.set_meta("choice_block_reason", block_reason)
 		button.set_meta("choice_index", choice_index)
 		button.tooltip_text = block_reason
+		button.modulate = Color(0.72, 0.68, 0.62, 1.0) if block_reason != "" else Color.WHITE
 		button.text = ""
 		if label != null:
 			label.text = _choice_button_text(choice, block_reason)
+			label.modulate = Color(0.72, 0.68, 0.62, 1.0) if block_reason != "" else Color.WHITE
 		_disconnect_night_choice_button(button)
 		button.pressed.connect(Callable(self, "_on_night_choice_button_pressed").bind(button))
 
@@ -2283,11 +2341,13 @@ func _reset_night_choice_controls() -> void:
 		button.disabled = true
 		button.text = ""
 		button.tooltip_text = ""
+		button.modulate = Color.WHITE
 		button.set_meta("choice_block_reason", "")
 		button.set_meta("choice_index", -1)
 	for label in _night_choice_labels:
 		label.visible = false
 		label.text = ""
+		label.modulate = Color.WHITE
 
 ## Full choice copy: clear risk odds plus explicit success/failure outcomes.
 func _choice_button_text(choice, block_reason: String = "") -> String:
@@ -2552,7 +2612,7 @@ func _play_night_reveal(illustration: Texture2D, tint: Color) -> void:
 			_night_continue_button.disabled = false
 		for choice_button in _night_choice_buttons:
 			if choice_button.visible:
-				choice_button.disabled = str(choice_button.get_meta("choice_block_reason", "")) != ""
+				choice_button.disabled = false
 	)
 
 func _spawn_night_fx(id: String, fx_size: Vector2, additive: bool, tint: Color, behind: int) -> TextureRect:
