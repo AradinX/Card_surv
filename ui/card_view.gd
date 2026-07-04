@@ -45,6 +45,7 @@ var _drag_tween: Tween
 var _block_reason := ""
 var _feedback_tween: Tween
 var _feedback_frame: Panel
+var _disaster_id := ""
 
 
 ## `cost_override` lets the caller show a context-dependent cost (e.g. the
@@ -54,7 +55,9 @@ func setup(
 		card: CardData,
 		block_reason: String,
 		cost_override: String = "",
-		effects_override: Variant = null) -> void:
+		effects_override: Variant = null,
+		disaster_id: String = "") -> void:
+	_disaster_id = disaster_id
 	_name_label.text = tr(card.display_name)
 	_cost_label.text = cost_override if cost_override != "" else _format_costs(card)
 	# Flavour on its own label (top), effects on a separate label (bottom) so the
@@ -219,6 +222,12 @@ func _illustration_path(card: CardData) -> String:
 	if card is EventCardData:
 		return "%s/%s.png" % [EVENT_ART_DIR, card.id]
 	if card is ActionCardData:
+		if _disaster_id != "":
+			var disaster_dedicated := "%s/action_%s_%s.png" % [
+				ACTION_ART_DIR, card.id, _disaster_id
+			]
+			if ResourceLoader.exists(disaster_dedicated):
+				return disaster_dedicated
 		# Prefer a dedicated illustration if one exists; otherwise fall back to the
 		# shared alias art. This makes new per-card art plug-and-play: drop in
 		# action_<id>.png and it overrides the alias/shared art automatically, with

@@ -1565,7 +1565,7 @@ func _rebuild_cards(
 	for i in cards.size():
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		container.add_child(view)
-		view.setup(cards[i], "", "", _card_effect_override(cards[i]))
+		view.setup(cards[i], "", "", _card_effect_override(cards[i]), _active_disaster_id())
 		var card := cards[i]
 		var index := i
 		if source != "":
@@ -1737,13 +1737,13 @@ func _refresh_playability() -> void:
 	var hand_views := _hand_container.get_children()
 	for i in mini(hand_views.size(), hand.size()):
 		(hand_views[i] as CardView).setup(
-			hand[i], _survival.can_play(hand[i]), "", _card_effect_override(hand[i])
+			hand[i], _survival.can_play(hand[i]), "", _card_effect_override(hand[i]), _active_disaster_id()
 		)
 	var gathers := _survival.available_gather_actions().slice(0, MAX_GATHER_CARD_VIEWS)
 	var gather_views := _gather_container.get_children()
 	for i in mini(gather_views.size(), gathers.size()):
 		(gather_views[i] as CardView).setup(
-			gathers[i], _survival.can_play_gather(gathers[i]), "", _card_effect_override(gathers[i])
+			gathers[i], _survival.can_play_gather(gathers[i]), "", _card_effect_override(gathers[i]), _active_disaster_id()
 		)
 
 
@@ -1751,6 +1751,14 @@ func _card_effect_override(card: CardData) -> Variant:
 	if card is ActionCardData:
 		return _survival.action_card_effect_summary(card as ActionCardData)
 	return null
+
+
+func _active_disaster_id() -> String:
+	if _survival == null or _survival.state == null or not _survival.state.bum_happened:
+		return ""
+	if _survival.state.disaster == null:
+		return ""
+	return _survival.state.disaster.id
 
 
 func _on_log_message(text: String) -> void:
