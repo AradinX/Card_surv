@@ -363,9 +363,9 @@ func resume(
 ## to signals first.
 func begin() -> void:
 	if _resumed:
-		log_message.emit("Wracasz do gry. Dzień %d z %d." % [state.day, WIN_DAY])
+		log_message.emit(tr("Wracasz do gry. Dzień %d z %d.") % [state.day, WIN_DAY])
 	else:
-		log_message.emit("Budzisz się w dziczy. Przetrwaj do dnia %d." % WIN_DAY)
+		log_message.emit(tr("Budzisz się w dziczy. Przetrwaj do dnia %d.") % WIN_DAY)
 	_start_day()
 
 
@@ -388,13 +388,13 @@ func move_energy_cost() -> int:
 ## Returns "" when the move is possible, otherwise a player-facing reason.
 func can_move(tile_index: int) -> String:
 	if not _day_active:
-		return "Dzień dobiegł końca."
+		return tr("Dzień dobiegł końca.")
 	if not BoardGenerator.are_adjacent(state.current_tile, tile_index):
-		return "Ten kafel nie sąsiaduje z twoją pozycją."
+		return tr("Ten kafel nie sąsiaduje z twoją pozycją.")
 	if _free_moves <= 0 and state.energy < move_energy_cost():
-		return "Za mało energii (potrzeba %d)." % move_energy_cost()
+		return tr("Za mało energii (potrzeba %d).") % move_energy_cost()
 	if _free_moves > 0 and _next_move_energy_penalty > 0 and state.energy < _next_move_energy_penalty:
-		return "Za mało energii (potrzeba %d)." % _next_move_energy_penalty
+		return tr("Za mało energii (potrzeba %d).") % _next_move_energy_penalty
 	return ""
 
 
@@ -407,10 +407,10 @@ func move_to(tile_index: int) -> void:
 		_free_moves -= 1
 		if _next_move_energy_penalty > 0:
 			state.energy -= _next_move_energy_penalty
-			log_message.emit("Bieg skraca trasę, ale objazd kosztuje +%d energii." % _next_move_energy_penalty)
+			log_message.emit(tr("Bieg skraca trasę, ale objazd kosztuje +%d energii.") % _next_move_energy_penalty)
 			_next_move_energy_penalty = 0
 		else:
-			log_message.emit("Bieg: ten ruch jest darmowy.")
+			log_message.emit(tr("Bieg: ten ruch jest darmowy."))
 	else:
 		state.energy -= move_energy_cost()
 		_next_move_energy_penalty = 0
@@ -419,9 +419,9 @@ func move_to(tile_index: int) -> void:
 	if not current_tile().is_discovered:
 		current_tile().is_discovered = true
 		discovered_now = true
-	log_message.emit("Przechodzisz do biomu: %s." % _tile_name(current_tile()))
+	log_message.emit(tr("Przechodzisz do biomu: %s.") % _tile_name(current_tile()))
 	if discovered_now:
-		log_message.emit("Odkrywasz nowy teren: %s." % _tile_name(current_tile()))
+		log_message.emit(tr("Odkrywasz nowy teren: %s.") % _tile_name(current_tile()))
 	_rebuild_event_deck()
 	stats_changed.emit(state)
 	board_changed.emit(state)
@@ -452,9 +452,9 @@ func available_gather_actions() -> Array[ActionCardData]:
 
 func can_play_gather(card: ActionCardData) -> String:
 	if not _day_active:
-		return "Dzień dobiegł końca."
+		return tr("Dzień dobiegł końca.")
 	if _used_gathers.has(_gather_key(card)):
-		return "Wykorzystane dzisiaj."
+		return tr("Wykorzystane dzisiaj.")
 	return _cost_block_reason(
 		card.energy_cost, card.food_cost, card.wood_cost, card.materials_cost
 	)
@@ -466,7 +466,7 @@ func play_gather(card: ActionCardData) -> void:
 		log_message.emit(block_reason)
 		return
 	_used_gathers[_gather_key(card)] = true
-	_resolve_action(card, "Korzystasz z okolicy")
+	_resolve_action(card, tr("Korzystasz z okolicy"))
 	_grant_xp(XP_PER_CARD)
 	if _check_death():
 		return
@@ -487,23 +487,23 @@ func repair_wood_cost(built: BuildingState) -> int:
 ## same "Napraw"/"Dołóż drewna" UI button).
 func can_repair(building_index: int) -> String:
 	if not _day_active:
-		return "Dzień dobiegł końca."
+		return tr("Dzień dobiegł końca.")
 	var buildings := current_tile().buildings
 	if building_index < 0 or building_index >= buildings.size():
-		return "Nie ma takiego budynku."
+		return tr("Nie ma takiego budynku.")
 	var built := buildings[building_index]
 	if built.data.id == "building_campfire":
 		if state.wood < CAMPFIRE_STOKE_WOOD_COST:
-			return "Za mało drewna (potrzeba %d)." % CAMPFIRE_STOKE_WOOD_COST
+			return tr("Za mało drewna (potrzeba %d).") % CAMPFIRE_STOKE_WOOD_COST
 		return ""
 	if built.is_ruined:
-		return "To ruina — można ją tylko rozebrać."
+		return tr("To ruina — można ją tylko rozebrać.")
 	if built.hp >= building_max_hp(built.data):
-		return "Budynek jest cały."
+		return tr("Budynek jest cały.")
 	if state.energy < REPAIR_ENERGY_COST:
-		return "Za mało energii (potrzeba %d)." % REPAIR_ENERGY_COST
+		return tr("Za mało energii (potrzeba %d).") % REPAIR_ENERGY_COST
 	if state.wood < repair_wood_cost(built):
-		return "Za mało drewna (potrzeba %d)." % repair_wood_cost(built)
+		return tr("Za mało drewna (potrzeba %d).") % repair_wood_cost(built)
 	return ""
 
 
@@ -516,7 +516,7 @@ func repair(building_index: int) -> void:
 	if built.data.id == "building_campfire":
 		state.wood -= CAMPFIRE_STOKE_WOOD_COST
 		built.hp += CAMPFIRE_FUEL_HP_PER_WOOD
-		log_message.emit("Dokładasz drewno do ogniska: pali się jeszcze %d nocy." % built.hp)
+		log_message.emit(tr("Dokładasz drewno do ogniska: pali się jeszcze %d nocy.") % built.hp)
 		stats_changed.emit(state)
 		board_changed.emit(state)
 		return
@@ -524,7 +524,7 @@ func repair(building_index: int) -> void:
 	state.wood -= repair_wood_cost(built)
 	built.hp = building_max_hp(built.data)
 	log_message.emit("Naprawiasz: %s (HP %d/%d)." % [
-		built.data.display_name, built.hp, building_max_hp(built.data)
+		tr(built.data.display_name), built.hp, building_max_hp(built.data)
 	])
 	stats_changed.emit(state)
 	board_changed.emit(state)
@@ -561,11 +561,11 @@ func _repair_current_tile(amount: int) -> void:
 			if best == null or built.hp < best.hp:
 				best = built
 	if best == null:
-		log_message.emit("Brak budynku do doraźnej naprawy na tym kaflu.")
+		log_message.emit(tr("Brak budynku do doraźnej naprawy na tym kaflu."))
 		return
 	best.hp = mini(best.hp + amount, building_max_hp(best.data))
-	log_message.emit("Doraźna naprawa: %s (HP %d/%d)." % [
-		best.data.display_name, best.hp, building_max_hp(best.data)
+	log_message.emit(tr("Doraźna naprawa: %s (HP %d/%d).") % [
+		tr(best.data.display_name), best.hp, building_max_hp(best.data)
 	])
 	board_changed.emit(state)
 
@@ -573,12 +573,12 @@ func _repair_current_tile(amount: int) -> void:
 ## Returns "" when the building on the current tile can be torn down.
 func can_demolish(building_index: int) -> String:
 	if not _day_active:
-		return "Dzień dobiegł końca."
+		return tr("Dzień dobiegł końca.")
 	var buildings := current_tile().buildings
 	if building_index < 0 or building_index >= buildings.size():
-		return "Nie ma takiego budynku."
+		return tr("Nie ma takiego budynku.")
 	if state.energy < DEMOLISH_ENERGY_COST:
-		return "Za mało energii (potrzeba %d)." % DEMOLISH_ENERGY_COST
+		return tr("Za mało energii (potrzeba %d).") % DEMOLISH_ENERGY_COST
 	return ""
 
 
@@ -596,9 +596,9 @@ func demolish(building_index: int) -> void:
 	_add_wood(wood_refund)
 	_add_materials(materials_refund)
 	current_tile().buildings.remove_at(building_index)
-	log_message.emit("Rozbierasz %s: %s (+%d drewna, +%d kamienia)." % [
-		"ruinę" if built.is_ruined else "budynek",
-		built.data.display_name,
+	log_message.emit(tr("Rozbierasz %s: %s (+%d drewna, +%d kamienia).") % [
+		tr("ruinę") if built.is_ruined else "budynek",
+		tr(built.data.display_name),
 		wood_refund,
 		materials_refund,
 	])
@@ -625,19 +625,19 @@ func building_action(building_index: int) -> Dictionary:
 
 func can_use_building(building_index: int) -> String:
 	if not _day_active:
-		return "Dzień dobiegł końca."
+		return tr("Dzień dobiegł końca.")
 	var buildings := current_tile().buildings
 	if building_index < 0 or building_index >= buildings.size():
-		return "Nie ma takiego budynku."
+		return tr("Nie ma takiego budynku.")
 	var built := buildings[building_index]
 	if built.is_ruined:
-		return "Ruina nie ma aktywnej akcji."
+		return tr("Ruina nie ma aktywnej akcji.")
 	var action := _building_action_definition(built.data)
 	if action.is_empty():
-		return "Ten budynek działa pasywnie."
+		return tr("Ten budynek działa pasywnie.")
 	var key := _building_action_key(building_index, action)
 	if _used_building_actions.has(key):
-		return "Ta akcja budynku była już użyta dzisiaj."
+		return tr("Ta akcja budynku była już użyta dzisiaj.")
 	var cost_block := _cost_block_reason(
 		int(action.get("cost_energy", 0)),
 		int(action.get("cost_food", 0)),
@@ -647,7 +647,7 @@ func can_use_building(building_index: int) -> String:
 	if cost_block != "":
 		return cost_block
 	if bool(action.get("tools", false)) and state.has_tools:
-		return "Masz już narzędzia."
+		return tr("Masz już narzędzia.")
 	return _building_action_capacity_block(action)
 
 
@@ -688,16 +688,16 @@ func use_building(building_index: int) -> void:
 	_used_building_actions[_building_action_key(building_index, action)] = true
 	var summary := _action_delta_summary(snapshot)
 	if bool(action.get("campfire_boost", false)):
-		summary += (", " if summary != "" else "") + "+%d ciepła tej nocy" % CAMPFIRE_STOKE_BONUS_WARMTH
+		summary += (", " if summary != "" else "") + tr("+%d ciepła tej nocy") % CAMPFIRE_STOKE_BONUS_WARMTH
 	if drawn > 0:
-		summary += (", " if summary != "" else "") + "+%d karta do ręki" % drawn
+		summary += (", " if summary != "" else "") + tr("+%d karta do ręki") % drawn
 	if repaired_buildings > 0:
 		summary += (", " if summary != "" else "") + "naprawiono %d bud. (+%d HP)" % [
 			repaired_buildings,
 			int(action.get("repair_tile_buildings", 0)),
 		]
-	log_message.emit("Budynek: %s - %s%s" % [
-		built.data.display_name,
+	log_message.emit(tr("Budynek: %s - %s%s") % [
+		tr(built.data.display_name),
 		str(action.get("title", "Akcja")),
 		": %s." % summary if summary != "" else ".",
 	])
@@ -707,8 +707,8 @@ func use_building(building_index: int) -> void:
 		if drawn > 0:
 			hand_changed.emit(hand)
 		return
-	_apply_building_wear(built, BUILDING_ACTION_WEAR, "Użycie zużywa %s (-%d HP)." % [
-		built.data.display_name,
+	_apply_building_wear(built, BUILDING_ACTION_WEAR, tr("Użycie zużywa %s (-%d HP).") % [
+		tr(built.data.display_name),
 		BUILDING_ACTION_WEAR,
 	], current_tile())
 	stats_changed.emit(state)
@@ -723,11 +723,11 @@ func use_building(building_index: int) -> void:
 ## Returns "" when the card can be played, otherwise a player-facing reason.
 func can_play(card: CardData) -> String:
 	if not _day_active:
-		return "Dzień dobiegł końca."
+		return tr("Dzień dobiegł końca.")
 	if card is ActionCardData:
 		var action := card as ActionCardData
 		if action.special == "craft_tools" and state.has_tools:
-			return "Masz już narzędzia."
+			return tr("Masz już narzędzia.")
 		return _cost_block_reason(
 			action.energy_cost, action.food_cost, action.wood_cost, action.materials_cost
 		)
@@ -737,14 +737,14 @@ func can_play(card: CardData) -> String:
 		if lock_reason != "":
 			return lock_reason
 		if current_tile().buildings.size() >= current_tile().biome.building_slots:
-			return "Brak wolnych slotów w tym biomie."
+			return tr("Brak wolnych slotów w tym biomie.")
 		return _cost_block_reason(
 			_building_energy_cost(building),
 			building.food_cost,
 			_building_wood_cost(building),
 			_building_materials_cost(building),
 		)
-	return "Tej karty nie da się zagrać."
+	return tr("Tej karty nie da się zagrać.")
 
 
 func play_card(index: int) -> void:
@@ -834,14 +834,14 @@ func end_of_day_forecast() -> Dictionary:
 
 func can_build(building: BuildingCardData) -> String:
 	if not _day_active:
-		return "Dzień dobiegł końca."
+		return tr("Dzień dobiegł końca.")
 	if building.act2_only and not state.bum_happened:
-		return "Dostępne dopiero po katastrofie."
+		return tr("Dostępne dopiero po katastrofie.")
 	var lock_reason := _biome_lock_reason(building)
 	if lock_reason != "":
 		return lock_reason
 	if current_tile().buildings.size() >= current_tile().biome.building_slots:
-		return "Brak wolnych slotów w tym biomie."
+		return tr("Brak wolnych slotów w tym biomie.")
 	return _cost_block_reason(
 		_building_energy_cost(building),
 		building.food_cost,
@@ -867,8 +867,8 @@ func _biome_lock_reason(building: BuildingCardData) -> String:
 		return ""
 	var names: PackedStringArray = []
 	for biome_id in building.required_biome_ids:
-		names.append(BIOME_DISPLAY_NAMES.get(biome_id, biome_id))
-	return "Można budować tylko na: " + " / ".join(names)
+		names.append(tr(BIOME_DISPLAY_NAMES.get(biome_id, biome_id)))
+	return tr("Można budować tylko na: ") + " / ".join(names)
 
 
 ## Short "Tylko: X / Y" label for the build-mode card, shown regardless of the
@@ -878,8 +878,8 @@ func required_biome_label(building: BuildingCardData) -> String:
 		return ""
 	var names: PackedStringArray = []
 	for biome_id in building.required_biome_ids:
-		names.append(BIOME_DISPLAY_NAMES.get(biome_id, biome_id))
-	return "Tylko: " + " / ".join(names)
+		names.append(tr(BIOME_DISPLAY_NAMES.get(biome_id, biome_id)))
+	return tr("Tylko: ") + " / ".join(names)
 
 
 ## Effective build cost on the current tile (class discount + post-BUM surcharge),
@@ -967,7 +967,7 @@ func claim_max_energy() -> void:
 	state.pending_rewards -= 1
 	state.max_energy += 1
 	state.energy = mini(state.energy + 1, state.max_energy)
-	log_message.emit("Nagroda: +1 maks. energii (%d)." % state.max_energy)
+	log_message.emit(tr("Nagroda: +1 maks. energii (%d).") % state.max_energy)
 	stats_changed.emit(state)
 
 
@@ -977,7 +977,7 @@ func claim_max_health() -> void:
 	state.pending_rewards -= 1
 	state.max_health += 1
 	state.health = mini(state.health + 1 + REWARD_HEAL, state.max_health)
-	log_message.emit("Nagroda: +1 maks. zdrowia (%d)." % state.max_health)
+	log_message.emit(tr("Nagroda: +1 maks. zdrowia (%d).") % state.max_health)
 	stats_changed.emit(state)
 
 
@@ -1219,12 +1219,12 @@ func claim_card(card: CardData) -> void:
 				var upgraded := load(path)
 				if upgraded != null and upgraded.id == card.id:
 					state.deck[i] = card
-					log_message.emit("Ulepszenie: %s → %s." % [base.display_name, card.display_name])
+					log_message.emit(tr("Ulepszenie: %s → %s.") % [tr(base.display_name), tr(card.display_name)])
 					stats_changed.emit(state)
 					return
 	state.deck.append(card)
-	log_message.emit("Nagroda: %s dołącza do talii (%d kart)." % [
-		card.display_name, state.deck.size()
+	log_message.emit(tr("Nagroda: %s dołącza do talii (%d kart).") % [
+		tr(card.display_name), state.deck.size()
 	])
 	stats_changed.emit(state)
 
@@ -1235,7 +1235,7 @@ func _grant_xp(amount: int) -> void:
 		state.xp -= xp_to_next_level()
 		state.level += 1
 		state.pending_rewards += 1
-		log_message.emit("AWANS! Poziom %d — wybierz nagrodę." % state.level)
+		log_message.emit(tr("AWANS! Poziom %d — wybierz nagrodę.") % state.level)
 		leveled_up.emit(state.level)
 
 
@@ -1277,13 +1277,13 @@ func _start_day() -> void:
 	_move_penalty_today = state.next_day_move_penalty
 	state.next_day_move_penalty = 0
 	if _move_penalty_today > 0:
-		log_message.emit("Trudne warunki: każdy ruch kosztuje dziś +%d energii." % _move_penalty_today)
+		log_message.emit(tr("Trudne warunki: każdy ruch kosztuje dziś +%d energii.") % _move_penalty_today)
 
 	# Passive dawn healing (a medic/hardy class trait).
 	if state.character_class.daily_health_regen > 0 and state.health < state.max_health:
 		var healed := mini(state.character_class.daily_health_regen, state.max_health - state.health)
 		state.health += healed
-		log_message.emit("Budzisz się wypoczęty. +%d zdrowia." % healed)
+		log_message.emit(tr("Budzisz się wypoczęty. +%d zdrowia.") % healed)
 
 	# Each day starts with a fresh shuffle of the player's full deck.
 	var deck_cards: Array[CardData] = []
@@ -1302,7 +1302,7 @@ func _start_day() -> void:
 		_day_deck = Deck.new(remaining, _rng)
 		_draw_cards(HAND_SIZE - hand.size())
 
-	log_message.emit("--- Dzień %d ---" % state.day)
+	log_message.emit(tr("--- Dzień %d ---") % state.day)
 	if _tutorial_mode:
 		var hint := _tutorial_day_hint()
 		if hint != "":
@@ -1320,7 +1320,7 @@ func _finish(won: bool) -> void:
 	_ended = true
 	_day_active = false
 	if not won:
-		log_message.emit("Twoje zdrowie spadło do zera. Koniec.")
+		log_message.emit(tr("Twoje zdrowie spadło do zera. Koniec."))
 	run_ended.emit(won, state.day)
 
 
@@ -1499,11 +1499,11 @@ func _find_card_index_by_id(cards: Array[CardData], card_id: String) -> int:
 func _tutorial_day_hint() -> String:
 	match state.day:
 		1:
-			return "SAMOUCZEK: przeci\u0105gnij kart\u0119 akcji na kartk\u0119 log\u00f3w albo obecny biom. Zdob\u0105d\u017a wod\u0119, jedzenie i drewno, potem otw\u00f3rz Budowanie i postaw pierwszy budynek."
+			return tr("SAMOUCZEK: przeci\u0105gnij kart\u0119 akcji na kartk\u0119 log\u00f3w albo obecny biom. Zdob\u0105d\u017a wod\u0119, jedzenie i drewno, potem otw\u00f3rz Budowanie i postaw pierwszy budynek.")
 		2:
-			return "SAMOUCZEK: kliknij zbudowany budynek na biomie, sprawd\u017a jego akcj\u0119 i opis. U\u017cyj budynku, zagraj kart\u0119 rozpoznania albo odkryj s\u0105siedni kafel."
+			return tr("SAMOUCZEK: kliknij zbudowany budynek na biomie, sprawd\u017a jego akcj\u0119 i opis. U\u017cyj budynku, zagraj kart\u0119 rozpoznania albo odkryj s\u0105siedni kafel.")
 		3:
-			return "SAMOUCZEK: cz\u0119\u015b\u0107 prowadzona zako\u0144czona. Dalej grasz normalnie: rozwijaj tali\u0119, osad\u0119 i przygotuj si\u0119 na nadchodz\u0105cy kryzys."
+			return tr("SAMOUCZEK: cz\u0119\u015b\u0107 prowadzona zako\u0144czona. Dalej grasz normalnie: rozwijaj tali\u0119, osad\u0119 i przygotuj si\u0119 na nadchodz\u0105cy kryzys.")
 		_:
 			return ""
 
@@ -1512,7 +1512,7 @@ func _update_season_for_day() -> void:
 	var next_season := _season_for_day(state.day)
 	if state.day == 1 or next_season != state.season:
 		state.season = next_season
-		log_message.emit("Pora roku: %s. %s" % [
+		log_message.emit(tr("Pora roku: %s. %s") % [
 			RunState.season_name(state.season),
 			_season_description(state.season),
 		])
@@ -1533,13 +1533,13 @@ func _season_for_day(day: int) -> int:
 func _season_description(season: int) -> String:
 	match season:
 		RunState.Season.SPRING:
-			return "Dzicz budzi się do życia: zbieranie jedzenia daje +1."
+			return tr("Dzicz budzi się do życia: zbieranie jedzenia daje +1.")
 		RunState.Season.SUMMER:
-			return "Upał wysusza gardło: nocne pragnienie spada o 1 mocniej."
+			return tr("Upał wysusza gardło: nocne pragnienie spada o 1 mocniej.")
 		RunState.Season.AUTUMN:
-			return "Las zrzuca gałęzie: akcje z drewnem dają +1 drewna."
+			return tr("Las zrzuca gałęzie: akcje z drewnem dają +1 drewna.")
 		RunState.Season.WINTER:
-			return "Mróz wgryza się w kości: ciepło spada o 1 mocniej."
+			return tr("Mróz wgryza się w kości: ciepło spada o 1 mocniej.")
 		_:
 			return ""
 
@@ -1562,16 +1562,16 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 	if state.has_tools:
 		if food_gain > 0:
 			food_gain += TOOLS_GAIN_BONUS
-			bonus_parts.append("narzędzia +%d jedzenia" % TOOLS_GAIN_BONUS)
+			bonus_parts.append(tr("narzędzia +%d jedzenia") % TOOLS_GAIN_BONUS)
 		if wood_gain > 0:
 			wood_gain += TOOLS_GAIN_BONUS
-			bonus_parts.append("narzędzia +%d drewna" % TOOLS_GAIN_BONUS)
+			bonus_parts.append(tr("narzędzia +%d drewna") % TOOLS_GAIN_BONUS)
 	if state.season == RunState.Season.SPRING and card.food_gain > 0:
 		food_gain += SPRING_FOOD_BONUS
-		bonus_parts.append("wiosna +%d jedzenia" % SPRING_FOOD_BONUS)
+		bonus_parts.append(tr("wiosna +%d jedzenia") % SPRING_FOOD_BONUS)
 	if state.season == RunState.Season.AUTUMN and card.wood_gain > 0:
 		wood_gain += AUTUMN_WOOD_BONUS
-		bonus_parts.append("jesień +%d drewna" % AUTUMN_WOOD_BONUS)
+		bonus_parts.append(tr("jesień +%d drewna") % AUTUMN_WOOD_BONUS)
 	# Winter: nature gives less — every gathered resource yields one fewer.
 	var materials_gain := card.materials_gain
 	if state.season == RunState.Season.WINTER:
@@ -1579,17 +1579,17 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 			var food_penalty := mini(WINTER_GATHER_PENALTY, food_gain)
 			food_gain = maxi(food_gain - WINTER_GATHER_PENALTY, 0)
 			if food_penalty > 0:
-				bonus_parts.append("zima -%d jedzenia" % food_penalty)
+				bonus_parts.append(tr("zima -%d jedzenia") % food_penalty)
 		if wood_gain > 0:
 			var wood_penalty := mini(WINTER_GATHER_PENALTY, wood_gain)
 			wood_gain = maxi(wood_gain - WINTER_GATHER_PENALTY, 0)
 			if wood_penalty > 0:
-				bonus_parts.append("zima -%d drewna" % wood_penalty)
+				bonus_parts.append(tr("zima -%d drewna") % wood_penalty)
 		if materials_gain > 0:
 			var materials_penalty := mini(WINTER_GATHER_PENALTY, materials_gain)
 			materials_gain = maxi(materials_gain - WINTER_GATHER_PENALTY, 0)
 			if materials_penalty > 0:
-				bonus_parts.append("zima -%d kamienia" % materials_penalty)
+				bonus_parts.append(tr("zima -%d kamienia") % materials_penalty)
 	_add_food(food_gain)
 	_add_water(card.water_gain)
 	_add_wood(wood_gain)
@@ -1605,7 +1605,7 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 	match card.special:
 		"craft_tools":
 			state.has_tools = true
-			log_message.emit("Masz narzędzia! +%d do zysku jedzenia i drewna." % TOOLS_GAIN_BONUS)
+			log_message.emit(tr("Masz narzędzia! +%d do zysku jedzenia i drewna.") % TOOLS_GAIN_BONUS)
 		"explore":
 			_resolve_explore()
 		"double_explore":
@@ -1613,23 +1613,23 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 			_resolve_explore()
 		"draw_two":
 			_draw_cards(2)
-			log_message.emit("Dobierasz 2 karty.")
+			log_message.emit(tr("Dobierasz 2 karty."))
 		"scout_reveal":
 			_scout_reveal()
 		"free_move":
 			_free_moves += 1
-			log_message.emit("Następny ruch dziś jest darmowy.")
+			log_message.emit(tr("Następny ruch dziś jest darmowy."))
 		"repair_tile":
 			_repair_current_tile(REPAIR_TILE_AMOUNT)
 		"ward_night":
 			_extra_night_protection += NIGHT_PROTECTION_VALUE
-			log_message.emit("Warta: tej nocy mniej oberwiesz od zdarzeń i potworów.")
+			log_message.emit(tr("Warta: tej nocy mniej oberwiesz od zdarzeń i potworów."))
 		"set_trap":
 			_night_trap = true
-			log_message.emit("Zastawiasz wnyki — pierwszy nocny napastnik wpadnie w pułapkę.")
+			log_message.emit(tr("Zastawiasz wnyki — pierwszy nocny napastnik wpadnie w pułapkę."))
 		"momentum":
 			_energy_refund_per_card += 1
-			log_message.emit("Zapał: każda kolejna karta dziś zwraca +1 energii.")
+			log_message.emit(tr("Zapał: każda kolejna karta dziś zwraca +1 energii."))
 		"rhythm":
 			var recovered_energy := mini(_turn_cards_played, state.max_energy - state.energy)
 			if recovered_energy > 0:
@@ -1637,10 +1637,10 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 		"combo_food":
 			if _turn_food_played:
 				_add_food(2)
-				log_message.emit("Combo jedzenia: +2 jedzenia za wcześniejszą kartę jedzenia.")
+				log_message.emit(tr("Combo jedzenia: +2 jedzenia za wcześniejszą kartę jedzenia."))
 		"next_move_cost":
 			_next_move_energy_penalty += 1
-			log_message.emit("Następny ruch dziś kosztuje +1 energii.")
+			log_message.emit(tr("Następny ruch dziś kosztuje +1 energii."))
 	# Per-turn synergy bookkeeping: count this card so later plays this turn can
 	# react (rhythm/momentum/combo_food). Gather actions resolve here too, so they
 	# also feed the combo counters.
@@ -1648,14 +1648,14 @@ func _resolve_action(card: ActionCardData, log_prefix: String = "Zagrywasz") -> 
 	if card.food_gain > 0 or card.hunger_delta > 0:
 		_turn_food_played = true
 	var summary: String = _action_delta_summary(snapshot)
-	var lines: PackedStringArray = ["%s: %s." % [log_prefix, card.display_name]]
+	var lines: PackedStringArray = ["%s: %s." % [log_prefix, tr(card.display_name)]]
 	if card_summary != "":
-		lines.append("Karta: %s." % card_summary)
+		lines.append(tr("Karta: %s.") % card_summary)
 	lines.append("Bonusy/modyfikatory: %s." % (
 		", ".join(bonus_parts) if not bonus_parts.is_empty() else "brak"
 	))
 	if summary != "":
-		lines.append("Razem: %s." % summary)
+		lines.append(tr("Razem: %s.") % summary)
 	log_message.emit("\n".join(lines))
 
 
@@ -1677,16 +1677,16 @@ func _action_state_snapshot() -> Dictionary:
 func _action_delta_summary(before: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	_append_delta_part(parts, state.health - int(before["health"]), "zdrowia")
-	_append_delta_part(parts, state.hunger - int(before["hunger"]), "sytości")
+	_append_delta_part(parts, state.hunger - int(before["hunger"]), tr("sytości"))
 	_append_delta_part(parts, state.thirst - int(before["thirst"]), "nawodnienia")
-	_append_delta_part(parts, state.warmth - int(before["warmth"]), "ciepła")
+	_append_delta_part(parts, state.warmth - int(before["warmth"]), tr("ciepła"))
 	_append_delta_part(parts, state.energy - int(before["energy"]), "energii")
 	_append_delta_part(parts, state.food - int(before["food"]), "jedzenia")
 	_append_delta_part(parts, state.water - int(before["water"]), "wody")
 	_append_delta_part(parts, state.wood - int(before["wood"]), "drewna")
 	_append_delta_part(parts, state.materials - int(before["materials"]), "kamienia")
 	if not bool(before["has_tools"]) and state.has_tools:
-		parts.append("narzędzia: tak")
+		parts.append(tr("narzędzia: tak"))
 	return ", ".join(parts)
 
 
@@ -1697,9 +1697,9 @@ func _action_card_base_summary(card: ActionCardData) -> String:
 	_append_delta_part(parts, -card.wood_cost, "drewna")
 	_append_delta_part(parts, -card.materials_cost, "kamienia")
 	_append_delta_part(parts, card.health_delta, "zdrowia")
-	_append_delta_part(parts, card.hunger_delta, "sytości")
+	_append_delta_part(parts, card.hunger_delta, tr("sytości"))
 	_append_delta_part(parts, card.thirst_delta, "nawodnienia")
-	_append_delta_part(parts, card.warmth_delta, "ciepła")
+	_append_delta_part(parts, card.warmth_delta, tr("ciepła"))
 	_append_delta_part(parts, card.energy_delta, "energii")
 	_append_delta_part(parts, card.food_gain, "jedzenia")
 	_append_delta_part(parts, card.water_gain, "wody")
@@ -1715,9 +1715,9 @@ func _action_card_base_summary(card: ActionCardData) -> String:
 func action_card_effect_summary(card: ActionCardData) -> String:
 	var parts: PackedStringArray = []
 	_append_delta_part(parts, card.health_delta, "zdrowia")
-	_append_delta_part(parts, card.hunger_delta, "sytości")
+	_append_delta_part(parts, card.hunger_delta, tr("sytości"))
 	_append_delta_part(parts, card.thirst_delta, "nawodnienia")
-	_append_delta_part(parts, card.warmth_delta, "ciepła")
+	_append_delta_part(parts, card.warmth_delta, tr("ciepła"))
 	_append_delta_part(parts, card.energy_delta, "energii")
 	_append_delta_part(parts, card.food_gain, "jedzenia")
 	_append_delta_part(parts, card.water_gain, "wody")
@@ -1744,39 +1744,39 @@ func _rhythm_recovered_energy(card: ActionCardData) -> int:
 func _action_special_log_text(special: String, card: ActionCardData = null) -> String:
 	match special:
 		"craft_tools":
-			return "tworzy narzędzia"
+			return tr("tworzy narzędzia")
 		"explore":
 			return "losowe znalezisko"
 		"double_explore":
 			return "2 losowe znaleziska"
 		"draw_two":
-			return "+2 karty do ręki"
+			return tr("+2 karty do ręki")
 		"scout_reveal":
-			return "odsłania sąsiedni kafel"
+			return tr("odsłania sąsiedni kafel")
 		"free_move":
-			return "następny ruch dziś za darmo"
+			return tr("następny ruch dziś za darmo")
 		"repair_tile":
-			return "doraźna naprawa budynku"
+			return tr("doraźna naprawa budynku")
 		"ward_night":
-			return "warta: łagodzi noc"
+			return tr("warta: łagodzi noc")
 		"set_trap":
-			return "wnyki: blokują atak potwora"
+			return tr("wnyki: blokują atak potwora")
 		"momentum":
-			return "zapał: kolejne karty zwracają energię"
+			return tr("zapał: kolejne karty zwracają energię")
 		"rhythm":
 			var recovered := _rhythm_recovered_energy(card)
 			return "+%d energii" % recovered if recovered > 0 else ""
 		"combo_food":
 			return "combo jedzenia"
 		"next_move_cost":
-			return "następny ruch dziś kosztuje +1 energii"
+			return tr("następny ruch dziś kosztuje +1 energii")
 		_:
 			return ""
 
 
 func _append_delta_part(parts: PackedStringArray, delta: int, label: String) -> void:
 	if delta != 0:
-		parts.append("%+d %s" % [delta, label])
+		parts.append("%+d %s" % [delta, tr(label)])
 
 
 ## Scout an adjacent UNDISCOVERED tile without moving there: reveals its biome
@@ -1786,24 +1786,24 @@ func _building_action_definition(building: BuildingCardData) -> Dictionary:
 		"building_campfire":
 			return {
 				"id": "stoke_big_fire",
-				"title": "Duży ogień",
+				"title": tr("Duży ogień"),
 				"cost_wood": CAMPFIRE_STOKE_WOOD_COST,
 				"cost_energy": CAMPFIRE_STOKE_ENERGY_COST,
 				"campfire_boost": true,
 				"no_wear": true,
 			}
 		"building_well":
-			return {"id": "draw_water", "title": "Nabierz wody", "cost_energy": 1, "water": 3}
+			return {"id": "draw_water", "title": tr("Nabierz wody"), "cost_energy": 1, "water": 3}
 		"building_cistern":
-			return {"id": "draw_water", "title": "Nabierz wody", "cost_energy": 1, "water": 3}
+			return {"id": "draw_water", "title": tr("Nabierz wody"), "cost_energy": 1, "water": 3}
 		"building_water_filter":
-			return {"id": "collect_rainwater", "title": "Zbierz deszczówkę", "cost_energy": 1, "water": 2}
+			return {"id": "collect_rainwater", "title": tr("Zbierz deszczówkę"), "cost_energy": 1, "water": 2}
 		"building_pantry":
-			return {"id": "eat_ration", "title": "Zjedz zapas", "cost_energy": 1, "cost_food": 1, "hunger": 3}
+			return {"id": "eat_ration", "title": tr("Zjedz zapas"), "cost_energy": 1, "cost_food": 1, "hunger": 3}
 		"building_workshop":
 			return {
 				"id": "workshop_repair",
-				"title": "Podreperuj konstrukcje",
+				"title": tr("Podreperuj konstrukcje"),
 				"cost_energy": 1,
 				"cost_wood": 1,
 				"cost_materials": 1,
@@ -1811,21 +1811,21 @@ func _building_action_definition(building: BuildingCardData) -> Dictionary:
 				"no_wear": true,
 			}
 		"building_herbalist":
-			return {"id": "brew_medicine", "title": "Użyj ziół", "cost_energy": 1, "health": 2}
+			return {"id": "brew_medicine", "title": tr("Użyj ziół"), "cost_energy": 1, "health": 2}
 		"building_field_infirmary":
-			return {"id": "field_treatment", "title": "Opatrz rany", "cost_energy": 1, "health": 3}
+			return {"id": "field_treatment", "title": tr("Opatrz rany"), "cost_energy": 1, "health": 3}
 		"building_watchtower":
-			return {"id": "lookout", "title": "Wypatruj zagrożeń", "cost_energy": 1, "draw_cards": 1}
+			return {"id": "lookout", "title": tr("Wypatruj zagrożeń"), "cost_energy": 1, "draw_cards": 1}
 		"building_farm":
-			return {"id": "harvest", "title": "Zbierz plon", "cost_energy": 1, "food": 1}
+			return {"id": "harvest", "title": tr("Zbierz plon"), "cost_energy": 1, "food": 1}
 		"building_traps":
-			return {"id": "check_traps", "title": "Sprawdź sidła", "cost_energy": 1, "food": 1}
+			return {"id": "check_traps", "title": tr("Sprawdź sidła"), "cost_energy": 1, "food": 1}
 		"building_fishing_dock":
-			return {"id": "fish", "title": "Zarzuć sieci", "cost_energy": 1, "food": 1}
+			return {"id": "fish", "title": tr("Zarzuć sieci"), "cost_energy": 1, "food": 1}
 		"building_logging_camp":
-			return {"id": "chop_wood", "title": "Rąb drewno", "cost_energy": 1, "wood": 1}
+			return {"id": "chop_wood", "title": tr("Rąb drewno"), "cost_energy": 1, "wood": 1}
 		"building_quarry":
-			return {"id": "mine_stone", "title": "Wydobądź kamień", "cost_energy": 1, "materials": 1}
+			return {"id": "mine_stone", "title": tr("Wydobądź kamień"), "cost_energy": 1, "materials": 1}
 		_:
 			return {}
 
@@ -1837,50 +1837,50 @@ func _building_action_summary(action: Dictionary) -> String:
 	_append_cost_part(parts, int(action.get("cost_wood", 0)), "drewna")
 	_append_cost_part(parts, int(action.get("cost_materials", 0)), "kamienia")
 	_append_delta_part(parts, int(action.get("health", 0)), "zdrowia")
-	_append_delta_part(parts, int(action.get("hunger", 0)), "sytości")
+	_append_delta_part(parts, int(action.get("hunger", 0)), tr("sytości"))
 	_append_delta_part(parts, int(action.get("thirst", 0)), "nawodnienia")
-	_append_delta_part(parts, int(action.get("warmth", 0)), "ciepła")
+	_append_delta_part(parts, int(action.get("warmth", 0)), tr("ciepła"))
 	_append_delta_part(parts, int(action.get("food", 0)), "jedzenia")
 	_append_delta_part(parts, int(action.get("water", 0)), "wody")
 	_append_delta_part(parts, int(action.get("wood", 0)), "drewna")
 	_append_delta_part(parts, int(action.get("materials", 0)), "kamienia")
 	if bool(action.get("tools", false)):
-		parts.append("narzędzia: tak")
+		parts.append(tr("narzędzia: tak"))
 	if int(action.get("repair_tile_buildings", 0)) > 0:
 		parts.append("+%d HP budynkom na kaflu" % int(action.get("repair_tile_buildings", 0)))
 	if int(action.get("draw_cards", 0)) > 0:
-		parts.append("+%d karta do ręki" % int(action.get("draw_cards", 0)))
+		parts.append(tr("+%d karta do ręki") % int(action.get("draw_cards", 0)))
 	if bool(action.get("campfire_boost", false)):
-		parts.append("+%d ciepła tej nocy" % CAMPFIRE_STOKE_BONUS_WARMTH)
+		parts.append(tr("+%d ciepła tej nocy") % CAMPFIRE_STOKE_BONUS_WARMTH)
 	return ", ".join(parts)
 
 
 func _append_cost_part(parts: PackedStringArray, amount: int, label: String) -> void:
 	if amount > 0:
-		parts.append("-%d %s" % [amount, label])
+		parts.append("-%d %s" % [amount, tr(label)])
 
 
 func _building_action_capacity_block(action: Dictionary) -> String:
 	if int(action.get("health", 0)) > 0 and state.health >= state.max_health:
-		return "Zdrowie jest już pełne."
+		return tr("Zdrowie jest już pełne.")
 	if int(action.get("hunger", 0)) > 0 and state.hunger >= RunState.MAX_HUNGER:
-		return "Sytość jest już pełna."
+		return tr("Sytość jest już pełna.")
 	if int(action.get("thirst", 0)) > 0 and state.thirst >= RunState.MAX_THIRST:
-		return "Nawodnienie jest już pełne."
+		return tr("Nawodnienie jest już pełne.")
 	if int(action.get("warmth", 0)) > 0 and state.warmth >= RunState.MAX_WARMTH:
-		return "Ciepło jest już pełne."
+		return tr("Ciepło jest już pełne.")
 	if int(action.get("food", 0)) > 0 and state.food >= food_cap():
-		return "Limit jedzenia jest pełny."
+		return tr("Limit jedzenia jest pełny.")
 	if int(action.get("water", 0)) > 0 and state.water >= water_cap():
-		return "Limit wody jest pełny."
+		return tr("Limit wody jest pełny.")
 	if int(action.get("wood", 0)) > 0 and state.wood >= wood_cap():
-		return "Limit drewna jest pełny."
+		return tr("Limit drewna jest pełny.")
 	if int(action.get("materials", 0)) > 0 and state.materials >= materials_cap():
-		return "Limit kamienia jest pełny."
+		return tr("Limit kamienia jest pełny.")
 	if int(action.get("draw_cards", 0)) > 0 and hand.size() >= HAND_SIZE:
-		return "Masz pełną rękę."
+		return tr("Masz pełną rękę.")
 	if int(action.get("repair_tile_buildings", 0)) > 0 and not _has_damaged_current_tile_building():
-		return "Brak uszkodzonych budynków na tym kaflu."
+		return tr("Brak uszkodzonych budynków na tym kaflu.")
 	return ""
 
 
@@ -1916,12 +1916,12 @@ func _scout_reveal() -> void:
 		if BoardGenerator.are_adjacent(state.current_tile, i) and not state.board[i].is_discovered:
 			hidden.append(i)
 	if hidden.is_empty():
-		log_message.emit("Zwiad: brak nieodkrytych sąsiednich kafli.")
+		log_message.emit(tr("Zwiad: brak nieodkrytych sąsiednich kafli."))
 		return
 	var idx := hidden[_rng.randi_range(0, hidden.size() - 1)]
 	state.board[idx].is_discovered = true
 	_rebuild_event_deck()
-	log_message.emit("Zwiad odsłania sąsiedni teren: %s." % _tile_name(state.board[idx]))
+	log_message.emit(tr("Zwiad odsłania sąsiedni teren: %s.") % _tile_name(state.board[idx]))
 	board_changed.emit(state)
 	tile_discovered.emit(idx)
 
@@ -1940,13 +1940,13 @@ func _build(building: BuildingCardData) -> void:
 		state.has_tools = true
 
 	log_message.emit("Budujesz: %s (%s, slot %d/%d)." % [
-		building.display_name,
+		tr(building.display_name),
 		_tile_name(current_tile()),
 		current_tile().buildings.size(),
 		current_tile().biome.building_slots,
 	])
 	if building.special == "unlock_crafting":
-		log_message.emit("%s daje narzędzia." % building.display_name)
+		log_message.emit(tr("%s daje narzędzia.") % tr(building.display_name))
 	board_changed.emit(state)
 
 
@@ -1982,17 +1982,17 @@ func _resolve_explore() -> void:
 	match _rng.randi_range(0, 3):
 		0:
 			_add_food(2)
-			log_message.emit("Znajdujesz gniazdo pełne jaj. +2 jedzenia.")
+			log_message.emit(tr("Znajdujesz gniazdo pełne jaj. +2 jedzenia."))
 		1:
 			_add_wood(2)
-			log_message.emit("Trafiasz na powalone drzewo. +2 drewna.")
+			log_message.emit(tr("Trafiasz na powalone drzewo. +2 drewna."))
 		2:
 			_add_materials(2)
-			log_message.emit("Odkrywasz stary obóz. +2 kamienia.")
+			log_message.emit(tr("Odkrywasz stary obóz. +2 kamienia."))
 		3:
 			_add_water(1)
 			_add_food(1)
-			log_message.emit("Znajdujesz deszczówkę i jagody. +1 wody, +1 jedzenia.")
+			log_message.emit(tr("Znajdujesz deszczówkę i jagody. +1 wody, +1 jedzenia."))
 
 
 # --- BUM and Act II (README sections 5-6) ---
@@ -2042,8 +2042,8 @@ func _check_ruin(built: BuildingState) -> void:
 		return
 	if built.hp <= 0:
 		built.is_ruined = true
-		log_message.emit("%s zamienia się w RUINĘ. Możesz ją tylko rozebrać." %
-			built.data.display_name)
+		log_message.emit(tr("%s zamienia się w RUINĘ. Możesz ją tylko rozebrać.") %
+			tr(built.data.display_name))
 
 
 # --- Shared helpers used by both day actions and the night resolvers ---
@@ -2097,7 +2097,7 @@ func run_summary() -> Dictionary:
 		"seed": _run_seed,
 		"health_history": _health_history.duplicate(),
 		"day": state.day,
-		"class_name": state.character_class.display_name if state.character_class != null else "",
+		"class_name": tr(state.character_class.display_name) if state.character_class != null else "",
 		"season": RunState.season_name(state.season),
 		"current_biome": _tile_name(current_tile()),
 		"bum_happened": state.bum_happened,
@@ -2131,7 +2131,7 @@ func run_summary() -> Dictionary:
 		"materials_cap": materials_cap(),
 		"has_tools": state.has_tools,
 		"bum_day": state.bum_day if state.bum_happened else 0,
-		"disaster": state.disaster.display_name if state.disaster != null else "",
+		"disaster": tr(state.disaster.display_name) if state.disaster != null else "",
 	}
 
 
@@ -2142,13 +2142,13 @@ func _cost_block_reason(
 	energy_cost: int, food_cost: int, wood_cost: int, materials_cost: int
 ) -> String:
 	if state.energy < energy_cost:
-		return "Za mało energii (potrzeba %d)." % energy_cost
+		return tr("Za mało energii (potrzeba %d).") % energy_cost
 	if state.food < food_cost:
-		return "Za mało jedzenia (potrzeba %d)." % food_cost
+		return tr("Za mało jedzenia (potrzeba %d).") % food_cost
 	if state.wood < wood_cost:
-		return "Za mało drewna (potrzeba %d)." % wood_cost
+		return tr("Za mało drewna (potrzeba %d).") % wood_cost
 	if state.materials < materials_cost:
-		return "Za mało kamienia (potrzeba %d)." % materials_cost
+		return tr("Za mało kamienia (potrzeba %d).") % materials_cost
 	return ""
 
 
@@ -2222,4 +2222,4 @@ func _tile_name(tile: TileState) -> String:
 	if tile.is_corrupted:
 		var disaster_id := state.disaster.id if state != null and state.disaster != null else ""
 		return tile.biome.corrupted_name_for(disaster_id)
-	return tile.biome.display_name
+	return tr(tile.biome.display_name)

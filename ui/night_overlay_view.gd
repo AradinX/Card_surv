@@ -96,11 +96,11 @@ func show_card(card: CardData) -> void:
 	# Locked until the reveal animation finishes, so the card is always read
 	# before its effects resolve (re-enabled on the reveal tween's `finished`).
 	_night_continue_button.disabled = true
-	_night_title.text = card.display_name
+	_night_title.text = tr(card.display_name)
 	# The choice panel's description sheet only keeps its top third clear (the
 	# lower two-thirds are the 3 pinned choice notes baked into the art).
 	_night_desc.anchor_bottom = 0.466 if has_choices else 0.678
-	_night_desc.text = card.description
+	_night_desc.text = tr(card.description)
 	_night_desc.visible = true
 	_night_result.visible = false
 
@@ -418,17 +418,17 @@ func _reset_night_choice_controls() -> void:
 
 ## Full choice copy: clear risk odds plus explicit success/failure outcomes.
 func _choice_button_text(choice, block_reason: String = "") -> String:
-	var label := _choice_label_without_risk(choice.label)
+	var label := _choice_label_without_risk(tr(choice.label))
 	var title := label
 	if choice.risk_chance > 0:
-		title = "%s (%d%% na sukces)" % [label, 100 - choice.risk_chance]
+		title = tr("%s (%d%% na sukces)") % [label, 100 - choice.risk_chance]
 
 	var lines: PackedStringArray = [title]
 	var success := _choice_success_summary(choice)
 	if success != "":
-		lines.append("%s: %s" % ["Sukces" if choice.risk_chance > 0 else "Efekt", success])
+		lines.append("%s: %s" % [tr("Sukces") if choice.risk_chance > 0 else tr("Efekt"), success])
 	if choice.risk_chance > 0:
-		lines.append("Porażka: %s" % _choice_failure_summary(choice))
+		lines.append(tr("Porażka: %s") % _choice_failure_summary(choice))
 	if block_reason != "":
 		lines.append(block_reason)
 	return "\n".join(lines)
@@ -440,30 +440,30 @@ func _choice_label_without_risk(label: String) -> String:
 
 func _choice_success_summary(choice) -> String:
 	var parts: PackedStringArray = []
-	if choice.health_delta != 0: parts.append("%+d zdrowia" % choice.health_delta)
-	if choice.hunger_delta != 0: parts.append("%+d sytości" % choice.hunger_delta)
-	if choice.thirst_delta != 0: parts.append("%+d nawodnienia" % choice.thirst_delta)
-	if choice.warmth_delta != 0: parts.append("%+d ciepła" % choice.warmth_delta)
-	if choice.food_gain != 0: parts.append("%+d jedzenia" % choice.food_gain)
-	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
-	if choice.wood_gain != 0: parts.append("%+d drewna" % choice.wood_gain)
-	if choice.materials_gain != 0: parts.append("%+d kamienia" % choice.materials_gain)
-	if choice.next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.next_day_energy_delta)
+	if choice.health_delta != 0: parts.append(tr("%+d zdrowia") % choice.health_delta)
+	if choice.hunger_delta != 0: parts.append(tr("%+d sytości") % choice.hunger_delta)
+	if choice.thirst_delta != 0: parts.append(tr("%+d nawodnienia") % choice.thirst_delta)
+	if choice.warmth_delta != 0: parts.append(tr("%+d ciepła") % choice.warmth_delta)
+	if choice.food_gain != 0: parts.append(tr("%+d jedzenia") % choice.food_gain)
+	if choice.water_gain != 0: parts.append(tr("%+d wody") % choice.water_gain)
+	if choice.wood_gain != 0: parts.append(tr("%+d drewna") % choice.wood_gain)
+	if choice.materials_gain != 0: parts.append(tr("%+d kamienia") % choice.materials_gain)
+	if choice.next_day_energy_delta != 0: parts.append(tr("%+d energii jutro") % choice.next_day_energy_delta)
 	if choice.grant_random_card: parts.append("+1 karta do talii")
 	return ", ".join(parts)
 
 
 func _choice_failure_summary(choice) -> String:
 	var parts: PackedStringArray = []
-	if choice.risk_health > 0: parts.append("-%d zdrowia" % choice.risk_health)
-	if choice.risk_hunger_delta != 0: parts.append("%+d sytości" % choice.risk_hunger_delta)
-	if choice.risk_thirst_delta != 0: parts.append("%+d nawodnienia" % choice.risk_thirst_delta)
-	if choice.risk_warmth_delta != 0: parts.append("%+d ciepła" % choice.risk_warmth_delta)
-	if choice.risk_food_gain != 0: parts.append("%+d jedzenia" % choice.risk_food_gain)
-	if choice.risk_water_gain != 0: parts.append("%+d wody" % choice.risk_water_gain)
-	if choice.risk_wood_gain != 0: parts.append("%+d drewna" % choice.risk_wood_gain)
-	if choice.risk_materials_gain != 0: parts.append("%+d kamienia" % choice.risk_materials_gain)
-	if choice.risk_next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.risk_next_day_energy_delta)
+	if choice.risk_health > 0: parts.append(tr("-%d zdrowia") % choice.risk_health)
+	if choice.risk_hunger_delta != 0: parts.append(tr("%+d sytości") % choice.risk_hunger_delta)
+	if choice.risk_thirst_delta != 0: parts.append(tr("%+d nawodnienia") % choice.risk_thirst_delta)
+	if choice.risk_warmth_delta != 0: parts.append(tr("%+d ciepła") % choice.risk_warmth_delta)
+	if choice.risk_food_gain != 0: parts.append(tr("%+d jedzenia") % choice.risk_food_gain)
+	if choice.risk_water_gain != 0: parts.append(tr("%+d wody") % choice.risk_water_gain)
+	if choice.risk_wood_gain != 0: parts.append(tr("%+d drewna") % choice.risk_wood_gain)
+	if choice.risk_materials_gain != 0: parts.append(tr("%+d kamienia") % choice.risk_materials_gain)
+	if choice.risk_next_day_energy_delta != 0: parts.append(tr("%+d energii jutro") % choice.risk_next_day_energy_delta)
 	return ", ".join(parts) if not parts.is_empty() else "brak efektu"
 
 
@@ -471,11 +471,11 @@ func _night_summary_text(card: CardData) -> String:
 	var lines: PackedStringArray = []
 	var card_effect := _night_card_effect_summary(card)
 	if card_effect != "":
-		lines.append("Karta: %s" % card_effect)
+		lines.append(tr("Karta: %s") % card_effect)
 	var passives := _night_building_passive_summary()
 	if passives != "":
-		lines.append("Budynki: %s" % passives)
-	lines.append("Noc: %s" % _night_needs_summary())
+		lines.append(tr("Budynki: %s") % passives)
+	lines.append(tr("Noc: %s") % _night_needs_summary())
 	return "\n".join(lines)
 
 
@@ -484,15 +484,15 @@ func _night_card_effect_summary(card: CardData) -> String:
 		var monster := card as MonsterCardData
 		var monster_parts: PackedStringArray = []
 		if monster.damage_to_player > 0:
-			monster_parts.append("-%d zdrowia" % monster.damage_to_player)
+			monster_parts.append(tr("-%d zdrowia") % monster.damage_to_player)
 		if monster.damage_to_buildings > 0:
 			monster_parts.append("-%d HP budynku" % monster.damage_to_buildings)
-		return ", ".join(monster_parts) if not monster_parts.is_empty() else "atak bez obrażeń"
+		return ", ".join(monster_parts) if not monster_parts.is_empty() else tr("atak bez obrażeń")
 	if not (card is EventCardData):
 		return ""
 	var event := card as EventCardData
 	if not event.choices.is_empty():
-		return "wybierz opcję poniżej"
+		return tr("wybierz opcję poniżej")
 	var health_delta := event.health_delta
 	var warmth_delta := event.warmth_delta
 	if event.shelter_protects and _has_standing_special("night_protection"):
@@ -541,7 +541,7 @@ func _night_building_passive_summary() -> String:
 
 func _night_needs_summary() -> String:
 	if _survival == null or _survival.state == null:
-		return "-3 sytości, -3 nawodnienia, -3 ciepła"
+		return tr("-3 sytości, -3 nawodnienia, -3 ciepła")
 	var state := _survival.state
 	var hunger_decay := SurvivalSystem.DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta
 	var thirst_decay := SurvivalSystem.DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta
@@ -554,7 +554,7 @@ func _night_needs_summary() -> String:
 		thirst_decay += SurvivalSystem.SUMMER_EXTRA_THIRST_DECAY
 	if state.season == RunState.Season.WINTER:
 		warmth_decay += SurvivalSystem.WINTER_EXTRA_WARMTH_DECAY
-	return "-%d sytości, -%d nawodnienia, -%d ciepła" % [
+	return tr("-%d sytości, -%d nawodnienia, -%d ciepła") % [
 		hunger_decay, thirst_decay, warmth_decay
 	]
 
@@ -564,15 +564,15 @@ func _stat_delta_parts(
 	food: int, water: int, wood: int, stone: int, next_energy: int
 ) -> PackedStringArray:
 	var parts: PackedStringArray = []
-	if health != 0: parts.append("%+d zdrowia" % health)
-	if hunger != 0: parts.append("%+d sytości" % hunger)
-	if thirst != 0: parts.append("%+d nawodnienia" % thirst)
-	if warmth != 0: parts.append("%+d ciepła" % warmth)
-	if food != 0: parts.append("%+d jedzenia" % food)
-	if water != 0: parts.append("%+d wody" % water)
-	if wood != 0: parts.append("%+d drewna" % wood)
-	if stone != 0: parts.append("%+d kamienia" % stone)
-	if next_energy != 0: parts.append("%+d energii jutro" % next_energy)
+	if health != 0: parts.append(tr("%+d zdrowia") % health)
+	if hunger != 0: parts.append(tr("%+d sytości") % hunger)
+	if thirst != 0: parts.append(tr("%+d nawodnienia") % thirst)
+	if warmth != 0: parts.append(tr("%+d ciepła") % warmth)
+	if food != 0: parts.append(tr("%+d jedzenia") % food)
+	if water != 0: parts.append(tr("%+d wody") % water)
+	if wood != 0: parts.append(tr("%+d drewna") % wood)
+	if stone != 0: parts.append(tr("%+d kamienia") % stone)
+	if next_energy != 0: parts.append(tr("%+d energii jutro") % next_energy)
 	return parts
 
 
@@ -599,7 +599,7 @@ func _on_night_choice(index: int) -> void:
 	_night_result.anchor_bottom = 0.678
 	_night_result.text = summary
 	_night_result.visible = true
-	_night_summary.text = "Wybór: %s\nNoc: %s" % [
+	_night_summary.text = tr("Wybór: %s\nNoc: %s") % [
 		summary.replace("\n", " "),
 		_night_needs_summary()
 	]

@@ -55,11 +55,11 @@ func setup(
 		block_reason: String,
 		cost_override: String = "",
 		effects_override: Variant = null) -> void:
-	_name_label.text = card.display_name
+	_name_label.text = tr(card.display_name)
 	_cost_label.text = cost_override if cost_override != "" else _format_costs(card)
 	# Flavour on its own label (top), effects on a separate label (bottom) so the
 	# effect line can never be clipped by a long flavour or font auto-fit.
-	_desc_label.text = card.description
+	_desc_label.text = tr(card.description)
 	var effects := str(effects_override) if effects_override != null else _effects_summary(card)
 	if card is BuildingCardData:
 		effects += ("  ·  " if effects != "" else "") + "%d HP" % (card as BuildingCardData).max_hp
@@ -308,9 +308,9 @@ func _effects_summary(card: CardData) -> String:
 	if card is ActionCardData:
 		var a := card as ActionCardData
 		_push_delta(p, a.health_delta, "zdrowia")
-		_push_delta(p, a.hunger_delta, "sytości")
+		_push_delta(p, a.hunger_delta, tr("sytości"))
 		_push_delta(p, a.thirst_delta, "nawodnienia")
-		_push_delta(p, a.warmth_delta, "ciepła")
+		_push_delta(p, a.warmth_delta, tr("ciepła"))
 		_push_delta(p, a.energy_delta, "energii")
 		_push_delta(p, a.food_gain, "jedzenia")
 		_push_delta(p, a.water_gain, "wody")
@@ -322,12 +322,12 @@ func _effects_summary(card: CardData) -> String:
 			p.append(sp)
 	elif card is BuildingCardData:
 		var b := card as BuildingCardData
-		_push_delta(p, b.food_gain, "jedzenia nocą")
-		_push_delta(p, b.water_gain, "wody nocą")
-		_push_delta(p, b.wood_gain, "drewna nocą")
-		_push_delta(p, b.materials_gain, "kamienia nocą")
-		_push_delta(p, b.health_delta, "zdrowia nocą")
-		_push_delta(p, b.warmth_delta, "ciepła nocą")
+		_push_delta(p, b.food_gain, tr("jedzenia nocą"))
+		_push_delta(p, b.water_gain, tr("wody nocą"))
+		_push_delta(p, b.wood_gain, tr("drewna nocą"))
+		_push_delta(p, b.materials_gain, tr("kamienia nocą"))
+		_push_delta(p, b.health_delta, tr("zdrowia nocą"))
+		_push_delta(p, b.warmth_delta, tr("ciepła nocą"))
 		if b.defense > 0:
 			p.append("obrona %d" % b.defense)
 		_push_delta(p, b.food_cap_bonus, "limitu jedzenia")
@@ -340,11 +340,11 @@ func _effects_summary(card: CardData) -> String:
 	elif card is MonsterCardData:
 		var m := card as MonsterCardData
 		if m.damage_to_player > 0:
-			p.append("-%d zdrowia gracza" % m.damage_to_player)
+			p.append(tr("-%d zdrowia gracza") % m.damage_to_player)
 		if m.damage_to_buildings > 0:
-			p.append("-%d HP budynku" % m.damage_to_buildings)
+			p.append(tr("-%d HP budynku") % m.damage_to_buildings)
 		if p.is_empty():
-			p.append("atak bez obrażeń")
+			p.append(tr("atak bez obrażeń"))
 	if p.is_empty():
 		return ""
 	return "  ·  ".join(p)
@@ -352,24 +352,24 @@ func _effects_summary(card: CardData) -> String:
 
 func _push_delta(parts: PackedStringArray, value: int, stat_name: String) -> void:
 	if value != 0:
-		parts.append("%+d %s" % [value, stat_name])
+		parts.append("%+d %s" % [value, tr(stat_name)])
 
 
 func _action_special_text(special: String) -> String:
 	match special:
-		"craft_tools": return "narzędzia (+zbiory)"
+		"craft_tools": return tr("narzędzia (+zbiory)")
 		"explore": return "+1 losowe znalezisko"
 		"double_explore": return "+2 losowe znaleziska"
-		"draw_two": return "+2 karty do ręki"
-		"scout_reveal": return "odkrywa sąsiedni teren"
-		"free_move": return "następny ruch dziś za darmo"
-		"repair_tile": return "doraźna naprawa budynku"
-		"ward_night": return "warta: łagodzi tę noc"
-		"set_trap": return "wnyki: blokują atak potwora"
-		"momentum": return "kolejne karty dziś zwracają energię"
+		"draw_two": return tr("+2 karty do ręki")
+		"scout_reveal": return tr("odkrywa sąsiedni teren")
+		"free_move": return tr("następny ruch dziś za darmo")
+		"repair_tile": return tr("doraźna naprawa budynku")
+		"ward_night": return tr("warta: łagodzi tę noc")
+		"set_trap": return tr("wnyki: blokują atak potwora")
+		"momentum": return tr("kolejne karty dziś zwracają energię")
 		"rhythm": return ""
-		"combo_food": return "+2 jedzenia, jeśli grałeś już jedzenie"
-		"next_move_cost": return "następny ruch dziś kosztuje +1 energii"
+		"combo_food": return tr("+2 jedzenia, jeśli grałeś już jedzenie")
+		"next_move_cost": return tr("następny ruch dziś kosztuje +1 energii")
 		_: return ""
 
 
@@ -377,7 +377,7 @@ func _building_special_text(special: String) -> String:
 	match special:
 		"night_protection": return "ochrona nocna"
 		"slow_spoilage": return "wolniejsze psucie jedzenia"
-		"unlock_crafting": return "narzędzia po zbudowaniu"
+		"unlock_crafting": return tr("narzędzia po zbudowaniu")
 		_: return ""
 
 
@@ -385,22 +385,22 @@ func _format_costs(card: CardData) -> String:
 	var parts: PackedStringArray = []
 	if card is ActionCardData:
 		var action := card as ActionCardData
-		parts.append("Energia %d" % action.energy_cost)
+		parts.append(tr("Energia %d") % action.energy_cost)
 		if action.food_cost > 0:
-			parts.append("Jedzenie %d" % action.food_cost)
+			parts.append(tr("Jedzenie %d") % action.food_cost)
 		if action.wood_cost > 0:
-			parts.append("Drewno %d" % action.wood_cost)
+			parts.append(tr("Drewno %d") % action.wood_cost)
 		if action.materials_cost > 0:
-			parts.append("Kamień %d" % action.materials_cost)
+			parts.append(tr("Kamień %d") % action.materials_cost)
 	elif card is BuildingCardData:
 		var building := card as BuildingCardData
-		parts.append("Energia %d" % building.energy_cost)
+		parts.append(tr("Energia %d") % building.energy_cost)
 		if building.food_cost > 0:
-			parts.append("Jedzenie %d" % building.food_cost)
+			parts.append(tr("Jedzenie %d") % building.food_cost)
 		if building.wood_cost > 0:
-			parts.append("Drewno %d" % building.wood_cost)
+			parts.append(tr("Drewno %d") % building.wood_cost)
 		if building.materials_cost > 0:
-			parts.append("Kamień %d" % building.materials_cost)
+			parts.append(tr("Kamień %d") % building.materials_cost)
 	elif card is MonsterCardData:
 		var monster := card as MonsterCardData
 		var dmg: PackedStringArray = []
@@ -408,9 +408,9 @@ func _format_costs(card: CardData) -> String:
 			dmg.append("gracz %d" % monster.damage_to_player)
 		if monster.damage_to_buildings > 0:
 			dmg.append("budynki %d" % monster.damage_to_buildings)
-		return "Atak — %s" % ", ".join(dmg) if not dmg.is_empty() else "Potwór"
+		return tr("Atak — %s") % ", ".join(dmg) if not dmg.is_empty() else tr("Potwór")
 	elif card is EventCardData:
-		return "Zdarzenie nocne"
+		return tr("Zdarzenie nocne")
 	return "   ·   ".join(parts)
 
 

@@ -51,7 +51,7 @@ func setup_max_values() -> void:
 
 
 func set_day(day: int, win_day: int, season: int = RunState.Season.SPRING, disaster: DisasterData = null) -> void:
-	_day_label.text = "Dzień %d/%d  %s" % [day, win_day, RunState.season_name(season)]
+	_day_label.text = tr("Dzień %d/%d  %s") % [day, win_day, RunState.season_name(season)]
 
 
 	_season_label.text = RunState.season_name(season)
@@ -65,18 +65,18 @@ func _apply_season_style(season: int, disaster: DisasterData = null) -> void:
 	match season:
 		RunState.Season.SPRING:
 			color = Color(0.62, 0.94, 0.52, 1.0)
-			tooltip = "Wiosna\nBuff: akcje zbierające jedzenie dają +1 jedzenia.\nDebuff: brak."
+			tooltip = tr("Wiosna\nBuff: akcje zbierające jedzenie dają +1 jedzenia.\nDebuff: brak.")
 		RunState.Season.SUMMER:
 			color = Color(1.0, 0.76, 0.32, 1.0)
-			tooltip = "Lato\nBuff: brak.\nDebuff: nocny spadek nawodnienia jest o 1 mocniejszy."
+			tooltip = tr("Lato\nBuff: brak.\nDebuff: nocny spadek nawodnienia jest o 1 mocniejszy.")
 		RunState.Season.AUTUMN:
 			color = Color(0.95, 0.58, 0.24, 1.0)
-			tooltip = "Jesień\nBuff: akcje z drewnem dają +1 drewna.\nDebuff: brak."
+			tooltip = tr("Jesień\nBuff: akcje z drewnem dają +1 drewna.\nDebuff: brak.")
 		RunState.Season.WINTER:
 			color = Color(0.62, 0.84, 1.0, 1.0)
-			tooltip = "Zima\nBuff: brak.\nDebuff: nocny spadek ciepła jest o 1 mocniejszy."
-	if disaster != null and disaster.act2_rule_text != "":
-		tooltip += "\n\nKatastrofa: %s\n%s" % [disaster.display_name, disaster.act2_rule_text]
+			tooltip = tr("Zima\nBuff: brak.\nDebuff: nocny spadek ciepła jest o 1 mocniejszy.")
+	if disaster != null and tr(disaster.act2_rule_text) != "":
+		tooltip += "\n\nKatastrofa: %s\n%s" % [tr(disaster.display_name), tr(disaster.act2_rule_text)]
 	_season_label.add_theme_color_override("font_color", color)
 	_season_label.tooltip_text = tooltip
 	_season_label.mouse_filter = Control.MOUSE_FILTER_STOP
@@ -93,28 +93,28 @@ func set_state(state: RunState, xp_to_next: int, resource_caps: Dictionary = {})
 	_health_bar.max_value = state.max_health
 	_health_bar.value = state.health
 	_set_tooltip_many([_health_box, _health_label, _health_bar],
-		"Zdrowie\nGdy spadnie do 0, run się kończy.\nTracisz je od ran, potworów i pustych potrzeb.")
+		tr("Zdrowie\nGdy spadnie do 0, run się kończy.\nTracisz je od ran, potworów i pustych potrzeb."))
 
-	_hunger_label.text = "Sytość %d/%d" % [state.hunger, RunState.MAX_HUNGER]
+	_hunger_label.text = tr("Sytość %d/%d") % [state.hunger, RunState.MAX_HUNGER]
 	_hunger_bar.value = state.hunger
 	_set_tooltip_many([_hunger_box, _hunger_label, _hunger_bar],
-		"Sytość\nSpada każdej nocy.\nJeśli jest niska, zapasy jedzenia są automatycznie zjadane.")
+		tr("Sytość\nSpada każdej nocy.\nJeśli jest niska, zapasy jedzenia są automatycznie zjadane."))
 
 	_thirst_label.text = "Nawodnienie %d/%d" % [state.thirst, RunState.MAX_THIRST]
 	_thirst_bar.value = state.thirst
 	_set_tooltip_many([_thirst_box, _thirst_label, _thirst_bar],
-		"Nawodnienie\nSpada każdej nocy.\nLatem i na suchych biomach spada szybciej.")
+		tr("Nawodnienie\nSpada każdej nocy.\nLatem i na suchych biomach spada szybciej."))
 
-	_warmth_label.text = "Ciepło %d/%d" % [state.warmth, RunState.MAX_WARMTH]
+	_warmth_label.text = tr("Ciepło %d/%d") % [state.warmth, RunState.MAX_WARMTH]
 	_warmth_bar.value = state.warmth
 	_set_tooltip_many([_warmth_box, _warmth_label, _warmth_bar],
-		"Ciepło\nSpada każdej nocy.\nOgnisko, schronienie i część kart pomagają utrzymać temperaturę.")
+		tr("Ciepło\nSpada każdej nocy.\nOgnisko, schronienie i część kart pomagają utrzymać temperaturę."))
 
 	_energy_label.text = "Energia %d/%d" % [state.energy, state.max_energy]
 	_energy_bar.max_value = state.max_energy
 	_energy_bar.value = state.energy
 	_set_tooltip_many([_energy_box, _energy_label, _energy_bar],
-		"Energia\nOdnawia się o świcie do aktualnego maksimum.\nAwans może zwiększać maksimum bez twardego limitu.")
+		tr("Energia\nOdnawia się o świcie do aktualnego maksimum.\nAwans może zwiększać maksimum bez twardego limitu."))
 
 	var food_cap := int(resource_caps.get("food", RunState.MAX_FOOD))
 	var water_cap := int(resource_caps.get("water", RunState.MAX_WATER))
@@ -123,13 +123,13 @@ func set_state(state: RunState, xp_to_next: int, resource_caps: Dictionary = {})
 	_food_label.text = "Jedzenie %d/%d" % [state.food, food_cap]
 	_water_label.text = "Woda %d/%d" % [state.water, water_cap]
 	_wood_label.text = "Drewno %d/%d" % [state.wood, wood_cap]
-	_materials_label.text = "Kamień %d/%d" % [state.materials, stone_cap]
-	_tools_label.text = "Narzędzia: %s" % ("TAK" if state.has_tools else "nie")
-	_set_tooltip(_food_label, "Jedzenie\nZapas automatycznie zjadany nocą, gdy sytość jest niska.")
-	_set_tooltip(_water_label, "Woda\nZapas automatycznie pity nocą, gdy nawodnienie jest niskie.")
-	_set_tooltip(_wood_label, "Drewno\nBudowa, naprawy, dokładanie do ogniska i część akcji budynków.")
-	_set_tooltip(_materials_label, "Kamień\nKoszty budynków, zabezpieczanie rejonów i odbudowa po katastrofie.")
-	_set_tooltip(_tools_label, "Narzędzia\nGdy są gotowe, karty z jedzeniem i drewnem dają większy zysk.")
+	_materials_label.text = tr("Kamień %d/%d") % [state.materials, stone_cap]
+	_tools_label.text = tr("Narzędzia: %s") % ("TAK" if state.has_tools else "nie")
+	_set_tooltip(_food_label, tr("Jedzenie\nZapas automatycznie zjadany nocą, gdy sytość jest niska."))
+	_set_tooltip(_water_label, tr("Woda\nZapas automatycznie pity nocą, gdy nawodnienie jest niskie."))
+	_set_tooltip(_wood_label, tr("Drewno\nBudowa, naprawy, dokładanie do ogniska i część akcji budynków."))
+	_set_tooltip(_materials_label, tr("Kamień\nKoszty budynków, zabezpieczanie rejonów i odbudowa po katastrofie."))
+	_set_tooltip(_tools_label, tr("Narzędzia\nGdy są gotowe, karty z jedzeniem i drewnem dają większy zysk."))
 
 
 func set_act2() -> void:

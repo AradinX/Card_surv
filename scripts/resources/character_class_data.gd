@@ -62,45 +62,45 @@ extends Resource
 func ability_summary() -> String:
 	var lines: PackedStringArray = []
 	if food_hunger_multiplier > 1.0:
-		lines.append("Jedzenie syci o %d%% więcej" % roundi((food_hunger_multiplier - 1.0) * 100.0))
+		lines.append(tr("Jedzenie syci o %d%% więcej") % roundi((food_hunger_multiplier - 1.0) * 100.0))
 	elif food_hunger_multiplier < 1.0:
-		lines.append("Jedzenie syci o %d%% mniej" % roundi((1.0 - food_hunger_multiplier) * 100.0))
+		lines.append(tr("Jedzenie syci o %d%% mniej") % roundi((1.0 - food_hunger_multiplier) * 100.0))
 	if spoilage_multiplier < 1.0:
-		lines.append("Wolniejsze psucie jedzenia")
+		lines.append(tr("Wolniejsze psucie jedzenia"))
 	elif spoilage_multiplier > 1.0:
-		lines.append("Szybsze psucie jedzenia")
+		lines.append(tr("Szybsze psucie jedzenia"))
 	if build_resource_discount > 0:
-		lines.append("Budowa tańsza o %d surowca" % build_resource_discount)
+		lines.append(tr("Budowa tańsza o %d surowca") % build_resource_discount)
 	if build_energy_cost_delta < 0:
-		lines.append("Budowa tańsza o %d energii" % -build_energy_cost_delta)
+		lines.append(tr("Budowa tańsza o %d energii") % -build_energy_cost_delta)
 	elif build_energy_cost_delta > 0:
-		lines.append("Budowa droższa o %d energii" % build_energy_cost_delta)
+		lines.append(tr("Budowa droższa o %d energii") % build_energy_cost_delta)
 	if building_hp_bonus != 0:
 		lines.append("%+d HP budowli" % building_hp_bonus)
 	if monster_damage_reduction > 0:
-		lines.append("−%d obrażeń od potworów" % monster_damage_reduction)
+		lines.append(tr("−%d obrażeń od potworów") % monster_damage_reduction)
 	elif monster_damage_reduction < 0:
-		lines.append("+%d obrażeń od potworów" % -monster_damage_reduction)
+		lines.append(tr("+%d obrażeń od potworów") % -monster_damage_reduction)
 	if hunger_rate_delta < 0:
-		lines.append("Mniejszy głód")
+		lines.append(tr("Mniejszy głód"))
 	elif hunger_rate_delta > 0:
-		lines.append("Większy głód")
+		lines.append(tr("Większy głód"))
 	if thirst_rate_delta < 0:
-		lines.append("Mniejsze pragnienie")
+		lines.append(tr("Mniejsze pragnienie"))
 	elif thirst_rate_delta > 0:
-		lines.append("Większe pragnienie")
+		lines.append(tr("Większe pragnienie"))
 	if warmth_rate_delta < 0:
-		lines.append("Wolniej marznie")
+		lines.append(tr("Wolniej marznie"))
 	elif warmth_rate_delta > 0:
-		lines.append("Szybciej marznie")
+		lines.append(tr("Szybciej marznie"))
 	if move_energy_delta < 0:
-		lines.append("Tańszy ruch po mapie")
+		lines.append(tr("Tańszy ruch po mapie"))
 	elif move_energy_delta > 0:
-		lines.append("Droższy ruch po mapie")
+		lines.append(tr("Droższy ruch po mapie"))
 	if bonus_hand_cards > 0:
 		lines.append("+%d karta na start dnia" % bonus_hand_cards)
 	if daily_health_regen > 0:
-		lines.append("+%d zdrowia co świt" % daily_health_regen)
+		lines.append(tr("+%d zdrowia co świt") % daily_health_regen)
 	if xp_multiplier > 1.0:
 		lines.append("+%d%% XP" % roundi((xp_multiplier - 1.0) * 100.0))
 	elif xp_multiplier < 1.0:
@@ -119,7 +119,7 @@ func ability_summary() -> String:
 	if start_materials != 0:
 		starts.append("%+d kamienia" % start_materials)
 	if not starts.is_empty():
-		lines.append("Start: " + ", ".join(starts))
+		lines.append(tr("Start: ") + ", ".join(starts))
 	var out: PackedStringArray = []
 	for line in lines:
 		out.append("• " + line)

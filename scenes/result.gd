@@ -32,23 +32,23 @@ func _ready() -> void:
 		_background_art.visible = true
 	_spawn_result_fx(won)
 	if won:
-		_clock_label.text = "Sobota, 10:00"
+		_clock_label.text = tr("Sobota, 10:00")
 		_clock_label.modulate = Color(1.0, 0.9, 0.5)
-		_result_label.text = "Budzisz się wyspany. To był tylko sen?"
+		_result_label.text = tr("Budzisz się wyspany. To był tylko sen?")
 		_result_label.modulate = Color(0.6, 1.0, 0.6)
-		_days_label.text = "Przetrwałeś wszystkie %d dni." % GameManager.last_run_days
+		_days_label.text = tr("Przetrwałeś wszystkie %d dni.") % GameManager.last_run_days
 		AudioManager.play_music("win")
 	else:
-		_clock_label.text = "Poniedziałek, 5:00"
+		_clock_label.text = tr("Poniedziałek, 5:00")
 		_clock_label.modulate = Color(1.0, 0.4, 0.4)
-		_result_label.text = "Budzik wyrywa cię z koszmaru."
+		_result_label.text = tr("Budzik wyrywa cię z koszmaru.")
 		_result_label.modulate = Color(1.0, 0.55, 0.55)
-		_days_label.text = "Sen urwał się w dniu %d." % GameManager.last_run_days
+		_days_label.text = tr("Sen urwał się w dniu %d.") % GameManager.last_run_days
 		AudioManager.stop_music()
 		AudioManager.play_sfx("alarm")
 	_summary_label.text = _build_telemetry_summary(won)
 	if GameManager.last_run_coin_awarded:
-		_coin_label.text = "+1 złota moneta!  (masz: %d)" % GameManager.meta_state.gold_coins
+		_coin_label.text = tr("+1 złota moneta!  (masz: %d)") % GameManager.meta_state.gold_coins
 		AudioManager.play_sfx("coin")
 	else:
 		_coin_label.text = ""
@@ -63,19 +63,19 @@ func _build_summary(won: bool) -> String:
 		return ""
 	var lines: PackedStringArray = []
 	if not won and str(s.get("cause", "")) != "":
-		lines.append("Przyczyna: %s" % s["cause"])
+		lines.append(tr("Przyczyna: %s") % s["cause"])
 	if int(s.get("bum_day", 0)) > 0:
-		lines.append("Katastrofa: %s (dzień %d)" % [s.get("disaster", "?"), s["bum_day"]])
-	lines.append("Poziom: %d   ·   Obrażenia łącznie: %d" % [
+		lines.append(tr("Katastrofa: %s (dzień %d)") % [s.get("disaster", "?"), s["bum_day"]])
+	lines.append(tr("Poziom: %d   ·   Obrażenia łącznie: %d") % [
 		s.get("level", 1), s.get("damage_taken", 0)
 	])
-	lines.append("Budynki: %d stojących, %d w ruinie" % [
+	lines.append(tr("Budynki: %d stojących, %d w ruinie") % [
 		s.get("buildings_standing", 0), s.get("buildings_ruined", 0)
 	])
 	var spark := _sparkline(s.get("health_history", []))
 	if spark != "":
-		lines.append("Zdrowie: %s" % spark)
-	lines.append("Seed: %d" % s.get("seed", 0))
+		lines.append(tr("Zdrowie: %s") % spark)
+	lines.append(tr("Seed: %d") % s.get("seed", 0))
 	return "\n".join(lines)
 
 
@@ -99,22 +99,22 @@ func _build_telemetry_summary(won: bool) -> String:
 		return _build_summary(won)
 	var lines: PackedStringArray = []
 	if not won and str(s.get("cause", "")) != "":
-		lines.append("Przyczyna: %s" % s["cause"])
+		lines.append(tr("Przyczyna: %s") % s["cause"])
 	if int(s.get("bum_day", 0)) > 0:
-		lines.append("Katastrofa: %s (dzień %d, po katastrofie: %d dni)" % [
+		lines.append(tr("Katastrofa: %s (dzień %d, po katastrofie: %d dni)") % [
 			s.get("disaster", "?"),
 			s["bum_day"],
 			s.get("days_after_bum", 0),
 		])
 	else:
-		lines.append("Katastrofa jeszcze nie uderzyła.")
-	lines.append("Klasa: %s   ·   Poziom: %d (%d XP)   ·   Obrażenia: %d" % [
+		lines.append(tr("Katastrofa jeszcze nie uderzyła."))
+	lines.append(tr("Klasa: %s   ·   Poziom: %d (%d XP)   ·   Obrażenia: %d") % [
 		s.get("class_name", "?"),
 		s.get("level", 1),
 		s.get("xp", 0),
 		s.get("damage_taken", 0),
 	])
-	lines.append("Budynki: %d stojących, %d w ruinie   ·   Wolne sloty: %d/%d" % [
+	lines.append(tr("Budynki: %d stojących, %d w ruinie   ·   Wolne sloty: %d/%d") % [
 		s.get("buildings_standing", 0),
 		s.get("buildings_ruined", 0),
 		s.get("building_slots_free", 0),
@@ -126,7 +126,7 @@ func _build_telemetry_summary(won: bool) -> String:
 		s.get("current_biome", "?"),
 		s.get("season", "?"),
 	])
-	lines.append("Potrzeby: zdrowie %d/%d, sytość %d/10, nawodnienie %d/10, ciepło %d/10, energia %d/%d" % [
+	lines.append(tr("Potrzeby: zdrowie %d/%d, sytość %d/10, nawodnienie %d/10, ciepło %d/10, energia %d/%d") % [
 		s.get("health", 0),
 		s.get("max_health", 0),
 		s.get("hunger", 0),
@@ -135,7 +135,7 @@ func _build_telemetry_summary(won: bool) -> String:
 		s.get("energy", 0),
 		s.get("max_energy", 0),
 	])
-	lines.append("Zapasy: jedzenie %d/%d, woda %d/%d, drewno %d/%d, kamień %d/%d, narzędzia: %s" % [
+	lines.append(tr("Zapasy: jedzenie %d/%d, woda %d/%d, drewno %d/%d, kamień %d/%d, narzędzia: %s") % [
 		s.get("food", 0),
 		s.get("food_cap", 0),
 		s.get("water", 0),
@@ -146,20 +146,20 @@ func _build_telemetry_summary(won: bool) -> String:
 		s.get("materials_cap", 0),
 		"tak" if bool(s.get("has_tools", false)) else "nie",
 	])
-	lines.append("Talia: %d kart, ręka: %d, stos dnia: %d" % [
+	lines.append(tr("Talia: %d kart, ręka: %d, stos dnia: %d") % [
 		s.get("deck_size", 0),
 		s.get("hand_size", 0),
 		s.get("day_deck_count", 0),
 	])
 	var spark := _sparkline(s.get("health_history", []))
 	if spark != "":
-		lines.append("Zdrowie: %s" % spark)
+		lines.append(tr("Zdrowie: %s") % spark)
 	var recent_logs: Array = s.get("recent_logs", [])
 	if not recent_logs.is_empty():
-		lines.append("Ostatnie logi:")
+		lines.append(tr("Ostatnie logi:"))
 		for log in recent_logs.slice(maxi(recent_logs.size() - 4, 0), recent_logs.size()):
 			lines.append("  - %s" % str(log))
-	lines.append("Seed: %d" % s.get("seed", 0))
+	lines.append(tr("Seed: %d") % s.get("seed", 0))
 	return "\n".join(lines)
 
 

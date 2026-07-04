@@ -78,7 +78,7 @@ func _rebuild_cards(cards: Array[CardData]) -> void:
 		view.size = MINI_CARD_SIZE
 		_deck_grid.add_child(view)
 		view.setup(card, "")
-		view.tooltip_text = "%s\n%s" % [card.display_name, card.description]
+		view.tooltip_text = "%s\n%s" % [tr(card.display_name), tr(card.description)]
 		view.pressed.connect(_show_card_zoom.bind(card))
 
 

@@ -8,6 +8,12 @@ extends RefCounted
 ## (end_day/resolve_night/apply_night_choice delegate here).
 
 
+## Static funcs have no Object.tr(); route player-facing text through the
+## TranslationServer directly (same catalog, PL source text as the key).
+static func _tr(text: String) -> String:
+	return TranslationServer.translate(text)
+
+
 # --- Active night pool ---
 
 
@@ -105,9 +111,9 @@ static func _choice_block_reason_for_event(
 static func _active_building_requirement_text(building_id: String) -> String:
 	match building_id:
 		"building_campfire":
-			return "Wymaga aktywnego ogniska."
+			return _tr("Wymaga aktywnego ogniska.")
 		_:
-			return "Wymaga aktywnego budynku."
+			return _tr("Wymaga aktywnego budynku.")
 
 
 static func _has_active_building(sys: SurvivalSystem, building_id: String) -> bool:
@@ -154,7 +160,7 @@ static func resolve(sys: SurvivalSystem, choice_index: int = 0) -> void:
 		sys._finish(false)
 		return
 	if sys.state.day >= sys.WIN_DAY:
-		sys.log_message.emit("Dzień %d. Budzisz się we własnym łóżku. To był sen?" % sys.WIN_DAY)
+		sys.log_message.emit(_tr("Dzień %d. Budzisz się we własnym łóżku. To był sen?") % sys.WIN_DAY)
 		sys._finish(true)
 		return
 
@@ -168,7 +174,7 @@ static func resolve(sys: SurvivalSystem, choice_index: int = 0) -> void:
 ## A monster card drawn at night: it claws the player and one building,
 ## then shuffles back into the event deck (monsters don't go away).
 static func _resolve_monster_attack(sys: SurvivalSystem, monster: MonsterCardData) -> void:
-	sys.log_message.emit("Potwór: %s — %s" % [monster.display_name, monster.description])
+	sys.log_message.emit(_tr("Potwór: %s — %s") % [_tr(monster.display_name), _tr(monster.description)])
 
 	var player_damage := maxi(
 		monster.damage_to_player - sys.state.character_class.monster_damage_reduction, 0
@@ -177,18 +183,18 @@ static func _resolve_monster_attack(sys: SurvivalSystem, monster: MonsterCardDat
 	# monsters or BUM turn it into a ruin.
 	if player_damage > 0 and _has_night_protection(sys):
 		player_damage = maxi(player_damage - sys.NIGHT_PROTECTION_VALUE, 0)
-		sys.log_message.emit("Szałas osłania cię przed atakiem.")
+		sys.log_message.emit(_tr("Szałas osłania cię przed atakiem."))
 	if player_damage > 0 and sys._night_trap:
 		sys._night_trap = false
 		player_damage = 0
-		sys.log_message.emit("Wnyki przyjmują cios — unikasz ataku potwora.")
+		sys.log_message.emit(_tr("Wnyki przyjmują cios — unikasz ataku potwora."))
 	if player_damage > 0 and sys._extra_night_protection > 0:
 		player_damage = maxi(player_damage - sys._extra_night_protection, 0)
-		sys.log_message.emit("Warta osłania cię przed atakiem.")
+		sys.log_message.emit(_tr("Warta osłania cię przed atakiem."))
 	if player_damage > 0:
 		sys.state.health = maxi(sys.state.health - player_damage, 0)
-		sys._record_damage(player_damage, "Atak: %s" % monster.display_name)
-		sys.log_message.emit("%s rani cię. -%d zdrowia." % [monster.display_name, player_damage])
+		sys._record_damage(player_damage, _tr("Atak: %s") % _tr(monster.display_name))
+		sys.log_message.emit(_tr("%s rani cię. -%d zdrowia.") % [_tr(monster.display_name), player_damage])
 
 	if monster.damage_to_buildings > 0:
 		_monster_attack_building(sys, monster)
@@ -212,11 +218,11 @@ static func _monster_attack_building(sys: SurvivalSystem, monster: MonsterCardDa
 	var target: BuildingState = standing[pick]
 	var damage := maxi(monster.damage_to_buildings - _settlement_defense(sys), 0)
 	if damage <= 0:
-		sys.log_message.emit("Palisada odpiera atak na %s." % target.data.display_name)
+		sys.log_message.emit(_tr("Palisada odpiera atak na %s.") % _tr(target.data.display_name))
 		return
 	target.hp = maxi(target.hp - damage, 0)
-	sys.log_message.emit("%s niszczy %s (-%d HP, zostało %d/%d)." % [
-		monster.display_name, target.data.display_name, damage,
+	sys.log_message.emit(_tr("%s niszczy %s (-%d HP, zostało %d/%d).") % [
+		_tr(monster.display_name), _tr(target.data.display_name), damage,
 		target.hp, sys.building_max_hp(target.data),
 	])
 	sys._check_ruin(target)
@@ -239,7 +245,7 @@ static func _settlement_defense(sys: SurvivalSystem) -> int:
 static func _resolve_event(sys: SurvivalSystem, event: EventCardData) -> void:
 	if event == null:
 		return
-	sys.log_message.emit("Zdarzenie: %s — %s" % [event.display_name, event.description])
+	sys.log_message.emit(_tr("Zdarzenie: %s — %s") % [_tr(event.display_name), _tr(event.description)])
 
 	var health_delta := event.health_delta
 	var warmth_delta := event.warmth_delta
@@ -247,7 +253,7 @@ static func _resolve_event(sys: SurvivalSystem, event: EventCardData) -> void:
 		var mitigated_health := mini(health_delta + sys.NIGHT_PROTECTION_VALUE, 0)
 		var mitigated_warmth := mini(warmth_delta + sys.NIGHT_PROTECTION_VALUE, 0)
 		if mitigated_health != health_delta or mitigated_warmth != warmth_delta:
-			sys.log_message.emit("Szałas osłania cię przed nocą.")
+			sys.log_message.emit(_tr("Szałas osłania cię przed nocą."))
 		health_delta = maxi(health_delta, mitigated_health)
 		warmth_delta = maxi(warmth_delta, mitigated_warmth)
 
@@ -258,7 +264,7 @@ static func _resolve_event(sys: SurvivalSystem, event: EventCardData) -> void:
 			health_delta = mini(health_delta + sys._extra_night_protection, 0)
 		if warmth_delta < 0:
 			warmth_delta = mini(warmth_delta + sys._extra_night_protection, 0)
-		sys.log_message.emit("Warta łagodzi skutki nocy.")
+		sys.log_message.emit(_tr("Warta łagodzi skutki nocy."))
 
 	sys._apply_stat_deltas(health_delta, event.hunger_delta, event.thirst_delta, warmth_delta)
 	sys._add_food(event.food_delta)
@@ -275,7 +281,7 @@ static func _resolve_event(sys: SurvivalSystem, event: EventCardData) -> void:
 static func _resolve_event_choice(
 	sys: SurvivalSystem, event: EventCardData, choice_index: int
 ) -> String:
-	sys.log_message.emit("Zdarzenie: %s — %s" % [event.display_name, event.description])
+	sys.log_message.emit(_tr("Zdarzenie: %s — %s") % [_tr(event.display_name), _tr(event.description)])
 	var idx := clampi(choice_index, 0, event.choices.size() - 1)
 	var choice := event.choices[idx]
 	var backfired: bool = choice.risk_chance > 0 \
@@ -293,9 +299,9 @@ static func _resolve_event_choice(
 		sys._add_materials(choice.risk_materials_gain)
 		sys.state.next_day_energy_delta += choice.risk_next_day_energy_delta
 		if choice.risk_health > 0:
-			sys._record_damage(choice.risk_health, "Zdarzenie: %s" % event.display_name)
+			sys._record_damage(choice.risk_health, _tr("Zdarzenie: %s") % _tr(event.display_name))
 		var fail_parts := _event_choice_failure_parts(choice)
-		var fail_summary := "Nie udało się!"
+		var fail_summary := _tr("Nie udało się!")
 		if not fail_parts.is_empty():
 			fail_summary += " (" + ", ".join(fail_parts) + ")"
 		sys.log_message.emit(fail_summary)
@@ -312,41 +318,41 @@ static func _resolve_event_choice(
 	if choice.grant_random_card and not sys._card_pool.is_empty():
 		var card: CardData = sys._card_pool[sys._rng.randi_range(0, sys._card_pool.size() - 1)]
 		sys.state.deck.append(card)
-		sys.log_message.emit("Zyskujesz kartę do talii: %s." % card.display_name)
-		parts.append("nowa karta: %s" % card.display_name)
-	if choice.result_text != "":
-		sys.log_message.emit(choice.result_text)
-	var summary: String = choice.result_text
+		sys.log_message.emit(_tr("Zyskujesz kartę do talii: %s.") % _tr(card.display_name))
+		parts.append("nowa karta: %s" % _tr(card.display_name))
+	if _tr(choice.result_text) != "":
+		sys.log_message.emit(_tr(choice.result_text))
+	var summary: String = _tr(choice.result_text)
 	if not parts.is_empty():
 		summary += "\n(" + ", ".join(parts) + ")" if summary != "" else "(" + ", ".join(parts) + ")"
-	return summary if summary != "" else "Gotowe."
+	return summary if summary != "" else _tr("Gotowe.")
 
 
 static func _event_choice_success_parts(choice: EventChoiceData) -> PackedStringArray:
 	var parts: PackedStringArray = []
-	if choice.health_delta != 0: parts.append("%+d zdrowia" % choice.health_delta)
-	if choice.hunger_delta != 0: parts.append("%+d sytości" % choice.hunger_delta)
-	if choice.thirst_delta != 0: parts.append("%+d nawodnienia" % choice.thirst_delta)
-	if choice.warmth_delta != 0: parts.append("%+d ciepła" % choice.warmth_delta)
-	if choice.food_gain != 0: parts.append("%+d jedzenia" % choice.food_gain)
-	if choice.water_gain != 0: parts.append("%+d wody" % choice.water_gain)
-	if choice.wood_gain != 0: parts.append("%+d drewna" % choice.wood_gain)
-	if choice.materials_gain != 0: parts.append("%+d kamienia" % choice.materials_gain)
-	if choice.next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.next_day_energy_delta)
+	if choice.health_delta != 0: parts.append(_tr("%+d zdrowia") % choice.health_delta)
+	if choice.hunger_delta != 0: parts.append(_tr("%+d sytości") % choice.hunger_delta)
+	if choice.thirst_delta != 0: parts.append(_tr("%+d nawodnienia") % choice.thirst_delta)
+	if choice.warmth_delta != 0: parts.append(_tr("%+d ciepła") % choice.warmth_delta)
+	if choice.food_gain != 0: parts.append(_tr("%+d jedzenia") % choice.food_gain)
+	if choice.water_gain != 0: parts.append(_tr("%+d wody") % choice.water_gain)
+	if choice.wood_gain != 0: parts.append(_tr("%+d drewna") % choice.wood_gain)
+	if choice.materials_gain != 0: parts.append(_tr("%+d kamienia") % choice.materials_gain)
+	if choice.next_day_energy_delta != 0: parts.append(_tr("%+d energii jutro") % choice.next_day_energy_delta)
 	return parts
 
 
 static func _event_choice_failure_parts(choice: EventChoiceData) -> PackedStringArray:
 	var parts: PackedStringArray = []
-	if choice.risk_health > 0: parts.append("-%d zdrowia" % choice.risk_health)
-	if choice.risk_hunger_delta != 0: parts.append("%+d sytości" % choice.risk_hunger_delta)
-	if choice.risk_thirst_delta != 0: parts.append("%+d nawodnienia" % choice.risk_thirst_delta)
-	if choice.risk_warmth_delta != 0: parts.append("%+d ciepła" % choice.risk_warmth_delta)
-	if choice.risk_food_gain != 0: parts.append("%+d jedzenia" % choice.risk_food_gain)
-	if choice.risk_water_gain != 0: parts.append("%+d wody" % choice.risk_water_gain)
-	if choice.risk_wood_gain != 0: parts.append("%+d drewna" % choice.risk_wood_gain)
-	if choice.risk_materials_gain != 0: parts.append("%+d kamienia" % choice.risk_materials_gain)
-	if choice.risk_next_day_energy_delta != 0: parts.append("%+d energii jutro" % choice.risk_next_day_energy_delta)
+	if choice.risk_health > 0: parts.append(_tr("-%d zdrowia") % choice.risk_health)
+	if choice.risk_hunger_delta != 0: parts.append(_tr("%+d sytości") % choice.risk_hunger_delta)
+	if choice.risk_thirst_delta != 0: parts.append(_tr("%+d nawodnienia") % choice.risk_thirst_delta)
+	if choice.risk_warmth_delta != 0: parts.append(_tr("%+d ciepła") % choice.risk_warmth_delta)
+	if choice.risk_food_gain != 0: parts.append(_tr("%+d jedzenia") % choice.risk_food_gain)
+	if choice.risk_water_gain != 0: parts.append(_tr("%+d wody") % choice.risk_water_gain)
+	if choice.risk_wood_gain != 0: parts.append(_tr("%+d drewna") % choice.risk_wood_gain)
+	if choice.risk_materials_gain != 0: parts.append(_tr("%+d kamienia") % choice.risk_materials_gain)
+	if choice.risk_next_day_energy_delta != 0: parts.append(_tr("%+d energii jutro") % choice.risk_next_day_energy_delta)
 	return parts
 
 
@@ -422,15 +428,15 @@ static func resolve_building_passives(sys: SurvivalSystem, apply_stat_passives: 
 				)
 			var summary: String = sys._action_delta_summary(snapshot)
 			if summary != "":
-				building_logs.append("%s %s" % [data.display_name, summary])
+				building_logs.append("%s %s" % [_tr(data.display_name), summary])
 				if _should_passive_wear(sys, data, apply_stat_passives):
 					if sys._apply_building_wear(built, sys.BUILDING_PASSIVE_WEAR, "", tile):
-						wear_logs.append("%s -%d HP" % [data.display_name, sys.BUILDING_PASSIVE_WEAR])
+						wear_logs.append("%s -%d HP" % [_tr(data.display_name), sys.BUILDING_PASSIVE_WEAR])
 	if not building_logs.is_empty():
-		sys.log_message.emit("Budynki nocą: %s." % "; ".join(building_logs))
+		sys.log_message.emit(_tr("Budynki nocą: %s.") % "; ".join(building_logs))
 
 	if not wear_logs.is_empty():
-		sys.log_message.emit("Praca budynków zużywa: %s." % "; ".join(wear_logs))
+		sys.log_message.emit(_tr("Praca budynków zużywa: %s.") % "; ".join(wear_logs))
 
 
 static func standing_building_stat_passives(sys: SurvivalSystem) -> Dictionary:
@@ -475,10 +481,10 @@ static func _campfire_boost_summary(sys: SurvivalSystem) -> String:
 		for built in tile.buildings:
 			if not built.is_ruined and built.data.id == "building_campfire" \
 				and built.hp > 0 and built.campfire_boost_active:
-				boosted.append(built.data.display_name)
+				boosted.append(_tr(built.data.display_name))
 	if boosted.is_empty():
 		return ""
-	return "Duży ogień grzeje dodatkowo: +%d ciepła (%s)." % [
+	return _tr("Duży ogień grzeje dodatkowo: +%d ciepła (%s).") % [
 		sys.CAMPFIRE_STOKE_BONUS_WARMTH, ", ".join(boosted)
 	]
 
@@ -486,9 +492,9 @@ static func _campfire_boost_summary(sys: SurvivalSystem) -> String:
 static func _stat_passive_summary(sys: SurvivalSystem, passives: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	sys._append_delta_part(parts, int(passives.get("health", 0)), "zdrowia")
-	sys._append_delta_part(parts, int(passives.get("hunger", 0)), "sytości")
+	sys._append_delta_part(parts, int(passives.get("hunger", 0)), _tr("sytości"))
 	sys._append_delta_part(parts, int(passives.get("thirst", 0)), "nawodnienia")
-	sys._append_delta_part(parts, int(passives.get("warmth", 0)), "ciepła")
+	sys._append_delta_part(parts, int(passives.get("warmth", 0)), _tr("ciepła"))
 	return ", ".join(parts)
 
 
@@ -501,18 +507,18 @@ static func _resolve_scheduled_building_wear(sys: SurvivalSystem) -> void:
 			var building_id: String = built.data.id
 			if sys.NIGHTLY_WEAR_BUILDING_IDS.has(building_id):
 				if sys._apply_building_wear(built, sys.DAILY_BUILDING_WEAR, "", tile):
-					wear_logs.append("%s -%d HP" % [built.data.display_name, sys.DAILY_BUILDING_WEAR])
+					wear_logs.append("%s -%d HP" % [_tr(built.data.display_name), sys.DAILY_BUILDING_WEAR])
 			elif sys.state.day % 2 == 0 and sys.EVERY_OTHER_DAY_WEAR_BUILDING_IDS.has(building_id):
 				if sys._apply_building_wear(built, sys.DAILY_BUILDING_WEAR, "", tile):
-					wear_logs.append("%s -%d HP" % [built.data.display_name, sys.DAILY_BUILDING_WEAR])
+					wear_logs.append("%s -%d HP" % [_tr(built.data.display_name), sys.DAILY_BUILDING_WEAR])
 			elif sys.state.day % 3 == 0 and sys.EVERY_THIRD_DAY_WEAR_BUILDING_IDS.has(building_id):
 				if sys._apply_building_wear(built, sys.DAILY_BUILDING_WEAR, "", tile):
-					wear_logs.append("%s -%d HP" % [built.data.display_name, sys.DAILY_BUILDING_WEAR])
+					wear_logs.append("%s -%d HP" % [_tr(built.data.display_name), sys.DAILY_BUILDING_WEAR])
 			elif sys.state.day % 4 == 0 and sys.EVERY_FOURTH_DAY_WEAR_BUILDING_IDS.has(building_id):
 				if sys._apply_building_wear(built, sys.DAILY_BUILDING_WEAR, "", tile):
-					wear_logs.append("%s -%d HP" % [built.data.display_name, sys.DAILY_BUILDING_WEAR])
+					wear_logs.append("%s -%d HP" % [_tr(built.data.display_name), sys.DAILY_BUILDING_WEAR])
 	if not wear_logs.is_empty():
-		sys.log_message.emit("Zużycie budynków: %s." % "; ".join(wear_logs))
+		sys.log_message.emit(_tr("Zużycie budynków: %s.") % "; ".join(wear_logs))
 
 
 ## Burns 1 night of campfire fuel (hp) per standing campfire. Never ruins the
@@ -526,13 +532,13 @@ static func _resolve_campfire_fuel(sys: SurvivalSystem) -> void:
 				continue
 			built.hp -= 1
 			if built.hp > 0:
-				burning.append("%s: paliwo na %d nocy" % [built.data.display_name, built.hp])
+				burning.append("%s: paliwo na %d nocy" % [_tr(built.data.display_name), built.hp])
 			else:
-				expired.append(built.data.display_name)
+				expired.append(_tr(built.data.display_name))
 	if not burning.is_empty():
-		sys.log_message.emit("Ognisko: %s." % "; ".join(burning))
+		sys.log_message.emit(_tr("Ognisko: %s.") % "; ".join(burning))
 	if not expired.is_empty():
-		sys.log_message.emit("%s wygasło: dołóż drewno, żeby znów dawało ciepło." %
+		sys.log_message.emit(_tr("%s wygasło: dołóż drewno, żeby znów dawało ciepło.") %
 			", ".join(expired))
 
 
@@ -570,9 +576,9 @@ static func _resolve_stat_passive_building_wear(sys: SurvivalSystem, stat_key: S
 			if value == 0:
 				continue
 			if sys._apply_building_wear(built, sys.BUILDING_PASSIVE_WEAR, "", tile):
-				wear_logs.append("%s -%d HP" % [built.data.display_name, sys.BUILDING_PASSIVE_WEAR])
+				wear_logs.append("%s -%d HP" % [_tr(built.data.display_name), sys.BUILDING_PASSIVE_WEAR])
 	if not wear_logs.is_empty():
-		sys.log_message.emit("Praca budynków zużywa: %s." % "; ".join(wear_logs))
+		sys.log_message.emit(_tr("Praca budynków zużywa: %s.") % "; ".join(wear_logs))
 
 
 # --- Spoilage and the overnight needs balance ---
@@ -588,7 +594,7 @@ static func _resolve_spoilage(sys: SurvivalSystem) -> void:
 	var spoiled := maxi(base - sys._count_special("slow_spoilage"), 0)
 	if spoiled > 0:
 		sys.state.food = maxi(sys.state.food - spoiled, 0)
-		sys.log_message.emit("Część zapasów się psuje. -%d jedzenia." % spoiled)
+		sys.log_message.emit(_tr("Część zapasów się psuje. -%d jedzenia.") % spoiled)
 
 
 static func _resolve_needs(sys: SurvivalSystem) -> void:
@@ -602,7 +608,7 @@ static func _resolve_needs(sys: SurvivalSystem) -> void:
 	var stat_passives := standing_building_stat_passives(sys)
 	var passive_summary := _stat_passive_summary(sys, stat_passives)
 	if passive_summary != "":
-		sys.log_message.emit("Budynki wspierają potrzeby nocą: %s." % passive_summary)
+		sys.log_message.emit(_tr("Budynki wspierają potrzeby nocą: %s.") % passive_summary)
 
 	var health_passive := int(stat_passives.get("health", 0))
 	if health_passive != 0:
@@ -626,13 +632,13 @@ static func _resolve_needs(sys: SurvivalSystem) -> void:
 		state.food -= 1
 		state.hunger += food_value
 		food_eaten += 1
-		sys.log_message.emit("Zjadasz porcję jedzenia (+%d sytości)." % food_value)
+		sys.log_message.emit(_tr("Zjadasz porcję jedzenia (+%d sytości).") % food_value)
 	if state.hunger <= 0:
 		var hunger_dmg := _deprivation_damage(sys, sys.STARVATION_DAMAGE)
 		state.health = maxi(state.health - hunger_dmg, 0)
 		night_crises += 1
-		sys._record_damage(hunger_dmg, "Głód")
-		sys.log_message.emit("Sytość spadła do 0: tracisz zdrowie z głodu (-%d zdrowia)." % hunger_dmg)
+		sys._record_damage(hunger_dmg, _tr("Głód"))
+		sys.log_message.emit(_tr("Sytość spadła do 0: tracisz zdrowie z głodu (-%d zdrowia).") % hunger_dmg)
 
 	# Thirst: building passives and decay resolve together, then drink from
 	# stock. Summer makes water pressure harsher.
@@ -640,11 +646,11 @@ static func _resolve_needs(sys: SurvivalSystem) -> void:
 		+ sys._act2_rule("act2_thirst_decay_delta")
 	if state.season == RunState.Season.SUMMER:
 		thirst_decay += sys.SUMMER_EXTRA_THIRST_DECAY
-		sys.log_message.emit("Letni upał wysusza cię szybciej. -%d nawodnienia." %
+		sys.log_message.emit(_tr("Letni upał wysusza cię szybciej. -%d nawodnienia.") %
 			sys.SUMMER_EXTRA_THIRST_DECAY)
 	if int(camp["thirst_loss"]) > 0:
 		thirst_decay += int(camp["thirst_loss"])
-		sys.log_message.emit("Sucha okolica obozu odbiera dodatkowe nawodnienie. -%d nawodnienia." %
+		sys.log_message.emit(_tr("Sucha okolica obozu odbiera dodatkowe nawodnienie. -%d nawodnienia.") %
 			int(camp["thirst_loss"]))
 	state.thirst = clampi(
 		state.thirst + int(stat_passives.get("thirst", 0)) - thirst_decay,
@@ -656,13 +662,13 @@ static func _resolve_needs(sys: SurvivalSystem) -> void:
 		state.water -= 1
 		state.thirst += sys.WATER_THIRST_VALUE
 		water_drunk += 1
-		sys.log_message.emit("Pijesz wodę (+%d nawodnienia)." % sys.WATER_THIRST_VALUE)
+		sys.log_message.emit(_tr("Pijesz wodę (+%d nawodnienia).") % sys.WATER_THIRST_VALUE)
 	if state.thirst <= 0:
 		var thirst_dmg := _deprivation_damage(sys, sys.DEHYDRATION_DAMAGE)
 		state.health = maxi(state.health - thirst_dmg, 0)
 		night_crises += 1
 		sys._record_damage(thirst_dmg, "Odwodnienie")
-		sys.log_message.emit("Nawodnienie spadło do 0: tracisz zdrowie z odwodnienia (-%d zdrowia)." % thirst_dmg)
+		sys.log_message.emit(_tr("Nawodnienie spadło do 0: tracisz zdrowie z odwodnienia (-%d zdrowia).") % thirst_dmg)
 
 	# Warmth: nights are cold; campfires and other passives offset decay before
 	# the max cap is applied, so +10 warmth and -3 night becomes a real +7.
@@ -670,11 +676,11 @@ static func _resolve_needs(sys: SurvivalSystem) -> void:
 		+ sys._act2_rule("act2_warmth_decay_delta")
 	if state.season == RunState.Season.WINTER:
 		warmth_decay += sys.WINTER_EXTRA_WARMTH_DECAY
-		sys.log_message.emit("Zimowa noc odbiera dodatkowe ciepło. -%d ciepła." %
+		sys.log_message.emit(_tr("Zimowa noc odbiera dodatkowe ciepło. -%d ciepła.") %
 			sys.WINTER_EXTRA_WARMTH_DECAY)
 	if int(camp["warmth_loss"]) > 0:
 		warmth_decay += int(camp["warmth_loss"])
-		sys.log_message.emit("Zimny biom obozu wychładza cię nocą. -%d ciepła." %
+		sys.log_message.emit(_tr("Zimny biom obozu wychładza cię nocą. -%d ciepła.") %
 			int(camp["warmth_loss"]))
 	var campfire_boost_text := _campfire_boost_summary(sys)
 	if campfire_boost_text != "":
@@ -688,11 +694,11 @@ static func _resolve_needs(sys: SurvivalSystem) -> void:
 		var warmth_dmg := _deprivation_damage(sys, sys.FREEZING_DAMAGE)
 		if _has_night_protection(sys):
 			warmth_dmg = maxi(warmth_dmg - 1, 0)
-			_wear_night_protection(sys, "Schron bierze na siebie czesc mrozu (-1 HP).")
+			_wear_night_protection(sys, _tr("Schron bierze na siebie czesc mrozu (-1 HP)."))
 		state.health = maxi(state.health - warmth_dmg, 0)
 		night_crises += 1
-		sys._record_damage(warmth_dmg, "Mróz")
-		sys.log_message.emit("Ciepło spadło do 0: tracisz zdrowie z zimna (-%d zdrowia)." % warmth_dmg)
+		sys._record_damage(warmth_dmg, _tr("Mróz"))
+		sys.log_message.emit(_tr("Ciepło spadło do 0: tracisz zdrowie z zimna (-%d zdrowia).") % warmth_dmg)
 
 	# Camp sickness: foul biomes (Bagno) can flare a disease overnight. A shelter
 	# on the camped tile halves the odds (folded into camp["sickness_chance"]).
@@ -702,18 +708,18 @@ static func _resolve_needs(sys: SurvivalSystem) -> void:
 		var sick_dmg := _deprivation_damage(sys, sickness_damage) if state.bum_happened else sickness_damage
 		state.health = maxi(state.health - sick_dmg, 0)
 		sys._record_damage(sick_dmg, "Choroba")
-		sys.log_message.emit("Wyziewy obozu wywołują chorobę nocą (-%d zdrowia)." % sick_dmg)
+		sys.log_message.emit(_tr("Wyziewy obozu wywołują chorobę nocą (-%d zdrowia).") % sick_dmg)
 
 	if night_crises > 0:
 		var penalty: int = night_crises * sys.NIGHT_CRISIS_ENERGY_PENALTY
 		state.next_day_energy_delta -= penalty
-		sys.log_message.emit("Nocny kryzys wyczerpuje cie. Jutro -%d energii." % penalty)
+		sys.log_message.emit(_tr("Nocny kryzys wyczerpuje cie. Jutro -%d energii.") % penalty)
 
 	if food_eaten > 0 or water_drunk > 0:
 		sys.needs_consumed.emit(food_eaten, water_drunk)
 	var needs_summary: String = sys._action_delta_summary(needs_snapshot)
 	if needs_summary != "":
-		sys.log_message.emit("Bilans potrzeb po nocy: %s." % needs_summary)
+		sys.log_message.emit(_tr("Bilans potrzeb po nocy: %s.") % needs_summary)
 
 
 ## Hunger/thirst/cold must be a visible threat: before BUM each empty need deals

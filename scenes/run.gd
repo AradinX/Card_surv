@@ -209,7 +209,7 @@ func _ready() -> void:
 	_building_bar.z_index = 210
 	_building_bar.z_as_relative = false
 	_building_close_button.pressed.connect(_hide_building_popup)
-	_building_label.text = "Naprawa / rozbiórka"
+	_building_label.text = tr("Naprawa / rozbiórka")
 	_energy_button.pressed.connect(_on_reward_energy)
 	_health_button.pressed.connect(_on_reward_health)
 	_card_button.pressed.connect(_on_reward_card)
@@ -367,13 +367,13 @@ func _update_tutorial_panel() -> void:
 	_tutorial_overlay.visible = true
 	if _tutorial_next_button != null:
 		_tutorial_next_button.visible = _tutorial_step_requires_next()
-		_tutorial_next_button.text = "Zako\u0144cz samouczek" if _tutorial_step == TUTORIAL_DONE else "Dalej"
+		_tutorial_next_button.text = tr("Zako\u0144cz samouczek") if _tutorial_step == TUTORIAL_DONE else "Dalej"
 	_update_tutorial_visuals()
 
 
 func _tutorial_step_copy() -> Dictionary:
 	var forecast := _survival.end_of_day_forecast()
-	var night_line := "Co noc: syto\u015b\u0107 -%d, nawodnienie -%d, ciep\u0142o -%d. Budynki mog\u0105 to zmieni\u0107." % [
+	var night_line := tr("Co noc: syto\u015b\u0107 -%d, nawodnienie -%d, ciep\u0142o -%d. Budynki mog\u0105 to zmieni\u0107.") % [
 		int(forecast["hunger_decay"]),
 		int(forecast["thirst_decay"]),
 		int(forecast["warmth_decay"]),
@@ -382,72 +382,72 @@ func _tutorial_step_copy() -> Dictionary:
 		TUTORIAL_BIOME_CARDS:
 			return {
 				"title": "1/13 Karty biomu",
-				"body": "To s\u0105 akcje dost\u0119pne na aktualnym biomie. Na lesie mo\u017cesz pozyska\u0107 drewno. Przeci\u0105gnij kart\u0119 R\u0105b drewno na kartk\u0119 log\u00f3w albo na obecny kafel."
+				"body": tr("To s\u0105 akcje dost\u0119pne na aktualnym biomie. Na lesie mo\u017cesz pozyska\u0107 drewno. Przeci\u0105gnij kart\u0119 R\u0105b drewno na kartk\u0119 log\u00f3w albo na obecny kafel.")
 			}
 		TUTORIAL_LOGS:
 			return {
 				"title": "2/13 Logi",
-				"body": "Tutaj pojawia si\u0119 zapis przebiegu runu. Log pokazuje faktyczne koszty, zdobyte zasoby, modyfikatory pory roku oraz efekty budynk\u00f3w."
+				"body": tr("Tutaj pojawia si\u0119 zapis przebiegu runu. Log pokazuje faktyczne koszty, zdobyte zasoby, modyfikatory pory roku oraz efekty budynk\u00f3w.")
 			}
 		TUTORIAL_TOP_STATS:
 			return {
 				"title": "3/13 Pasek stanu",
-				"body": "Pasek u g\u00f3ry pokazuje dzie\u0144, poziom, zdrowie, syto\u015b\u0107, nawodnienie, ciep\u0142o, energi\u0119 oraz zapasy. Najed\u017a kursorem na por\u0119 roku, aby zobaczy\u0107 jej bonusy i kary. " + night_line
+				"body": tr("Pasek u g\u00f3ry pokazuje dzie\u0144, poziom, zdrowie, syto\u015b\u0107, nawodnienie, ciep\u0142o, energi\u0119 oraz zapasy. Najed\u017a kursorem na por\u0119 roku, aby zobaczy\u0107 jej bonusy i kary. ") + night_line
 			}
 		TUTORIAL_HAND_CARDS:
 			return {
 				"title": "4/13 Karty w r\u0119ce",
-				"body": "To talia akcji dobrana na bie\u017c\u0105cy dzie\u0144. Zagraj \u0179r\u00f3d\u0142o, aby uzupe\u0142ni\u0107 wod\u0119, oraz Zbieractwo, aby zdoby\u0107 jedzenie i poprawi\u0107 syto\u015b\u0107."
+				"body": tr("To talia akcji dobrana na bie\u017c\u0105cy dzie\u0144. Zagraj \u0179r\u00f3d\u0142o, aby uzupe\u0142ni\u0107 wod\u0119, oraz Zbieractwo, aby zdoby\u0107 jedzenie i poprawi\u0107 syto\u015b\u0107.")
 			}
 		TUTORIAL_BUILD_BUTTON:
 			return {
 				"title": "5/13 Budowanie",
-				"body": "Przejd\u017a do trybu budowania. Lista poka\u017ce konstrukcje dost\u0119pne na obecnym biomie wraz z kosztem energii, drewna i kamienia."
+				"body": tr("Przejd\u017a do trybu budowania. Lista poka\u017ce konstrukcje dost\u0119pne na obecnym biomie wraz z kosztem energii, drewna i kamienia.")
 			}
 		TUTORIAL_BUILD_CAMPFIRE:
 			return {
 				"title": "6/13 Ognisko",
-				"body": "Zbuduj Ognisko, przeci\u0105gaj\u0105c jego kart\u0119 na obecny biom albo na kartk\u0119 log\u00f3w. Ognisko dodaje ciep\u0142o podczas nocy, ale stopniowo traci HP."
+				"body": tr("Zbuduj Ognisko, przeci\u0105gaj\u0105c jego kart\u0119 na obecny biom albo na kartk\u0119 log\u00f3w. Ognisko dodaje ciep\u0142o podczas nocy, ale stopniowo traci HP.")
 			}
 		TUTORIAL_SECURE_REGION:
 			return {
 				"title": "7/13 Zabezpieczenie rejonu",
-				"body": "Przycisk w prawym dolnym rogu aktualnego kafla pozwala zabezpieczyć cały rejon na wypadek katastrofy. To kosztowna decyzja: dużo kamienia, energia i drewno za mniejsze szkody oraz wolniejsze zużycie budynków przed kryzysem. Nie musisz robić tego teraz."
+				"body": tr("Przycisk w prawym dolnym rogu aktualnego kafla pozwala zabezpieczyć cały rejon na wypadek katastrofy. To kosztowna decyzja: dużo kamienia, energia i drewno za mniejsze szkody oraz wolniejsze zużycie budynków przed kryzysem. Nie musisz robić tego teraz.")
 			}
 		TUTORIAL_CLICK_BUILDING:
 			return {
 				"title": "8/13 Budynek na kaflu",
-				"body": "Budynek jest teraz widoczny na kaflu. Kliknij jego ikon\u0119, aby otworzy\u0107 szczeg\u00f3\u0142y: HP, efekt pasywny, akcj\u0119, napraw\u0119 i rozbi\u00f3rk\u0119."
+				"body": tr("Budynek jest teraz widoczny na kaflu. Kliknij jego ikon\u0119, aby otworzy\u0107 szczeg\u00f3\u0142y: HP, efekt pasywny, akcj\u0119, napraw\u0119 i rozbi\u00f3rk\u0119.")
 			}
 		TUTORIAL_USE_BUILDING:
 			return {
 				"title": "9/13 Akcja budynku",
-				"body": "Cz\u0119\u015b\u0107 budynk\u00f3w ma aktywne akcje wykonywane za energi\u0119. U\u017cyj akcji Ogrzej si\u0119. Pami\u0119taj: niekt\u00f3re konstrukcje trac\u0105 HP przez u\u017cycie, prac\u0119 lub nocne zu\u017cycie."
+				"body": tr("Cz\u0119\u015b\u0107 budynk\u00f3w ma aktywne akcje wykonywane za energi\u0119. U\u017cyj akcji Ogrzej si\u0119. Pami\u0119taj: niekt\u00f3re konstrukcje trac\u0105 HP przez u\u017cycie, prac\u0119 lub nocne zu\u017cycie.")
 			}
 		TUTORIAL_END_DAY:
 			return {
 				"title": "10/13 Koniec dnia",
-				"body": "Najed\u017a na Koniec dnia, aby sprawdzi\u0107 prognoz\u0119 nocy: spadki potrzeb, zapasy i wp\u0142yw budynk\u00f3w. Nast\u0119pnie zako\u0144cz dzie\u0144."
+				"body": tr("Najed\u017a na Koniec dnia, aby sprawdzi\u0107 prognoz\u0119 nocy: spadki potrzeb, zapasy i wp\u0142yw budynk\u00f3w. Nast\u0119pnie zako\u0144cz dzie\u0144.")
 			}
 		TUTORIAL_NIGHT_EVENT:
 			return {
 				"title": "11/13 Noc",
-				"body": "Karta nocy pokazuje wydarzenie, a notatka obok podsumowuje efekty dodatnie i ujemne. W tym miejscu wida\u0107 r\u00f3wnie\u017c, jak budynki wp\u0142ywaj\u0105 na wynik nocy. Po przeczytaniu kliknij Dalej w panelu nocy."
+				"body": tr("Karta nocy pokazuje wydarzenie, a notatka obok podsumowuje efekty dodatnie i ujemne. W tym miejscu wida\u0107 r\u00f3wnie\u017c, jak budynki wp\u0142ywaj\u0105 na wynik nocy. Po przeczytaniu kliknij Dalej w panelu nocy.")
 			}
 		TUTORIAL_DISCOVER_TILE:
 			return {
 				"title": "12/13 Odkrywanie",
-				"body": "Drugiego dnia odkryj s\u0105siedni, nieznany kafel. Odkrywanie kosztuje energi\u0119 i mo\u017ce doda\u0107 zagro\u017cenia danego biomu do nocnej puli wydarze\u0144."
+				"body": tr("Drugiego dnia odkryj s\u0105siedni, nieznany kafel. Odkrywanie kosztuje energi\u0119 i mo\u017ce doda\u0107 zagro\u017cenia danego biomu do nocnej puli wydarze\u0144.")
 			}
 		TUTORIAL_REPAIR_BUILDING:
 			return {
 				"title": "13/13 Naprawa",
-				"body": "Po nocy ognisko mo\u017ce mie\u0107 mniej HP. Otw\u00f3rz szczeg\u00f3\u0142y budynku i u\u017cyj naprawy, aby zobaczy\u0107 koszt oraz przywr\u00f3ci\u0107 wytrzyma\u0142o\u015b\u0107."
+				"body": tr("Po nocy ognisko mo\u017ce mie\u0107 mniej HP. Otw\u00f3rz szczeg\u00f3\u0142y budynku i u\u017cyj naprawy, aby zobaczy\u0107 koszt oraz przywr\u00f3ci\u0107 wytrzyma\u0142o\u015b\u0107.")
 			}
 		TUTORIAL_DONE:
 			return {
-				"title": "Samouczek zako\u0144czony",
-				"body": "Chyba ju\u017c rozumiesz podstawy. Pora wr\u00f3ci\u0107 do menu i rozpocz\u0105\u0107 normaln\u0105 gr\u0119."
+				"title": tr("Samouczek zako\u0144czony"),
+				"body": tr("Chyba ju\u017c rozumiesz podstawy. Pora wr\u00f3ci\u0107 do menu i rozpocz\u0105\u0107 normaln\u0105 gr\u0119.")
 			}
 		_:
 			return {"title": "Samouczek", "body": ""}
@@ -686,9 +686,9 @@ func _on_secure_region_pressed(_anchor_rect: Rect2, tile_index: int) -> void:
 		_on_log_message(block)
 		_refresh_tiles(_survival.state)
 		return
-	var title := "Zabezpieczyć rejon?"
-	var cost_text := "Koszt:\n%s" % _survival.secure_current_tile_summary()
-	var effect_text := "Efekt:\n-%d%% obrażeń w razie katastrofy\n%d%% szans na zwykłe zużycie HP przed kryzysem\nLimit: %d rejony\nZużywa się podczas katastrofy." % [
+	var title := tr("Zabezpieczyć rejon?")
+	var cost_text := tr("Koszt:\n%s") % _survival.secure_current_tile_summary()
+	var effect_text := tr("Efekt:\n-%d%% obrażeń w razie katastrofy\n%d%% szans na zwykłe zużycie HP przed kryzysem\nLimit: %d rejony\nZużywa się podczas katastrofy.") % [
 		SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
 		SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
 		SurvivalSystem.BUM_SECURED_TILE_LIMIT,
@@ -709,11 +709,11 @@ func _request_move(tile_index: int, after_move: Callable = Callable()) -> void:
 		return
 	var tile := _survival.state.board[tile_index]
 	var is_discovery := not tile.is_discovered
-	var title := "Odkryć kafel?" if is_discovery else "Przejść na kafel?"
-	var ok_text := "Odkryj" if is_discovery else "Przejdź"
+	var title := tr("Odkryć kafel?") if is_discovery else tr("Przejść na kafel?")
+	var ok_text := "Odkryj" if is_discovery else tr("Przejdź")
 	var body := "%s\nKoszt: %d energii" % [
-		"Nieznany teren. Odkrycie aktywuje jego nocne zagrożenia." if is_discovery
-			else tile.biome.display_name,
+		tr("Nieznany teren. Odkrycie aktywuje jego nocne zagrożenia.") if is_discovery
+			else tr(tile.biome.display_name),
 		_survival.move_energy_cost(),
 	]
 	_confirm_action(title, body, ok_text, func() -> void:
@@ -782,7 +782,7 @@ func _update_forecast() -> void:
 			int(round(sickness_chance * 100.0)),
 			int(f.get("camp_sickness_damage", 0)),
 		]
-	_end_day_button.tooltip_text = "Po nocy:\nSytość -%d\nNawodnienie -%d\nCiepło %s (noc -%d, budynki +%d)\nZapasy: %d jedzenia, %d wody%s" % [
+	_end_day_button.tooltip_text = tr("Po nocy:\nSytość -%d\nNawodnienie -%d\nCiepło %s (noc -%d, budynki +%d)\nZapasy: %d jedzenia, %d wody%s") % [
 		f["hunger_decay"],
 		f["thirst_decay"],
 		warmth_txt,
@@ -819,18 +819,18 @@ func _refresh_tiles(state: RunState) -> void:
 		var tooltip := ""
 		if not tile.is_discovered:
 			tooltip = block_reason if block_reason != "" \
-				else "Nieznany teren. Wejście odkryje ten kafel."
+				else tr("Nieznany teren. Wejście odkryje ten kafel.")
 		elif i == state.current_tile:
 			tooltip = tile.biome.corrupted_description_for(disaster_id) if tile.is_corrupted \
-				else tile.biome.description
+				else tr(tile.biome.description)
 		else:
 			tooltip = block_reason if block_reason != "" \
-				else "Przejdź (koszt: %d energii)" % _survival.move_energy_cost()
+				else tr("Przejdź (koszt: %d energii)") % _survival.move_energy_cost()
 		var building_tooltips: Array[String] = []
 		for built in tile.buildings:
 			building_tooltips.append(_building_tooltip(built, tile))
 		if tile.bum_secured and not state.bum_happened:
-			tooltip += "\n\nZabezpieczony rejon: -%d%% obrażeń w razie katastrofy, %d%% szans na zwykłe zużycie HP przed kryzysem. Zabezpieczenie zużyje się podczas katastrofy." % [
+			tooltip += tr("\n\nZabezpieczony rejon: -%d%% obrażeń w razie katastrofy, %d%% szans na zwykłe zużycie HP przed kryzysem. Zabezpieczenie zużyje się podczas katastrofy.") % [
 				SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
 				SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
 			]
@@ -858,11 +858,11 @@ func _refresh_tiles(state: RunState) -> void:
 
 func _secure_region_button_tooltip(block_reason: String) -> String:
 	var lines: PackedStringArray = [
-		"Zabezpiecz rejon",
-		"Koszt: %s" % _survival.secure_current_tile_summary(),
-		"Efekt: -%d%% obrażeń dla budynków tutaj w razie katastrofy." % SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
-		"Przed kryzysem budynki mają tylko %d%% szans na zwykłe zużycie HP." % SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
-		"Limit: %d zabezpieczone rejony." % SurvivalSystem.BUM_SECURED_TILE_LIMIT,
+		tr("Zabezpiecz rejon"),
+		tr("Koszt: %s") % _survival.secure_current_tile_summary(),
+		tr("Efekt: -%d%% obrażeń dla budynków tutaj w razie katastrofy.") % SurvivalSystem.BUM_SECURE_DAMAGE_REDUCTION,
+		tr("Przed kryzysem budynki mają tylko %d%% szans na zwykłe zużycie HP.") % SurvivalSystem.ACT1_SECURED_WEAR_CHANCE_PERCENT,
+		tr("Limit: %d zabezpieczone rejony.") % SurvivalSystem.BUM_SECURED_TILE_LIMIT,
 	]
 	if block_reason != "":
 		lines.append(block_reason)
@@ -893,9 +893,9 @@ func _confirm_demolish(building_index: int) -> void:
 	if building_index < 0 or building_index >= buildings.size():
 		return
 	var built = buildings[building_index]
-	var title := "Rozebrać ruinę?" if built.is_ruined else "Rozebrać budynek?"
+	var title := tr("Rozebrać ruinę?") if built.is_ruined else tr("Rozebrać budynek?")
 	var text := "%s\nKoszt: %d energii\nZwrot: %s" % [
-		built.data.display_name,
+		tr(built.data.display_name),
 		SurvivalSystem.DEMOLISH_ENERGY_COST,
 		_demolish_refund_summary(built),
 	]
@@ -938,12 +938,12 @@ func _building_info_data(building_index: int) -> Dictionary:
 	var effect_parts := _building_passive_effect_parts(data)
 	var action := _survival.building_action(building_index)
 	var block := str(action.get("block", "")) if not action.is_empty() else ""
-	var action_used := block.contains("użyta dzisiaj")
+	var action_used := block.contains(tr("użyta dzisiaj"))
 	var summary := str(action.get("summary", "")) if not action.is_empty() else ""
 	var action_text := ""
 	if not built.is_ruined and not action.is_empty():
 		action_text = "%s%s" % [
-			str(action.get("title", "Użyj")),
+			str(action.get("title", tr("Użyj"))),
 			"\n%s" % summary if summary != "" else "",
 		]
 
@@ -953,42 +953,42 @@ func _building_info_data(building_index: int) -> Dictionary:
 	var repair_tooltip := ""
 	var repair_button_text := "Napraw"
 	if is_campfire:
-		repair_button_text = "Dołóż drewna"
+		repair_button_text = tr("Dołóż drewna")
 		var fuel_block := _survival.can_repair(building_index)
-		repair_text = "Dołóż: %d drewno -> +%d noce" % [
+		repair_text = tr("Dołóż: %d drewno -> +%d noce") % [
 			SurvivalSystem.CAMPFIRE_STOKE_WOOD_COST,
 			SurvivalSystem.CAMPFIRE_FUEL_HP_PER_WOOD,
 		]
 		repair_disabled = fuel_block != ""
-		repair_tooltip = fuel_block if fuel_block != "" else "Można dokładać bez ograniczeń."
+		repair_tooltip = fuel_block if fuel_block != "" else tr("Można dokładać bez ograniczeń.")
 	elif built.is_ruined:
-		repair_text = "Naprawa: niedostępna."
+		repair_text = tr("Naprawa: niedostępna.")
 		repair_disabled = true
-		repair_tooltip = "Ruiny można tylko rozebrać."
+		repair_tooltip = tr("Ruiny można tylko rozebrać.")
 	elif built.hp >= max_hp:
-		repair_text = "Naprawa: pełne HP."
+		repair_text = tr("Naprawa: pełne HP.")
 		repair_disabled = true
-		repair_tooltip = "Budynek ma pełne HP."
+		repair_tooltip = tr("Budynek ma pełne HP.")
 	else:
 		var repair_block := _survival.can_repair(building_index)
 		var wood_cost := _survival.repair_wood_cost(built)
-		repair_text = "Naprawa: %d energii, %d drewna" % [
+		repair_text = tr("Naprawa: %d energii, %d drewna") % [
 			SurvivalSystem.REPAIR_ENERGY_COST,
 			wood_cost,
 		]
 		repair_disabled = repair_block != ""
-		repair_tooltip = repair_block if repair_block != "" else "Naprawa do pełnego HP."
+		repair_tooltip = repair_block if repair_block != "" else tr("Naprawa do pełnego HP.")
 
 	var refund := _demolish_refund_summary(built)
 	var demolish_block := _survival.can_demolish(building_index)
-	var demolish_text := "Rozbiórka: %d energii\nZwrot: %s%s" % [
+	var demolish_text := tr("Rozbiórka: %d energii\nZwrot: %s%s") % [
 		SurvivalSystem.DEMOLISH_ENERGY_COST,
 		refund,
 		"" if built.is_ruined else " (mniej)",
 	]
 	var hp_text := ""
 	if is_campfire:
-		hp_text = ("Pali się jeszcze %d nocy" % built.hp) if built.hp > 0 else "Wygasłe"
+		hp_text = (tr("Pali się jeszcze %d nocy") % built.hp) if built.hp > 0 else tr("Wygasłe")
 	else:
 		hp_text = "HP %d/%d%s" % [built.hp, max_hp, "  |  RUINA" if built.is_ruined else ""]
 	return {
@@ -998,11 +998,11 @@ func _building_info_data(building_index: int) -> Dictionary:
 		"hp_text": hp_text,
 		"hp_low": not is_campfire and not built.is_ruined and built.hp * 2 < max_hp,
 		"status_text": _building_wear_text(data, building_index) if not is_campfire else "",
-		"effects_text": ("Pasywnie: %s" % ", ".join(effect_parts)) if not effect_parts.is_empty() else "",
+		"effects_text": (tr("Pasywnie: %s") % ", ".join(effect_parts)) if not effect_parts.is_empty() else "",
 		"action_text": action_text,
 		"use_visible": not built.is_ruined and not action.is_empty(),
 		"use_disabled": block != "" or action.is_empty(),
-		"use_text": "Użyto" if action_used else (str(action.get("title", "Użyj")) if not action.is_empty() else "Użyj"),
+		"use_text": tr("Użyto") if action_used else (str(action.get("title", tr("Użyj"))) if not action.is_empty() else tr("Użyj")),
 		"use_tooltip": block if block != "" else summary,
 		"repair_text": repair_text,
 		"repair_button_text": repair_button_text,
@@ -1020,16 +1020,16 @@ func _building_wear_text(data: BuildingCardData, building_index: int) -> String:
 	if data.id == "building_campfire":
 		return ""
 	if SurvivalSystem.NIGHTLY_WEAR_BUILDING_IDS.has(data.id):
-		return "Zużycie: -1 HP co dzień."
+		return tr("Zużycie: -1 HP co dzień.")
 	if SurvivalSystem.EVERY_OTHER_DAY_WEAR_BUILDING_IDS.has(data.id):
-		return "Zużycie: -1 HP co 2 dni."
+		return tr("Zużycie: -1 HP co 2 dni.")
 	if SurvivalSystem.EVERY_THIRD_DAY_WEAR_BUILDING_IDS.has(data.id):
-		return "Zużycie: -1 HP co 3 dni."
+		return tr("Zużycie: -1 HP co 3 dni.")
 	if SurvivalSystem.EVERY_FOURTH_DAY_WEAR_BUILDING_IDS.has(data.id):
-		return "Zużycie: -1 HP co 4 dni."
+		return tr("Zużycie: -1 HP co 4 dni.")
 	if not _survival.building_action(building_index).is_empty():
-		return "Zużycie: -1 HP przy użyciu akcji."
-	return "Zużycie: brak stałego zużycia."
+		return tr("Zużycie: -1 HP przy użyciu akcji.")
+	return tr("Zużycie: brak stałego zużycia.")
 
 
 func _hide_building_info_popup() -> void:
@@ -1050,11 +1050,11 @@ func _on_building_info_use_pressed(building_index: int) -> void:
 	if block != "":
 		_on_log_message(block)
 		return
-	var title := "Użyć akcji budynku?"
-	var action_title := str(action.get("title", "Użyj"))
+	var title := tr("Użyć akcji budynku?")
+	var action_title := str(action.get("title", tr("Użyj")))
 	var summary := str(action.get("summary", ""))
 	var text := "%s\nAkcja: %s%s" % [
-		buildings[building_index].data.display_name,
+		tr(buildings[building_index].data.display_name),
 		action_title,
 		"\nEfekt: %s" % summary if summary != "" else "",
 	]
@@ -1084,25 +1084,25 @@ func _on_building_info_repair_pressed(building_index: int) -> void:
 		_on_log_message(repair_block)
 		return
 	if built.data.id == "building_campfire":
-		var fuel_text := "%s\nPali się jeszcze: %d nocy\nKoszt: %d drewno -> +%d nocy paliwa" % [
-			built.data.display_name,
+		var fuel_text := tr("%s\nPali się jeszcze: %d nocy\nKoszt: %d drewno -> +%d nocy paliwa") % [
+			tr(built.data.display_name),
 			built.hp,
 			SurvivalSystem.CAMPFIRE_STOKE_WOOD_COST,
 			SurvivalSystem.CAMPFIRE_FUEL_HP_PER_WOOD,
 		]
-		_confirm_action("Dołożyć drewna do ogniska?", fuel_text, "Dołóż drewna", func() -> void:
+		_confirm_action(tr("Dołożyć drewna do ogniska?"), fuel_text, tr("Dołóż drewna"), func() -> void:
 			_repair_building_confirmed(building_index)
 		)
 		return
 	var max_hp := _survival.building_max_hp(built.data)
 	var text := "%s\nHP: %d/%d\nKoszt: %d energii, %d drewna" % [
-		built.data.display_name,
+		tr(built.data.display_name),
 		built.hp,
 		max_hp,
 		SurvivalSystem.REPAIR_ENERGY_COST,
 		_survival.repair_wood_cost(built),
 	]
-	_confirm_action("Naprawić budynek?", text, "Napraw", func() -> void:
+	_confirm_action(tr("Naprawić budynek?"), text, "Napraw", func() -> void:
 		_repair_building_confirmed(building_index)
 	)
 
@@ -1142,21 +1142,21 @@ func _building_tooltip(built, tile: TileState = null) -> String:
 	var data: BuildingCardData = built.data
 	var hp_line := "HP %d/%d" % [built.hp, _survival.building_max_hp(data)]
 	if data.id == "building_campfire":
-		hp_line = "Pali się jeszcze %d nocy" % built.hp if built.hp > 0 else "Wygasłe"
+		hp_line = tr("Pali się jeszcze %d nocy") % built.hp if built.hp > 0 else tr("Wygasłe")
 	var parts: PackedStringArray = [
-		data.display_name,
+		tr(data.display_name),
 		hp_line,
 	]
 	if tile.bum_secured and not _survival.state.bum_happened:
-		parts.append("Rejon zabezpieczony")
+		parts.append(tr("Rejon zabezpieczony"))
 	var production := _building_effect_parts(data)
 	if not production.is_empty():
-		parts.append("Efekty: %s" % ", ".join(production))
+		parts.append(tr("Efekty: %s") % ", ".join(production))
 	if data.special != "":
-		parts.append("Specjalne: %s" % _building_special_description(data.special))
+		parts.append(tr("Specjalne: %s") % _building_special_description(data.special))
 	var action := _building_action_for_tooltip(built, tile)
 	if action != "":
-		parts.append("Akcja: %s" % action)
+		parts.append(tr("Akcja: %s") % action)
 	return "\n".join(parts)
 
 
@@ -1184,16 +1184,16 @@ func _building_action_for_tooltip(built, tile: TileState = null) -> String:
 func _building_effect_parts(data: BuildingCardData) -> PackedStringArray:
 	var parts: PackedStringArray = []
 	if data.id == "building_campfire":
-		parts.append("%+d ciepła/noc, dopóki się pali" % data.warmth_delta)
-		parts.append("Duży ogień: +%d ciepła dodatkowo tej nocy (1 drewno + 1 energia)" %
+		parts.append(tr("%+d ciepła/noc, dopóki się pali") % data.warmth_delta)
+		parts.append(tr("Duży ogień: +%d ciepła dodatkowo tej nocy (1 drewno + 1 energia)") %
 			SurvivalSystem.CAMPFIRE_STOKE_BONUS_WARMTH)
 		return parts
-	if data.food_gain != 0: parts.append("%+d jedzenia nocą" % data.food_gain)
-	if data.water_gain != 0: parts.append("%+d wody nocą" % data.water_gain)
-	if data.wood_gain != 0: parts.append("%+d drewna nocą" % data.wood_gain)
-	if data.materials_gain != 0: parts.append("%+d kamienia nocą" % data.materials_gain)
-	if data.health_delta != 0: parts.append("%+d zdrowia nocą" % data.health_delta)
-	if data.warmth_delta != 0: parts.append("%+d ciepła nocą" % data.warmth_delta)
+	if data.food_gain != 0: parts.append(tr("%+d jedzenia nocą") % data.food_gain)
+	if data.water_gain != 0: parts.append(tr("%+d wody nocą") % data.water_gain)
+	if data.wood_gain != 0: parts.append(tr("%+d drewna nocą") % data.wood_gain)
+	if data.materials_gain != 0: parts.append(tr("%+d kamienia nocą") % data.materials_gain)
+	if data.health_delta != 0: parts.append(tr("%+d zdrowia nocą") % data.health_delta)
+	if data.warmth_delta != 0: parts.append(tr("%+d ciepła nocą") % data.warmth_delta)
 	if data.defense > 0: parts.append("obrona %d" % data.defense)
 	if data.food_cap_bonus > 0: parts.append("+%d limitu jedzenia" % data.food_cap_bonus)
 	if data.water_cap_bonus > 0: parts.append("+%d limitu wody" % data.water_cap_bonus)
@@ -1215,11 +1215,11 @@ func _building_passive_effect_parts(data: BuildingCardData) -> PackedStringArray
 func _building_special_description(special: String) -> String:
 	match special:
 		"night_protection":
-			return "chroni przed częścią nocnych strat zdrowia/ciepła"
+			return tr("chroni przed częścią nocnych strat zdrowia/ciepła")
 		"slow_spoilage":
 			return "spowalnia psucie jedzenia"
 		"unlock_crafting":
-			return "daje narzędzia po zbudowaniu"
+			return tr("daje narzędzia po zbudowaniu")
 		_:
 			return special
 
@@ -1397,7 +1397,7 @@ func _refresh_build_cards() -> void:
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		_build_cards.add_child(view)
 		view.setup(building, _survival.can_build(building), _build_cost_summary(building))
-		_setup_draggable_card(view, building, "build", -1, "Przeciągnij budowlę na aktualny biom albo kartkę logów.")
+		_setup_draggable_card(view, building, "build", -1, tr("Przeciągnij budowlę na aktualny biom albo kartkę logów."))
 
 
 ## Update greying of existing build cards without rebuilding the row (cheaper on
@@ -1416,7 +1416,7 @@ func _refresh_build_playability() -> void:
 			"card_id": catalog[i].id,
 		})
 		if not view.is_play_blocked():
-			view.tooltip_text = "Przeciągnij budowlę na aktualny biom albo kartkę logów."
+			view.tooltip_text = tr("Przeciągnij budowlę na aktualny biom albo kartkę logów.")
 
 
 ## Effective build cost (class discount + post-BUM surcharge) as a player string.
@@ -1424,11 +1424,11 @@ func _build_cost_summary(b: BuildingCardData) -> String:
 	var cost: Dictionary = _survival.effective_build_cost(b)
 	var parts: Array[String] = ["%d energii" % int(cost["energy"])]
 	if int(cost["wood"]) > 0:
-		parts.append("%d drewna" % int(cost["wood"]))
+		parts.append(tr("%d drewna") % int(cost["wood"]))
 	if int(cost["materials"]) > 0:
-		parts.append("%d kamienia" % int(cost["materials"]))
+		parts.append(tr("%d kamienia") % int(cost["materials"]))
 	if int(cost["food"]) > 0:
-		parts.append("%d jedz." % int(cost["food"]))
+		parts.append(tr("%d jedz.") % int(cost["food"]))
 	var biome_label: String = _survival.required_biome_label(b)
 	if biome_label != "":
 		parts.append(biome_label)
@@ -1566,7 +1566,7 @@ func _rebuild_cards(
 		if source != "":
 			_setup_draggable_card(
 				view, card, source, index,
-				"Przeciągnij kartę na aktualny biom albo kartkę logów."
+				tr("Przeciągnij kartę na aktualny biom albo kartkę logów.")
 			)
 		else:
 			view.pressed.connect(func() -> void:
@@ -1621,7 +1621,7 @@ func _on_card_dropped(payload: Dictionary, target: String, tile_index: int) -> v
 	_dragging_play_card = false
 	_set_card_drop_targets_active(false)
 	if target == "tile" and tile_index != _survival.state.current_tile:
-		_on_log_message("Kartę możesz zagrać na aktualnym biomie.")
+		_on_log_message(tr("Kartę możesz zagrać na aktualnym biomie."))
 		return
 	var drop_position := _drop_feedback_position(target, tile_index)
 	_play_dragged_card(payload, drop_position)
@@ -1636,7 +1636,7 @@ func _drop_feedback_position(target: String, tile_index: int) -> Vector2:
 func _play_dragged_card(payload: Dictionary, feedback_position: Vector2) -> void:
 	var source := str(payload.get("source", ""))
 	if _build_mode and source != "build":
-		_on_log_message("Najpierw zamknij tryb budowania, żeby zagrać kartę.")
+		_on_log_message(tr("Najpierw zamknij tryb budowania, żeby zagrać kartę."))
 		return
 	match source:
 		"hand":
@@ -1646,13 +1646,13 @@ func _play_dragged_card(payload: Dictionary, feedback_position: Vector2) -> void
 		"build":
 			_play_dragged_building_card(payload, feedback_position)
 		_:
-			_on_log_message("Nie rozpoznano przeciągniętej karty.")
+			_on_log_message(tr("Nie rozpoznano przeciągniętej karty."))
 
 
 func _play_dragged_hand_card(payload: Dictionary, feedback_position: Vector2) -> void:
 	var index := _resolve_hand_card_index(payload)
 	if index < 0:
-		_on_log_message("Tej karty nie ma już w ręce.")
+		_on_log_message(tr("Tej karty nie ma już w ręce."))
 		return
 	var card := _survival.hand[index]
 	var block := _survival.can_play(card)
@@ -1667,7 +1667,7 @@ func _play_dragged_hand_card(payload: Dictionary, feedback_position: Vector2) ->
 func _play_dragged_gather_card(payload: Dictionary, feedback_position: Vector2) -> void:
 	var action := _resolve_gather_card(payload)
 	if action == null:
-		_on_log_message("Ta akcja biomu nie jest już dostępna.")
+		_on_log_message(tr("Ta akcja biomu nie jest już dostępna."))
 		return
 	var block := _survival.can_play_gather(action)
 	if block != "":
@@ -1681,7 +1681,7 @@ func _play_dragged_gather_card(payload: Dictionary, feedback_position: Vector2) 
 func _play_dragged_building_card(payload: Dictionary, _feedback_position: Vector2) -> void:
 	var building := _resolve_building_card(payload)
 	if building == null:
-		_on_log_message("Ta budowla nie jest już dostępna.")
+		_on_log_message(tr("Ta budowla nie jest już dostępna."))
 		return
 	var block := _survival.can_build(building)
 	if block != "":
@@ -1767,7 +1767,7 @@ func _show_reward_panel() -> void:
 	var state := _survival.state
 	var suffix := "" if state.pending_rewards == 1 \
 		else " (w kolejce: %d)" % state.pending_rewards
-	_level_title.text = "Awans! Poziom %d — wybierz nagrodę%s" % [state.level, suffix]
+	_level_title.text = tr("Awans! Poziom %d — wybierz nagrodę%s") % [state.level, suffix]
 	_reward_buttons.visible = true
 	_clear_card_choices()
 	_energy_button.disabled = false
@@ -1795,7 +1795,7 @@ func _on_reward_card() -> void:
 		return
 	_reward_buttons.visible = false
 	_clear_card_choices()
-	_level_title.text = "Wybierz kartę do talii (obecnie: %d kart)" % _survival.state.deck.size()
+	_level_title.text = tr("Wybierz kartę do talii (obecnie: %d kart)") % _survival.state.deck.size()
 	for card in rewards:
 		var choice_wrap := VBoxContainer.new()
 		choice_wrap.custom_minimum_size = Vector2(132, 228)
@@ -1805,11 +1805,11 @@ func _on_reward_card() -> void:
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		choice_wrap.add_child(view)
 		view.setup(card, "", "", _card_effect_override(card))
-		view.tooltip_text = "Masz w talii: %d" % _deck_count_for(card)
+		view.tooltip_text = tr("Masz w talii: %d") % _deck_count_for(card)
 		view.pressed.connect(_on_reward_card_chosen.bind(card))
 
 		var count_label := Label.new()
-		count_label.text = "Masz w talii: %d" % _deck_count_for(card)
+		count_label.text = tr("Masz w talii: %d") % _deck_count_for(card)
 		count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		count_label.add_theme_font_size_override("font_size", 12)
 		count_label.add_theme_color_override("font_color", Color(0.93, 0.87, 0.66, 1.0))

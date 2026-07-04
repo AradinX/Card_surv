@@ -18,7 +18,11 @@ const PANEL_PADDING := Vector2(32, 32)
 @onready var _music_value: Label = $Panel/PanelMargin/VBox/MusicRow/MusicValue
 @onready var _sfx_slider: HSlider = $Panel/PanelMargin/VBox/SfxRow/SfxSlider
 @onready var _sfx_value: Label = $Panel/PanelMargin/VBox/SfxRow/SfxValue
+@onready var _language_option: OptionButton = $Panel/PanelMargin/VBox/LanguageRow/LanguageOption
 @onready var _close_button: Button = $Panel/PanelMargin/VBox/CloseButton
+
+## OptionButton index -> Settings.language value.
+const LANGUAGES := ["", "pl", "en"]
 
 
 func _ready() -> void:
@@ -30,6 +34,10 @@ func _ready() -> void:
 	_volume_slider.value_changed.connect(_on_volume_changed)
 	_music_slider.value_changed.connect(_on_music_changed)
 	_sfx_slider.value_changed.connect(_on_sfx_changed)
+	_language_option.add_item("Auto (system)")
+	_language_option.add_item("Polski")
+	_language_option.add_item("English")
+	_language_option.item_selected.connect(_on_language_selected)
 	_apply_responsive_layout()
 
 
@@ -61,6 +69,7 @@ func open() -> void:
 	_music_value.text = "%d%%" % roundi(Settings.music_volume * 100.0)
 	_sfx_slider.set_value_no_signal(Settings.sfx_volume)
 	_sfx_value.text = "%d%%" % roundi(Settings.sfx_volume * 100.0)
+	_language_option.select(maxi(LANGUAGES.find(Settings.language), 0))
 	visible = true
 
 
@@ -77,6 +86,10 @@ func _on_music_changed(value: float) -> void:
 func _on_sfx_changed(value: float) -> void:
 	Settings.set_sfx_volume(value)
 	_sfx_value.text = "%d%%" % roundi(value * 100.0)
+
+
+func _on_language_selected(index: int) -> void:
+	Settings.set_language(LANGUAGES[clampi(index, 0, LANGUAGES.size() - 1)])
 
 
 func _on_close() -> void:

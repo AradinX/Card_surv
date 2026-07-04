@@ -1721,6 +1721,39 @@ tekstem na przypiętych kartkach pergaminu namalowanych na panelu.
 - Cała czternastka testów zielona (season_test raz segfault Godota przy wyjściu —
   flake, po powtórce zielony).
 
+### Lokalizacja PL+EN (2026-07-04)
+
+- **Klucz tłumaczenia = polski tekst źródłowy** (zero wymyślonych id): CSV
+  `localization/strings.csv` (kolumny `keys,en`), importowany przez Godota do
+  `strings.en.translation`, zarejestrowany w `project.godot`
+  (`locale/fallback="pl"` — brak wpisu = gracz widzi polski oryginał).
+  **1183 klucze, 100% przetłumaczone na EN** (tłumaczenie maszynowe do
+  proofreadu przed premierą).
+- **Kod:** `tools/wrap_tr.gd` (one-off) opakował ~400 literałów w `tr()`
+  (2 przebiegi: diakrytyki + zdaniopodobne bez diakrytyków; pomija bloki
+  `const`, komentarze, assert/print). Pliki statycznych funkcji
+  (`night_resolver`, `bum_resolver`, `run_state`) używają lokalnego helpera
+  `_tr()` → `TranslationServer.translate` (statyka nie ma `Object.tr`).
+  Nazwy/opisy zasobów tłumaczone w miejscach KOMPOZYCJI (sed na akcesorach
+  `.display_name/.description/.act2_rule_text/.result_text`); fragmenty
+  („energii", „drewna") w helperach `_append_delta_part`/`_append_cost_part`/
+  `_push_delta` (jedna poprawka zamiast 40 call-sitów). Słowniki `const`
+  (BUM_OMENS, DISASTER_CORRUPTED_*, BIOME_DISPLAY_NAMES, TUTORIAL_PAGES)
+  tłumaczone przy odczycie; statyczne teksty `.tscn` idą przez auto-translate
+  Controli (klucz = tekst źródłowy).
+- **Ekstrakcja:** `tools/extract_strings.gd` (zasoby `data/` + literały tr()/
+  fragmenty helperów/teksty `.tscn` → merge z istniejącym CSV, bezpieczny
+  re-run po dodaniu kart); `tools/loc_en.gd` (dump/merge partii tłumaczeń).
+- **Ustawienia:** dropdown Język/Language (Auto/Polski/English) w
+  `settings_overlay`; `Settings.language` w `settings.cfg`, aplikowany na
+  starcie (`_apply_language`; pusty = locale systemu).
+- **Test:** `load_test` sprawdza kompletność (każdy klucz CSV ma EN) i
+  istnienie skompilowanego katalogu. Cała czternastka zielona (hand_draw raz
+  flake segfault przy wyjściu, po powtórce zielony).
+- DO ZROBIENIA przed premierą: proofread EN (natywny/user), ręczny playtest
+  w EN pod przepełnienia tekstu (auto-fit fontów istnieje), zrzuty ekranu EN
+  na stronę Steam.
+
 ## Jak uruchomić
 
 1. Otwórz Godot 4.5+ (testowane na 4.5.1).

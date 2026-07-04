@@ -99,14 +99,14 @@ func _make_character_card(character_class: CharacterClassData) -> PanelContainer
 	row.add_child(text)
 
 	var name_label := Label.new()
-	name_label.text = character_class.display_name
+	name_label.text = tr(character_class.display_name)
 	name_label.add_theme_font_size_override("font_size", 22)
 	name_label.add_theme_color_override("font_color", Color(1.0, 0.84, 0.40))
 	text.add_child(name_label)
 
-	if character_class.description != "":
+	if tr(character_class.description) != "":
 		var desc := Label.new()
-		desc.text = character_class.description
+		desc.text = tr(character_class.description)
 		desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		desc.custom_minimum_size = Vector2(560, 0)
 		desc.add_theme_font_size_override("font_size", 14)
@@ -127,24 +127,24 @@ func _make_character_card(character_class: CharacterClassData) -> PanelContainer
 
 
 func _refresh_meta_ui() -> void:
-	_coins_label.text = "Złote monety: %d" % GameManager.meta_state.gold_coins
+	_coins_label.text = tr("Złote monety: %d") % GameManager.meta_state.gold_coins
 	_populate_class_selector()
 	var can_spin: bool = GameManager.meta_state.can_spin(GameManager.class_count())
 	_roulette_button.disabled = not can_spin
 	if GameManager.meta_state.unlocked_class_ids.size() >= GameManager.class_count():
-		_roulette_button.text = "Wszystkie postacie odblokowane"
+		_roulette_button.text = tr("Wszystkie postacie odblokowane")
 	else:
 		var coin_label := "moneta" if MetaState.SPIN_COST == 1 else "monety"
-		_roulette_button.text = "Ruletka postaci (%d %s)" % [MetaState.SPIN_COST, coin_label]
+		_roulette_button.text = tr("Ruletka postaci (%d %s)") % [MetaState.SPIN_COST, coin_label]
 
 
 func _populate_class_selector() -> void:
 	_class_selector.clear()
 	_selector_class_ids.clear()
 	for character_class in GameManager.unlocked_classes():
-		_class_selector.add_item(character_class.display_name)
+		_class_selector.add_item(tr(character_class.display_name))
 		_class_selector.set_item_tooltip(
-			_class_selector.item_count - 1, character_class.description
+			_class_selector.item_count - 1, tr(character_class.description)
 		)
 		_selector_class_ids.append(character_class.id)
 		if character_class.id == GameManager.selected_class_id:
@@ -171,7 +171,7 @@ func _on_roulette_pressed() -> void:
 	var won: CharacterClassData = GameManager.spin_roulette()
 	if won == null:
 		return
-	_coins_label.text = "Złote monety: %d" % GameManager.meta_state.gold_coins
+	_coins_label.text = tr("Złote monety: %d") % GameManager.meta_state.gold_coins
 	_roulette_button.disabled = true
 	_roulette_overlay.visible = true
 	_roulette_result.text = ""
@@ -199,14 +199,14 @@ func _animate_spin(won: CharacterClassData, candidates: Array) -> void:
 	for i in 18:
 		var flash: CharacterClassData = classes[randi() % classes.size()]
 		_spin_tween.tween_callback(func() -> void:
-			_roulette_label.text = flash.display_name
+			_roulette_label.text = tr(flash.display_name)
 			_set_roulette_portrait(flash.id)
 		)
 		_spin_tween.tween_interval(0.05 + i * 0.014)
 	_spin_tween.tween_callback(func() -> void:
-		_roulette_label.text = won.display_name
+		_roulette_label.text = tr(won.display_name)
 		_set_roulette_portrait(won.id)
-		_roulette_result.text = "Odblokowano: %s!" % won.display_name
+		_roulette_result.text = tr("Odblokowano: %s!") % tr(won.display_name)
 		_roulette_close.disabled = false
 		# Make the freshly won class the active pick and refresh the menu.
 		GameManager.selected_class_id = won.id

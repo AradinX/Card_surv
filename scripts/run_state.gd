@@ -222,15 +222,20 @@ static func _read_bool(data: Dictionary, key: String) -> bool:
 	return value is bool and value
 
 
+## Static context has no Object.tr() — translate through TranslationServer.
+static func _tr(text: String) -> String:
+	return TranslationServer.translate(text)
+
+
 static func season_name(value: int) -> String:
 	match value:
 		Season.SPRING:
-			return "Wiosna"
+			return _tr("Wiosna")
 		Season.SUMMER:
-			return "Lato"
+			return _tr("Lato")
 		Season.AUTUMN:
-			return "Jesień"
+			return _tr("Jesień")
 		Season.WINTER:
-			return "Zima"
+			return _tr("Zima")
 		_:
 			return "?"

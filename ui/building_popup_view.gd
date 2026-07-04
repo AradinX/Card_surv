@@ -73,7 +73,7 @@ func set_content(data: Dictionary) -> void:
 	_panel_art.texture = load(PANEL_ACT2 if is_act2 and ResourceLoader.exists(PANEL_ACT2) else PANEL_ACT1)
 	_building_art.texture = _building_texture(building_data)
 
-	_title_label.text = building_data.display_name if building_data != null else ""
+	_title_label.text = tr(building_data.display_name) if building_data != null else ""
 	_hp_label.text = str(data.get("hp_text", ""))
 	_hp_label.add_theme_color_override(
 		"font_color",
@@ -90,7 +90,7 @@ func set_content(data: Dictionary) -> void:
 
 	_use_button.visible = bool(data.get("use_visible", true))
 	_use_button.disabled = bool(data.get("use_disabled", false))
-	_use_button.text = str(data.get("use_text", "Użyj"))
+	_use_button.text = str(data.get("use_text", tr("Użyj")))
 	_use_button.tooltip_text = str(data.get("use_tooltip", ""))
 
 	_repair_button.disabled = bool(data.get("repair_disabled", false))

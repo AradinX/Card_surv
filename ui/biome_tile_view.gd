@@ -40,7 +40,7 @@ static func set_marker_for_class(character_class: CharacterClassData) -> void:
 		return
 	var path := "%s/marker_%s.png" % [CLASS_MARKER_DIR, character_class.id]
 	_marker_path = path if ResourceLoader.exists(path) else PLAYER_MARKER
-	_marker_tooltip = character_class.display_name
+	_marker_tooltip = TranslationServer.translate(character_class.display_name)
 	var summary := character_class.ability_summary()
 	if summary != "":
 		_marker_tooltip += "\n" + summary
@@ -238,7 +238,7 @@ func setup(
 		return
 
 	var biome_name := tile.biome.corrupted_name_for(disaster_id) if tile.is_corrupted \
-		else tile.biome.display_name
+		else tr(tile.biome.display_name)
 	_title_label.text = biome_name
 	_slots_label.text = "%d/%d" % [tile.buildings.size(), tile.biome.building_slots]
 	_fit_title_plate_text()
@@ -276,7 +276,7 @@ func _setup_unknown_tile(
 	block_reason: String,
 	tile_tooltip: String
 ) -> void:
-	_title_label.text = "Nieznany teren"
+	_title_label.text = tr("Nieznany teren")
 	_slots_label.text = "?"
 	_fit_title_plate_text()
 	call_deferred("_fit_title_plate_text")
@@ -514,14 +514,14 @@ func _fill_occupied_slot(slot: Panel, built: BuildingState, building_tooltip: St
 		and built.hp * 2 < built.data.max_hp
 	var tag := Label.new()
 	if built.is_ruined:
-		tag.text = "%s\nRUINA" % built.data.display_name
+		tag.text = "%s\nRUINA" % tr(built.data.display_name)
 	elif is_campfire:
 		tag.text = "%s\n%s" % [
-			built.data.display_name,
-			("pali się: %d n." % built.hp) if built.hp > 0 else "wygasłe",
+			tr(built.data.display_name),
+			(tr("pali się: %d n.") % built.hp) if built.hp > 0 else tr("wygasłe"),
 		]
 	else:
-		tag.text = "%s\n%d HP" % [built.data.display_name, built.hp]
+		tag.text = "%s\n%d HP" % [tr(built.data.display_name), built.hp]
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	tag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

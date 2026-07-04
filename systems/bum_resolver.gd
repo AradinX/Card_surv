@@ -7,6 +7,12 @@ extends RefCounted
 ## delegates here).
 
 
+## Static funcs have no Object.tr(); route player-facing text through the
+## TranslationServer directly (same catalog, PL source text as the key).
+static func _tr(text: String) -> String:
+	return TranslationServer.translate(text)
+
+
 ## The catastrophe: tiles flip to their corrupted faces, every building
 ## rolls a damage percent (>= 50% = ruin), and the event deck is rebuilt
 ## with corrupted biome hazards, disaster events and monster cards.
@@ -14,7 +20,7 @@ static func trigger(sys: SurvivalSystem) -> void:
 	var state := sys.state
 	state.bum_happened = true
 	sys.log_message.emit("=== KATASTROFA ===")
-	sys.log_message.emit("Niebo pęka. %s" % state.disaster.description)
+	sys.log_message.emit(_tr("Niebo pęka. %s") % _tr(state.disaster.description))
 
 	for tile in state.board:
 		tile.is_corrupted = true
@@ -38,20 +44,20 @@ static func trigger(sys: SurvivalSystem) -> void:
 			)
 			if not built.is_ruined:
 				sys.log_message.emit("%s: katastrofa %d%% -> %d%%%s (HP %d/%d)." % [
-					built.data.display_name, raw_percent, percent,
+					_tr(built.data.display_name), raw_percent, percent,
 					reduction_text, built.hp, max_hp
 				])
 			else:
 				sys.log_message.emit("%s nie wytrzymuje: katastrofa %d%% -> %d%%%s." % [
-					built.data.display_name, raw_percent, percent, reduction_text
+					_tr(built.data.display_name), raw_percent, percent, reduction_text
 				])
 		tile.bum_secured = false
 
 	sys._rebuild_event_deck()
 
-	sys.log_message.emit("Świat już nie jest ten sam. Przetrwaj do dnia %d." % sys.WIN_DAY)
-	if state.disaster != null and state.disaster.act2_rule_text != "":
-		sys.log_message.emit(state.disaster.act2_rule_text)
+	sys.log_message.emit(_tr("Świat już nie jest ten sam. Przetrwaj do dnia %d.") % sys.WIN_DAY)
+	if state.disaster != null and _tr(state.disaster.act2_rule_text) != "":
+		sys.log_message.emit(_tr(state.disaster.act2_rule_text))
 	sys.bum_struck.emit(state.disaster)
 	sys.board_changed.emit(state)
 
@@ -88,7 +94,7 @@ static func _reduction_text(
 	if secure_reduction > 0:
 		parts.append("zabezpieczenie -%d%%" % secure_reduction)
 	if durability_reduction > 0:
-		parts.append("wytrzymałość -%d%%" % durability_reduction)
+		parts.append(_tr("wytrzymałość -%d%%") % durability_reduction)
 	if parts.is_empty():
 		return ""
 	return " (%s)" % ", ".join(parts)
@@ -128,22 +134,22 @@ static func secure_current_tile_summary(sys: SurvivalSystem) -> String:
 ## Returns "" when the current tile/base region can be prepared for BUM.
 static func can_secure_current_tile(sys: SurvivalSystem) -> String:
 	if not sys._day_active:
-		return "Dzień dobiegł końca."
+		return _tr("Dzień dobiegł końca.")
 	if sys.state.bum_happened:
-		return "Po katastrofie jest już za późno na fortyfikacje."
+		return _tr("Po katastrofie jest już za późno na fortyfikacje.")
 	if sys.current_tile().buildings.is_empty():
-		return "Najpierw postaw tu przynajmniej jeden budynek."
+		return _tr("Najpierw postaw tu przynajmniej jeden budynek.")
 	if sys.current_tile().bum_secured:
-		return "Ten rejon jest już zabezpieczony."
+		return _tr("Ten rejon jest już zabezpieczony.")
 	if secured_tile_count(sys) >= sys.BUM_SECURED_TILE_LIMIT:
-		return "Limit zabezpieczonych rejonów: %d." % sys.BUM_SECURED_TILE_LIMIT
+		return _tr("Limit zabezpieczonych rejonów: %d.") % sys.BUM_SECURED_TILE_LIMIT
 	var cost := secure_current_tile_cost(sys)
 	if sys.state.energy < int(cost["energy"]):
-		return "Za mało energii (potrzeba %d)." % int(cost["energy"])
+		return _tr("Za mało energii (potrzeba %d).") % int(cost["energy"])
 	if sys.state.wood < int(cost["wood"]):
-		return "Za mało drewna (potrzeba %d)." % int(cost["wood"])
+		return _tr("Za mało drewna (potrzeba %d).") % int(cost["wood"])
 	if sys.state.materials < int(cost["materials"]):
-		return "Za mało kamienia (potrzeba %d)." % int(cost["materials"])
+		return _tr("Za mało kamienia (potrzeba %d).") % int(cost["materials"])
 	return ""
 
 
@@ -157,7 +163,7 @@ static func secure_current_tile(sys: SurvivalSystem) -> void:
 	sys.state.wood -= int(cost["wood"])
 	sys.state.materials -= int(cost["materials"])
 	sys.current_tile().bum_secured = true
-	sys.log_message.emit("Zabezpieczasz rejon: %s (%s; -%d%% obrażeń w razie katastrofy, %d%% szans na zwykłe zużycie HP przed kryzysem)." % [
+	sys.log_message.emit(_tr("Zabezpieczasz rejon: %s (%s; -%d%% obrażeń w razie katastrofy, %d%% szans na zwykłe zużycie HP przed kryzysem).") % [
 		sys._tile_name(sys.current_tile()),
 		secure_current_tile_summary(sys),
 		sys.BUM_SECURE_DAMAGE_REDUCTION,
@@ -176,7 +182,7 @@ static func secured_tile_absorbs_wear(sys: SurvivalSystem, tile: TileState, buil
 		return false
 	if sys._rng.randi_range(0, 99) < sys.ACT1_SECURED_WEAR_CHANCE_PERCENT:
 		return false
-	sys.log_message.emit("Zabezpieczony rejon chroni %s przed zużyciem." % built.data.display_name)
+	sys.log_message.emit(_tr("Zabezpieczony rejon chroni %s przed zużyciem.") % _tr(built.data.display_name))
 	return true
 
 
@@ -224,4 +230,4 @@ static func is_omen_window(sys: SurvivalSystem) -> bool:
 static func log_omen(sys: SurvivalSystem) -> void:
 	var key: String = sys.state.disaster.id if sys.state.disaster != null else ""
 	var omens: Array = BUM_OMENS.get(key, BUM_OMENS["plague"])
-	sys.log_message.emit("Omen: %s" % omens[sys.state.day % omens.size()])
+	sys.log_message.emit(_tr("Omen: %s") % _tr(omens[sys.state.day % omens.size()]))

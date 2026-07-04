@@ -14,6 +14,8 @@ static var vsync := true
 static var master_volume := 1.0
 static var music_volume := 1.0
 static var sfx_volume := 1.0
+## "" = follow the OS locale; otherwise an explicit "pl" / "en".
+static var language := ""
 
 
 ## Load from disk (or keep defaults) and apply to the display/audio servers.
@@ -27,11 +29,13 @@ static func load_and_apply() -> void:
 		)
 		music_volume = clampf(float(cfg.get_value(SECTION, "music_volume", music_volume)), 0.0, 1.0)
 		sfx_volume = clampf(float(cfg.get_value(SECTION, "sfx_volume", sfx_volume)), 0.0, 1.0)
+		language = str(cfg.get_value(SECTION, "language", language))
 	_apply_fullscreen()
 	_apply_vsync()
 	_apply_master_volume()
 	_apply_bus_volume("Music", music_volume)
 	_apply_bus_volume("SFX", sfx_volume)
+	_apply_language()
 
 
 static func set_fullscreen(value: bool) -> void:
@@ -64,6 +68,12 @@ static func set_sfx_volume(value: float) -> void:
 	save()
 
 
+static func set_language(value: String) -> void:
+	language = value
+	_apply_language()
+	save()
+
+
 static func save() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value(SECTION, "fullscreen", fullscreen)
@@ -71,7 +81,16 @@ static func save() -> void:
 	cfg.set_value(SECTION, "master_volume", master_volume)
 	cfg.set_value(SECTION, "music_volume", music_volume)
 	cfg.set_value(SECTION, "sfx_volume", sfx_volume)
+	cfg.set_value(SECTION, "language", language)
 	cfg.save(PATH)
+
+
+## Translation keys are the Polish source text, so "pl" simply means "no
+## catalog" and every key falls through unchanged.
+static func _apply_language() -> void:
+	if language == "":
+		return  # follow the OS locale picked by Godot at startup
+	TranslationServer.set_locale(language)
 
 
 ## Set a named bus's volume from a linear 0..1 value (0 = muted).

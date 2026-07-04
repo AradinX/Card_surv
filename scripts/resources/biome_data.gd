@@ -126,9 +126,9 @@ const DISASTER_CORRUPTED_DESCRIPTIONS := {
 
 func corrupted_name_for(disaster_id: String) -> String:
 	var names: Dictionary = DISASTER_CORRUPTED_NAMES.get(disaster_id, {})
-	return str(names.get(id, corrupted_display_name))
+	return tr(str(names.get(id, corrupted_display_name)))
 
 
 func corrupted_description_for(disaster_id: String) -> String:
 	var descriptions: Dictionary = DISASTER_CORRUPTED_DESCRIPTIONS.get(disaster_id, {})
-	return str(descriptions.get(id, corrupted_description))
+	return tr(str(descriptions.get(id, corrupted_description)))
