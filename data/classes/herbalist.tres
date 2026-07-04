@@ -7,9 +7,7 @@
 script = ExtResource("1_script")
 id = "herbalist"
 display_name = "Zielarka"
-description = "Każdego ranka leczysz się o 1 zdrowia. Skupiona na ziołach — masz większy apetyt (+1 głodu/dzień), a jedzenie syci mniej (−10%)."
-unlock_order = 2
+description = "Każdego ranka leczysz się o 1 zdrowia. Najłatwiejsza klasa — w sam raz na pierwsze przejście."
+unlock_order = 0
 starter_deck = ExtResource("2_deck")
-food_hunger_multiplier = 0.9
-hunger_rate_delta = 1
 daily_health_regen = 1

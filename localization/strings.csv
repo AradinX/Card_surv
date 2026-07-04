@@ -87,7 +87,7 @@ Budowa tańsza o %d energii,Building costs %d less energy
 Budowa tańsza o %d surowca,Building costs %d fewer resources
 Budowanie,Building
 Budowlaniec,Builder
-Budowle są tańsze (−1 surowiec) i wytrzymalsze (+4 HP).,Buildings are cheaper (−1 resource) and tougher (+4 HP).
+"Budowle są tańsze (−2 surowce) i wytrzymalsze (+4 HP). Zapobiegliwy i twardy — głód spada wolniej (−1/dzień), +1 HP.","Buildings are cheaper (−2 resources) and tougher (+4 HP). Provident and tough — hunger drops slower (−1/day), +1 HP."
 Budynek jest cały.,The building is intact.
 "Budynek jest teraz widoczny na kaflu. Kliknij jego ikonę, aby otworzyć szczegóły: HP, efekt pasywny, akcję, naprawę i rozbiórkę.","The building is now visible on the tile. Click its icon to open the details: HP, passive effect, action, repair and demolition."
 Budynek ma pełne HP.,The building has full HP.
@@ -160,7 +160,7 @@ Co noc daje 1 drewno z wyrębu.,Produces 1 wood from logging every night.
 Co noc daje 1 jedzenie z grządek.,Produces 1 food from the garden beds every night.
 Co noc daje 1 jedzenie z połowu.,Produces 1 food from the catch every night.
 Co noc daje 1 kamień.,Produces 1 stone every night.
-Co noc daje 2 wody i zwiększa limit wody.,Produces 2 water every night and raises the water cap.
+Co noc daje 1 wody i zwiększa limit wody.,Produces 1 water every night and raises the water cap.
 "Co noc: sytość -%d, nawodnienie -%d, ciepło -%d. Budynki mogą to zmienić.","Every night: satiety -%d, hydration -%d, warmth -%d. Buildings can change this."
 Combo jedzenia: +2 jedzenia za wcześniejszą kartę jedzenia.,Food combo: +2 food for an earlier food card.
 "Coś dużego przedziera się przez zarośla. -1 zdrowia, -1 jedzenia (schronienie chroni).","Something big is tearing through the brush. -1 health, -1 food (shelter protects)."
@@ -197,7 +197,7 @@ Daleka wyprawa,Long expedition
 Darń rozdarły świeże rysy. Ziemia drży pod każdym krokiem.,Fresh cracks have torn the turf. The ground trembles under every step.
 Deszczówka,Rainwater
 Dobierasz 2 karty.,You draw 2 cards.
-Dobierasz co dzień 1 kartę więcej i uczysz się szybciej (XP +25%). Budowanie kosztuje +1 energii.,Draws 1 extra card each day and learns faster (XP +25%). Building costs +1 energy.
+"Dobierasz co dzień 1 kartę więcej. Zajęty planowaniem, zapomina dorzucić do ogniska (+1 ciepła/dzień) — budowanie kosztuje też +1 energii.","Draws 1 extra card each day. Too busy planning to tend the fire (+1 warmth/day) — building also costs +1 energy."
 Dodaj do zapasów,Add to supplies
 Dokładasz drewno do ogniska: pali się jeszcze %d nocy.,You add wood to the campfire: it will burn for %d more nights.
 "Dopada cię gorączka. -2 zdrowia, -1 energii następnego dnia.","A fever takes hold of you. -2 health, -1 energy the next day."
@@ -323,7 +323,7 @@ Zapas automatycznie zjadany nocą, gdy sytość jest niska.","Food
 A supply eaten automatically at night when satiety is low."
 Jedzenie %d,Food %d
 Jedzenie 2/8,Food 2/8
-"Jedzenie odnawia +50% głodu, zapasy psują się wolniej. Budowanie kosztuje +1 energii.",Food restores +50% hunger and supplies spoil slower. Building costs +1 energy.
+"Jedzenie odnawia +50% głodu, zapasy psują się wolniej. Ciężkie, słone potrawy mocno wzmagają pragnienie (+2/dzień) — budowanie kosztuje też +1 energii.","Food restores +50% hunger and supplies spoil slower. Heavy, salty meals badly build thirst (+2/day) — building also costs +1 energy."
 Jedzenie syci o %d%% mniej,Food is %d%% less filling
 Jedzenie syci o %d%% więcej,Food is %d%% more filling
 Jesień,Autumn
@@ -355,7 +355,7 @@ Zabezpieczone rejony mają większą szansę ocalić kluczowe budynki. Po katast
 Secured regions have a better chance of saving your key buildings. After the disaster, rebuilding is more expensive, so repair what survived, tear down the ruins and watch your warmth, water and food."
 Katastrofa: %s (dzień %d),Disaster: %s (day %d)
 "Katastrofa: %s (dzień %d, po katastrofie: %d dni)","Disaster: %s (day %d, after the disaster: %d days)"
-"Każdego ranka leczysz się o 1 zdrowia. Skupiona na ziołach — masz większy apetyt (+1 głodu/dzień), a jedzenie syci mniej (−10%).",You heal 1 health every morning. Focused on her herbs — a bigger appetite (+1 hunger/day) and food is less filling (−10%).
+Każdego ranka leczysz się o 1 zdrowia. Najłatwiejsza klasa — w sam raz na pierwsze przejście.,You heal 1 health every morning. The easiest class — a perfect fit for a first playthrough.
 Klasa: %s   ·   Poziom: %d (%d XP)   ·   Obrażenia: %d,Class: %s   ·   Level: %d (%d XP)   ·   Damage taken: %d
 "Klify pękają nad morzem, a fale wpadają w świeże rany skał.","The cliffs are cracking above the sea, and the waves crash into fresh wounds in the rock."
 Koniec dnia,End day
@@ -392,7 +392,7 @@ Debuff: nocny spadek nawodnienia jest o 1 mocniejszy.","Summer
 Buff: none.
 Debuff: nightly hydration loss is 1 point harsher."
 Lazaret polowy,Field infirmary
-"Lekki żołądek — głód spada wolniej (−1/dzień), a jedzenie syci nieco lepiej (+20%).",A light stomach — hunger drops slower (−1/day) and food is a bit more filling (+20%).
+"Lekki żołądek — głód spada wolniej (−1/dzień), ale mięsna dieta mocno wzmaga pragnienie (+2/dzień).","A light stomach — hunger drops slower (−1/day), but a meat diet badly builds thirst (+2/day)."
 Lepiej głód niż zaraza. Odchodzisz.,Better hunger than plague. You walk away.
 Lepiej nie ryzykować.,Better not to risk it.
 Letni upał wysusza cię szybciej. -%d nawodnienia.,The summer heat dries you out faster. -%d hydration.
@@ -856,6 +856,10 @@ Szałas,Hut
 Szałas osłania cię przed atakiem.,The hut shields you from the attack.
 Szałas osłania cię przed nocą.,The hut shields you from the night.
 Szczury,Rats
+Nieszczelny bukłak,Leaky waterskin
+"Zapas wody wyciekł w nocy. -2 wody.","Your water stock leaked out overnight. -2 water."
+Nadgryzione zapasy,Gnawed-at supplies
+"Coś przegrzebało zapasy w nocy. -1 jedzenia, -1 wody.","Something rummaged through your supplies overnight. -1 food, -1 water."
 Szept w ciemności,A whisper in the dark
 Szept z czerni,A whisper out of the black
 Sztorm,Sea storm
@@ -1053,7 +1057,7 @@ Wznów,Resume
 Wędkowanie,Fishing
 Wędrowiec,Nomad
 Wędrowiec dzieli się wiedzą o okolicy.,The wanderer shares his knowledge of the area.
-"Wędrówka między kaflami jest darmowa. Startujesz z zapasami (+2 jedzenia, +2 wody), ale ciągły marsz wyziębia (+1 utraty ciepła/dzień).","Travelling between tiles is free. You start with supplies (+2 food, +2 water), but the constant march chills you (+1 warmth loss/day)."
+"Wędrówka między kaflami jest darmowa. Startujesz z zapasami (+2 jedzenia, +2 wody), ale ciągły marsz wyziębia (+1 ciepła/dzień) i spala kalorie (+1 głodu/dzień).","Travelling between tiles is free. You start with supplies (+2 food, +2 water), but the constant march chills you (+1 warmth/day) and burns calories (+1 hunger/day)."
 Wściekła Rzeka,Raging River
 Wśród kęp trafiasz na lecznicze ziela o ostrym zapachu. +1 zdrowia.,Among the tufts you find healing herbs with a sharp scent. +1 health.
 X,X
@@ -1103,7 +1107,7 @@ Zapasy ukryte na szlaku — w sam raz na teraz.,Supplies hidden along the trail 
 Zapał,Zeal
 Zapał: każda kolejna karta dziś zwraca +1 energii.,Zeal: every further card today refunds +1 energy.
 Zapoluj (ryzyko),Hunt it (risky)
-"Zaprawiony w terenie i wytrzymały (+1 HP). Buduje taniej (−1 surowiec), startuje z zapasem kamienia i mniej go suszy (−1 pragnienia/dzień). Jedzenie i obrażenia od potworów — normalne.","Field-hardened and tough (+1 HP). Builds cheaper (−1 resource), starts with a stock of stone and dries out less (−1 thirst/day). Food and monster damage — normal."
+"Zaprawiony w terenie i wytrzymały (+1 HP) — mniej go suszy (−1 pragnienia/dzień) i startuje z zapasem kamienia.","Field-hardened and tough (+1 HP) — dries out less (−1 thirst/day) and starts with a stock of stone."
 Zapędzony szabrownik,Cornered looter
 Zarażony wilk,Infected wolf
 Zarodniki w powietrzu,Spores in the air

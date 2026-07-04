@@ -7,8 +7,8 @@ extends Resource
 @export var id: String = ""
 @export var display_name: String = ""
 @export_multiline var description: String = ""
-## Display/difficulty order used when presenting unlocked classes.
-## 0 = the starting class (Skaut). Roulette selection itself is random.
+## Difficulty order: display of unlocked classes AND the roulette unlock
+## sequence (easiest locked class wins the spin). 0 = the starting class (Skaut).
 @export var unlock_order: int = 0
 
 ## Class starter deck (~10 cards incl. 1-2 unique ones).

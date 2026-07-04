@@ -4,7 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_cost = 1
+energy_cost = 2
 water_gain = 2
 upgrade_id = "res://data/cards/actions/upgrades/find_water_up.tres"
 id = "find_water"

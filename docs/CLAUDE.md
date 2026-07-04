@@ -1947,8 +1947,8 @@ w systemach).
 ## Punkty rozbudowy (NIE implementować bez decyzji)
 
 - `MetaState` — działa: złote monety (1 za wygrany run) + odblokowane klasy,
-  zapis do `user://meta_state.tres`. Ruletka (3 monety) losuje nową klasę z
-  zablokowanych. DO ZROBIENIA tu jeszcze: kolekcja kart, odblokowania biomów/
+  zapis do `user://meta_state.tres`. Ruletka odblokowuje kolejną zablokowaną
+  klasę wg `unlock_order` (najłatwiejsza najpierw; animacja losowania to show). DO ZROBIENIA tu jeszcze: kolekcja kart, odblokowania biomów/
   katastrof i drabinka trudności (README sekcja 8, milestone 2).
 - `RunState` jest `Resource` z `@export` (w tym plansza, talia, postęp
   poziomów oraz `disaster`/`bum_day`/`bum_happened`) — gotowy pod
@@ -2176,6 +2176,96 @@ więc run.gd/testy/bot nie wymagały przepisania.
   kroku, smoke po krokach 20/50 i 25/50 (baseline 22/50 — szum RNG, rozkład
   zgonów Akt I/II zgodny). Wymagany RĘCZNY playtest popupu nocy i animacji
   BUM w edytorze (UI-only zmiany niewidoczne dla headless).
+
+### Przebudowa klas: uczciwe modyfikatory + drabinka trudności (2026-07-04)
+
+- Audyt klas symulacją (smoke, 30 runów/klasa) wykazał, że `unlock_order` nie
+  odpowiadał realnej trudności (Zielarka 93% wygranych na slocie 2, Wojskowy
+  33% na 6), a `food_hunger_multiplier` 0.9/1.2 był MARTWY — mnoży tylko
+  `FOOD_HUNGER_VALUE = 2`, a `round(2×0.9) = round(2×1.2) = 2` — tooltipy
+  Zielarki i Łowcy obiecywały nieistniejące efekty (działa tylko 1.5 Kucharza).
+- Przebudowa modyfikatorów: Skaut bez rabatu budowy i bez +1 HP (czysty
+  baseline: −1 pragnienia, +2 kamienia); Zielarka bez martwego −10% sytości;
+  Strateg bez XP ×1.25 (mnożnik XP zostaje wyłącznie tożsamością Informatyka);
+  Budowlaniec rabat 1→2 (przejął tożsamość taniej budowy), bez +1 HP; Łowca
+  bez martwego +20% sytości, w zamian realna wada +1 pragnienia/dzień (mięsna
+  dieta); Kucharz/Wojskowy/Wędrowiec/Informatyk — wartości bez zmian.
+- Nowy `unlock_order` wg ZMIERZONEJ trudności (winrate bota): Skaut 0 (70%),
+  Zielarka 1 (30/30 — celowo najłatwiejsza, „na pierwsze przejście"),
+  Budowlaniec 2 (77%), Strateg 3 (73%), Wędrowiec 4 (70%), Łowca 5 (63%),
+  Kucharz 6 (47%), Wojskowy 7 (23%), Informatyk 8 (10%).
+- Ruletka NIE losuje już klasy: `spin_roulette()` odblokowuje najłatwiejszą
+  z pozostałych (sort po `unlock_order`) — animacja losowania zostaje, ale
+  progresja trudności jest deterministyczna run po runie.
+- Bias nagród Stratega → [SYNERGY, WATER, CONVERT] (był identycznym zbiorem
+  co Informatyk).
+- Lokalizacja: 5 zmienionych opisów klas zaktualizowane w `strings.csv`
+  (PL + EN). Testy: smoke + meta_progression + load zielone.
+
+### Dokręcenie ekonomii jedzenia/wody + Zielarka jako klasa startowa (2026-07-04)
+
+- **Problem:** jedzenie i woda praktycznie nie stanowiły presji — bartery
+  (`barter_food/water/materials/wood`, `windfall_trade`, `trade_caravan`) i
+  `trail_snack` kosztowały **0 energii**, `find_water` (1E → 2 wody) był też
+  darmową akcją zbierania w 5/8 biomów, a psucie zapasów zaczynało się dopiero
+  przy stanie ≥4 i tylko -1/dzień. Realny drenaż istniał wyłącznie na froncie
+  ciepła, stąd zgony bota to prawie same Mróz/Choroba.
+- **Karty akcji:** `barter_food/water/materials/wood`, `windfall_trade`,
+  `trade_caravan`, `trail_snack` — dodane `energy_cost = 1` (logistyka przestaje
+  być darmowa). `find_water`: 1E→**2E** za 2 wody (upgrade `find_water_up`
+  zostaje 1E/3 wody — nadal realna nagroda). `dried_meat`: zysk 2→**1** jedzenia
+  (zostaje +1 sytości natychmiast).
+- **Psucie zapasów** (`survival_system.gd`, `night_resolver.gd`): próg
+  `SPOILAGE_MIN_FOOD` 4→**3**; nowy próg `HIGH_SPOILAGE_FOOD = 6` — powyżej
+  niego psuje się **2** zamiast 1. Hoarding przestaje być bezpiecznym domyślnym
+  wyborem.
+- **Budynek:** Cysterna 2→**1** wody/dzień (jedyny "wieczny kran" wody w grze).
+- **2 nowe zdarzenia nocne** (Akt I, zawsze aktywne — `data/cards/events/`):
+  `leaky_waterskin` (Nieszczelny bukłak, -2 wody) i `gnawed_supplies`
+  (Nadgryzione zapasy, -1 jedzenia/-1 wody); pula bazowa 34→36. Kontrują
+  wcześniejszą przewagę dodatnich zdarzeń zapasowych (10 dodatnich vs 2
+  ujemne w puli Aktu I).
+- **Zielarka jako klasa startowa:** `MetaState.STARTING_CLASS_ID`
+  `"scout"`→`"herbalist"`; `unlock_order` zamienione (Zielarka 0, Skaut 1) —
+  tutorial i nowy gracz zaczynają teraz od najłatwiejszej, najbardziej
+  wybaczającej klasy zamiast generalisty.
+- Lokalizacja: opis Cysterny + 2 nowe zdarzenia dodane do `strings.csv`
+  (PL + EN).
+- **Kalibracja klas do docelowej krzywej trudności** (cel gracza:
+  80/70/50/45/40/30/25/20/10 dla Zielarka/Skaut/Budowlaniec/Strateg/Wędrowiec/
+  Łowca/Kucharz/Wojskowy/Informatyk). 3 rundy pomiar→korekta→pomiar (smoke,
+  30 runów/klasa):
+  - R1 (sama ekonomia): rozjazd ogromny — Wędrowiec wystrzelił do 73% (wolny
+    ruch + start z zapasami staje się NIEPROPORCJONALNIE cenny w deflacyjnej
+    ekonomii), Kucharz/Strateg za łatwi (53–63%), Budowlaniec zawalił się do
+    33% (jedyna klasa bez żadnego moda przeżycia, gołe budowanie bota prawie
+    nie obchodzi).
+  - R2: Zielarka bez `hunger_rate_delta` (czysta klasa na start), Skaut
+    odzyskuje `health_bonus=1`, Budowlaniec dostaje jednorazowy
+    `start_food/water=1` (**zero efektu** — jednorazowy zapas nie leczy
+    chronicznego niedoboru na 40 dni), Strateg dostaje `hunger_rate_delta=+1`
+    (**zły trop** — jego zgony to Mróz, nie Głód), Wędrowiec/Łowca dostają
+    `hunger_rate_delta=+1`/`thirst_rate_delta=+2`.
+  - R3: Budowlaniec: zamiast zapasu jednorazowego → **recurring**
+    `hunger_rate_delta=-1` + `health_bonus=1`; Kucharz: `thirst_rate_delta`
+    1→**2** (trafienie niemal idealne, 47%→23%, cel 25%); Strateg: nerf
+    przeniesiony na właściwą oś, `warmth_rate_delta=+1` zamiast głodu.
+  - **Wniosek o szumie pomiaru:** Wędrowiec i Wojskowy wahały się o 10–20pp
+    między rundami BEZ żadnej zmiany configu (czysty szum RNG przy n=30;
+    SE ≈ 8–9pp dla p≈0.3–0.5). Precyzyjne trafienie w konkretny procent na
+    tej próbce nie jest możliwe — kierunek i rząd wielkości tak.
+  - Stan końcowy (orientacyjny, ±10pp szumu): Zielarka ~70–75%, Skaut ~55–60%,
+    Budowlaniec ~35–45%, Strateg ~45–55%, Wędrowiec ~35–45%, Łowca ~20–30%,
+    Kucharz ~20–25% (blisko celu), Wojskowy ~20–27% (w celu), Informatyk 0–7%
+    (cel 10%, wciąż twardszy niż zamierzone, ale w granicach szumu).
+  - DO ZROBIENIA: jeśli potrzebna precyzyjniejsza kalibracja, podnieść
+    `CLASS_SAMPLE` w `smoke_test.gd` (30→100+) na czas strojenia, żeby SE
+    spadło poniżej progu decyzyjnego; Budowlaniec i Skaut zostają
+    najbardziej niepewne (wciąż mogą być zbyt trudne względem celu 50/70).
+  - Weryfikacja: reimport + smoke ×3 rundy + pełna czternastka po każdej
+    rundzie (poza jednym udokumentowanym flakiem `hand_draw_test` — segfault
+    silnika PRZY WYJŚCIU po wypisaniu "OK"; potwierdzone jako pre-istniejące
+    przez `git stash` na czysty `a2c1747`, niezwiązane z tą zmianą).
 
 ## Konwencje
 

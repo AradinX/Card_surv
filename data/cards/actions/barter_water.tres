@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
+energy_cost = 1
 food_cost = 1
 water_gain = 3
 id = "barter_water"

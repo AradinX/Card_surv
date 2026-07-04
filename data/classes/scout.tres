@@ -7,10 +7,9 @@
 script = ExtResource("1_script")
 id = "scout"
 display_name = "Skaut"
-description = "Zaprawiony w terenie i wytrzymały (+1 HP). Buduje taniej (−1 surowiec), startuje z zapasem kamienia i mniej go suszy (−1 pragnienia/dzień). Jedzenie i obrażenia od potworów — normalne."
-unlock_order = 0
+description = "Zaprawiony w terenie i wytrzymały (+1 HP) — mniej go suszy (−1 pragnienia/dzień) i startuje z zapasem kamienia."
+unlock_order = 1
 starter_deck = ExtResource("2_deck")
-build_resource_discount = 1
 thirst_rate_delta = -1
 health_bonus = 1
 start_materials = 2

@@ -153,9 +153,11 @@ const FOOD_HUNGER_VALUE := 2
 const WATER_THIRST_VALUE := 2
 ## Food spoilage: some surplus food spoils each day (slowed by the Kucharz's
 ## spoilage_multiplier and by Spiżarnia's slow_spoilage). Only bites above this
-## stock, so early scarcity isn't punished.
+## stock, so early scarcity isn't punished; hoarding past HIGH_SPOILAGE_FOOD
+## spoils faster still, so stockpiling stops being a safe default.
 const DAILY_FOOD_SPOILAGE := 1
-const SPOILAGE_MIN_FOOD := 4
+const SPOILAGE_MIN_FOOD := 3
+const HIGH_SPOILAGE_FOOD := 6
 const STARVATION_DAMAGE := 2
 const DEHYDRATION_DAMAGE := 2
 const FREEZING_DAMAGE := 2
@@ -197,7 +199,7 @@ const CLASS_REWARD_BIASES := {
 	"herbalist": [RewardNeed.HEALTH, RewardNeed.WARMTH, RewardNeed.CONVERT],
 	"hunter": [RewardNeed.ENERGY, RewardNeed.NIGHT, RewardNeed.FOOD],
 	"nomad": [RewardNeed.WATER, RewardNeed.FOOD, RewardNeed.ENERGY],
-	"planner": [RewardNeed.SYNERGY, RewardNeed.ENERGY, RewardNeed.CONVERT],
+	"planner": [RewardNeed.SYNERGY, RewardNeed.WATER, RewardNeed.CONVERT],
 	"scout": [RewardNeed.ENERGY, RewardNeed.MATERIALS, RewardNeed.WATER],
 	"soldier": [RewardNeed.NIGHT, RewardNeed.HEALTH, RewardNeed.WARMTH],
 	"informatyk": [RewardNeed.ENERGY, RewardNeed.SYNERGY, RewardNeed.CONVERT],

@@ -7,7 +7,7 @@
 script = ExtResource("1_script")
 id = "soldier"
 display_name = "Wojskowy"
-unlock_order = 6
+unlock_order = 7
 description = "Twardziel — +3 HP, a potwory zadają ci o 1 mniej obrażeń. Masz większy apetyt (+1 głodu/dzień) i budujesz drożej (+1 energii)."
 starter_deck = ExtResource("2_deck")
 build_energy_cost_delta = 1

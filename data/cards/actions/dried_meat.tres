@@ -6,7 +6,7 @@
 script = ExtResource("1_script")
 energy_cost = 1
 hunger_delta = 1
-food_gain = 2
+food_gain = 1
 id = "dried_meat"
 display_name = "Suszone mięso"
 description = "Sięgnij po zapas suszonego mięsa."

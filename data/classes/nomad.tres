@@ -7,10 +7,11 @@
 script = ExtResource("1_script")
 id = "nomad"
 display_name = "Wędrowiec"
-description = "Wędrówka między kaflami jest darmowa. Startujesz z zapasami (+2 jedzenia, +2 wody), ale ciągły marsz wyziębia (+1 utraty ciepła/dzień)."
-unlock_order = 5
+description = "Wędrówka między kaflami jest darmowa. Startujesz z zapasami (+2 jedzenia, +2 wody), ale ciągły marsz wyziębia (+1 ciepła/dzień) i spala kalorie (+1 głodu/dzień)."
+unlock_order = 4
 starter_deck = ExtResource("2_deck")
 warmth_rate_delta = 1
+hunger_rate_delta = 1
 move_energy_delta = -1
 start_food = 2
 start_water = 2

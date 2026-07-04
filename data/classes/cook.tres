@@ -7,9 +7,10 @@
 script = ExtResource("1_script")
 id = "cook"
 display_name = "Kucharz"
-description = "Jedzenie odnawia +50% głodu, zapasy psują się wolniej. Budowanie kosztuje +1 energii."
-unlock_order = 3
+description = "Jedzenie odnawia +50% głodu, zapasy psują się wolniej. Ciężkie, słone potrawy mocno wzmagają pragnienie (+2/dzień) — budowanie kosztuje też +1 energii."
+unlock_order = 6
 starter_deck = ExtResource("2_deck")
 food_hunger_multiplier = 1.5
 spoilage_multiplier = 0.5
 build_energy_cost_delta = 1
+thirst_rate_delta = 2

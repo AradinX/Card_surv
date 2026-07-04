@@ -589,7 +589,10 @@ static func _resolve_stat_passive_building_wear(sys: SurvivalSystem, stat_key: S
 static func _resolve_spoilage(sys: SurvivalSystem) -> void:
 	if sys.state.food < sys.SPOILAGE_MIN_FOOD:
 		return
-	var base := int(round(sys.DAILY_FOOD_SPOILAGE * sys.state.character_class.spoilage_multiplier))
+	var raw := sys.DAILY_FOOD_SPOILAGE
+	if sys.state.food >= sys.HIGH_SPOILAGE_FOOD:
+		raw += 1
+	var base := int(round(raw * sys.state.character_class.spoilage_multiplier))
 	base += sys._act2_rule("act2_food_spoilage_delta")
 	var spoiled := maxi(base - sys._count_special("slow_spoilage"), 0)
 	if spoiled > 0:

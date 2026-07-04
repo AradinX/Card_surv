@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_script")
+energy_cost = 1
 wood_cost = 1
 materials_cost = 1
 food_gain = 2

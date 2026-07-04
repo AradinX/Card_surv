@@ -7,9 +7,9 @@
 script = ExtResource("1_script")
 id = "planner"
 display_name = "Strateg"
-description = "Dobierasz co dzień 1 kartę więcej i uczysz się szybciej (XP +25%). Budowanie kosztuje +1 energii."
-unlock_order = 4
+description = "Dobierasz co dzień 1 kartę więcej. Zajęty planowaniem, zapomina dorzucić do ogniska (+1 ciepła/dzień) — budowanie kosztuje też +1 energii."
+unlock_order = 3
 starter_deck = ExtResource("2_deck")
 build_energy_cost_delta = 1
 bonus_hand_cards = 1
-xp_multiplier = 1.25
+warmth_rate_delta = 1

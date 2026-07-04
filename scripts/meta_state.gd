@@ -11,7 +11,7 @@ const LEGACY_SAVE_PATH := "user://meta_state.tres"
 ## Cost of one roulette spin (in gold coins).
 const SPIN_COST := 1
 ## The class everyone starts with — always unlocked.
-const STARTING_CLASS_ID := "scout"
+const STARTING_CLASS_ID := "herbalist"
 
 @export var gold_coins: int = 0
 @export var unlocked_class_ids: PackedStringArray = PackedStringArray([STARTING_CLASS_ID])

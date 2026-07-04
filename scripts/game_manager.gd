@@ -72,8 +72,10 @@ func unlocked_classes() -> Array[CharacterClassData]:
 	return result
 
 
-## Spends SPIN_COST coins and unlocks a RANDOM still-locked class. Returns null
-## when the player can't spin (caller should check can_spin first).
+## Spends SPIN_COST coins and unlocks the still-locked class with the lowest
+## unlock_order (easiest first), so the difficulty ramps run after run — the
+## roulette spin is show, the outcome is deterministic. Returns null when the
+## player can't spin (caller should check can_spin first).
 ## The optional save path is used by the isolated meta-progression test.
 func spin_roulette(meta_save_path: String = MetaState.SAVE_PATH) -> CharacterClassData:
 	if not meta_state.can_spin(class_count()):
@@ -85,7 +87,9 @@ func spin_roulette(meta_save_path: String = MetaState.SAVE_PATH) -> CharacterCla
 	if locked.is_empty():
 		return null
 	meta_state.gold_coins -= MetaState.SPIN_COST
-	var won_class := locked[randi() % locked.size()]
+	locked.sort_custom(func(a: CharacterClassData, b: CharacterClassData) -> bool:
+		return a.unlock_order < b.unlock_order)
+	var won_class := locked[0]
 	meta_state.unlock(won_class.id)
 	meta_state.save(meta_save_path)
 	return won_class
