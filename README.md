@@ -77,7 +77,7 @@ Klasą startową jest **Skaut**. Pozostałe klasy odblokowuje ruletka:
 - monety i odblokowania zapisują się w `user://meta_state.json`.
 
 Dostępne klasy: Skaut, Kucharz, Budowlaniec, Zielarka, Łowca, Strateg,
-Wędrowiec, Wojskowy i Informatyk.
+Wędrowiec, Weteran i Informatyk.
 
 Meta-progresja odblokowuje różnorodność, a nie stałe bonusy statystyk.
 Kolekcja kart, odblokowania biomów/katastrof i drabinka trudności nie są

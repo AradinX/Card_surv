@@ -32,7 +32,7 @@
 - Łowca — eksploracja, leczenie i ekonomia jedzenia;
 - Strateg — większa ręka i szybsze zdobywanie XP;
 - Wędrowiec — darmowy ruch i dodatkowe zapasy;
-- Wojskowy — więcej HP i redukcja obrażeń potworów;
+- Weteran — więcej HP i redukcja obrażeń potworów;
 - Informatyk — klasa challenge z mocnymi karami i premią XP.
 
 ✅ Karty sygnaturowe są poza główną pulą nagród i występują tylko w
@@ -53,10 +53,10 @@ balansu przed wydaniem — Budowlaniec dostał Bukłak i Suszone mięso w talii)
 | Łowca | 20/30 |
 | Budowlaniec | 19/30 |
 | Kucharz | 17/30 |
-| Wojskowy | 8/30 |
+| Weteran | 8/30 |
 | Informatyk | 4/30 |
 
-Informatyk ma być trudny (challenge). Wojskowy ginie z głodu (malus +1/dzień) —
+Informatyk ma być trudny (challenge). Weteran ginie z głodu (malus +1/dzień) —
 kandydat do przyjrzenia się po ręcznym playteście.
 
 ## Biomy i plansza
