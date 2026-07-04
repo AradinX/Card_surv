@@ -62,8 +62,9 @@ const DEMOLISH_ENERGY_COST := 1
 ## Building after the cataclysm is allowed but taxed — raw materials are scarce
 ## in Act II, so every new building costs a bit extra energy/wood/materials on
 ## top of its (already rebalanced, see _has_post_bum_surcharge) base cost. This
-## keeps rebuilding possible without trivializing the disaster. Campfire/hut are
-## exempt entirely: base survival shouldn't get pricier after the cataclysm.
+## keeps rebuilding possible without trivializing the disaster. The cheap core
+## tier (POST_BUM_SURCHARGE_EXEMPT_IDS) is exempt entirely: base survival
+## shouldn't get pricier after the cataclysm.
 const POST_BUM_BUILD_ENERGY_SURCHARGE := 1
 const POST_BUM_BUILD_WOOD_SURCHARGE := 2
 const POST_BUM_BUILD_MATERIALS_SURCHARGE := 2
@@ -150,8 +151,8 @@ const AUTUMN_WOOD_BONUS := 1
 const WINTER_EXTRA_WARMTH_DECAY := 1
 ## Winter cuts each gathered resource (food/wood/materials) by this much.
 const WINTER_GATHER_PENALTY := 1
-const FOOD_HUNGER_VALUE := 1
-const WATER_THIRST_VALUE := 1
+const FOOD_HUNGER_VALUE := 2
+const WATER_THIRST_VALUE := 2
 ## Food spoilage: some surplus food spoils each day (slowed by the Kucharz's
 ## spoilage_multiplier and by Spiżarnia's slow_spoilage). Only bites above this
 ## stock, so early scarcity isn't punished; hoarding past HIGH_SPOILAGE_FOOD
@@ -1974,10 +1975,17 @@ func _build(building: BuildingCardData) -> void:
 
 
 ## Post-BUM rebuild surcharge applies to NORMAL buildings only; dedicated Act II
-## buildings (act2_only) are the intended rebuild path, so they skip it. Campfire
-## and hut are core survival — they cost exactly the same before and after BUM.
+## buildings (act2_only) are the intended rebuild path, so they skip it. The
+## cheap core-survival tier (campfire, hut, well, pantry, palisade) stays at
+## the same price before and after BUM.
+const POST_BUM_SURCHARGE_EXEMPT_IDS := [
+	"building_campfire", "building_hut",
+	"building_well", "building_pantry", "building_palisade",
+]
+
+
 func _has_post_bum_surcharge(building: BuildingCardData) -> bool:
-	if building.id == "building_campfire" or building.id == "building_hut":
+	if building.id in POST_BUM_SURCHARGE_EXEMPT_IDS:
 		return false
 	return state.bum_happened and not building.act2_only
 

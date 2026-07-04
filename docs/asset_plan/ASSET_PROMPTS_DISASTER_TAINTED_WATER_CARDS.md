@@ -149,11 +149,9 @@ konkretny biom) — dokładnie tak jak wygląda już jego istniejący art Aktu I
   miały dedykowane karty z poprzedniej tury i nie były ruszane).
 - ✅ `--import` + `load_test`/`ui_layout_test`/`biome_camp_test` zielone po
   obu turach zmian.
-- ⬜ **36 plików PNG do wygenerowania łącznie**: 16 (§5, woda) + 12 (§7,
-  dzielone) + 8 (§8, uniwersalne) — po wrzuceniu i `--import` zadziałają
-  automatycznie, zero dalszych zmian w kodzie (fallback do `action_<id>.png`
-  bez sufiksu katastrofy, gdyby brakowało wariantu, identyczny mechanizm co
-  reszta pack'u).
+- ✅ **36 plików PNG wygenerowanych i zaimportowanych**: 16 (§5, woda) + 12
+  (§7, dzielone) + 8 (§8, uniwersalne) — zero zmian w kodzie potrzebnych,
+  jak zakładano.
 - ⬜ Do rozważenia przy okazji (nie blokuje): 7 nowych `display_name`/
   `description` (§1 + §6) nie są jeszcze w `localization/strings.csv` — bez
   wpisu gracz z `locale=en` zobaczy polski oryginał (fallback), nic się nie
