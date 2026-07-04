@@ -24,12 +24,17 @@ const PHASE_CATEGORY_MULT := {
 	Phase.OMEN: {"omen": 5.0},
 	Phase.ACT2: {"omen": 0.0, "monster": 6.0},
 }
+## Act II must never go silent on monsters for too long — after this many days
+## without one, the next night is forced to draw from the monster candidates
+## (still respecting their own cooldown/cap) instead of the full weighted pool.
+const MONSTER_DROUGHT_DAYS := 7
 
 var _rng: RandomNumberGenerator
 var _candidates: Array[CardData] = []
 var _last_day: Dictionary = {}  # card id -> last day drawn
 var _count: Dictionary = {}     # card id -> times drawn this run
 var _last_severity: String = ""
+var _last_monster_day := -MONSTER_DROUGHT_DAYS
 
 
 func _init(rng: RandomNumberGenerator) -> void:
@@ -62,11 +67,20 @@ func draw(day: int, phase: int = Phase.ACT1) -> CardData:
 		eligible = _filter(day, false, false)  # relax pacing too
 	if eligible.is_empty():
 		return null
+	if phase == Phase.ACT2 and day - _last_monster_day >= MONSTER_DROUGHT_DAYS:
+		var overdue: Array[CardData] = []
+		for card in eligible:
+			if card is MonsterCardData:
+				overdue.append(card)
+		if not overdue.is_empty():
+			eligible = overdue
 	var card := _weighted_pick(eligible, phase)
 	if card != null:
 		_last_day[card.id] = day
 		_count[card.id] = int(_count.get(card.id, 0)) + 1
 		_last_severity = _severity(card)
+		if card is MonsterCardData:
+			_last_monster_day = day
 	return card
 
 

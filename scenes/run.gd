@@ -972,10 +972,13 @@ func _building_info_data(building_index: int) -> Dictionary:
 	else:
 		var repair_block := _survival.can_repair(building_index)
 		var wood_cost := _survival.repair_wood_cost(built)
+		var materials_cost := _survival.repair_materials_cost(built)
 		repair_text = tr("Naprawa: %d energii, %d drewna") % [
 			SurvivalSystem.REPAIR_ENERGY_COST,
 			wood_cost,
 		]
+		if materials_cost > 0:
+			repair_text += tr(", %d kamienia") % materials_cost
 		repair_disabled = repair_block != ""
 		repair_tooltip = repair_block if repair_block != "" else tr("Naprawa do pełnego HP.")
 
@@ -1002,7 +1005,7 @@ func _building_info_data(building_index: int) -> Dictionary:
 		"action_text": action_text,
 		"use_visible": not built.is_ruined and not action.is_empty(),
 		"use_disabled": block != "" or action.is_empty(),
-		"use_text": tr("Użyto") if action_used else (str(action.get("title", tr("Użyj"))) if not action.is_empty() else tr("Użyj")),
+		"use_text": tr("Użyto") if action_used else (tr("Akcja") if not action.is_empty() else tr("Użyj")),
 		"use_tooltip": block if block != "" else summary,
 		"repair_text": repair_text,
 		"repair_button_text": repair_button_text,
@@ -1095,12 +1098,14 @@ func _on_building_info_repair_pressed(building_index: int) -> void:
 		)
 		return
 	var max_hp := _survival.building_max_hp(built.data)
-	var text := "%s\nHP: %d/%d\nKoszt: %d energii, %d drewna" % [
+	var materials_cost := _survival.repair_materials_cost(built)
+	var text := "%s\nHP: %d/%d\nKoszt: %d energii, %d drewna%s" % [
 		tr(built.data.display_name),
 		built.hp,
 		max_hp,
 		SurvivalSystem.REPAIR_ENERGY_COST,
 		_survival.repair_wood_cost(built),
+		(tr(", %d kamienia") % materials_cost) if materials_cost > 0 else "",
 	]
 	_confirm_action(tr("Naprawić budynek?"), text, "Napraw", func() -> void:
 		_repair_building_confirmed(building_index)

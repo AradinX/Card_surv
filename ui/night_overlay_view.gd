@@ -101,6 +101,13 @@ func show_card(card: CardData) -> void:
 	# lower two-thirds are the 3 pinned choice notes baked into the art).
 	_night_desc.anchor_bottom = 0.466 if has_choices else 0.678
 	_night_desc.text = tr(card.description)
+	# The flavour text alone doesn't say what the attack does — the player had
+	# to check the log afterwards. Fold the same numbers already shown in the
+	# EffectsLabel into the description itself so they're impossible to miss.
+	if is_monster:
+		var monster_effect := _night_card_effect_summary(card)
+		if monster_effect != "":
+			_night_desc.text += "\n\n%s" % monster_effect
 	_night_desc.visible = true
 	_night_result.visible = false
 

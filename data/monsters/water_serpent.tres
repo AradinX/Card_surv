@@ -8,6 +8,6 @@ id = "water_serpent"
 display_name = "Wodny wąż"
 description = "Wielki gad sunie przez zalane uliczki obozu."
 disaster_id = "flood"
-damage_to_player = 4
+damage_to_player = 5
 damage_to_buildings = 0
 copies_in_deck = 2

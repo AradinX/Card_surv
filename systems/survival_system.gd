@@ -142,15 +142,16 @@ const HAND_SIZE := 4
 const MOVE_ENERGY_COST := 1
 const DAILY_HUNGER_DECAY := 3
 const DAILY_THIRST_DECAY := 3
-const DAILY_WARMTH_DECAY := 3
+## Campfire gives +4 warmth, so this leaves a +2 net buffer per night with one lit.
+const DAILY_WARMTH_DECAY := 2
 const SPRING_FOOD_BONUS := 1
 const SUMMER_EXTRA_THIRST_DECAY := 1
 const AUTUMN_WOOD_BONUS := 1
 const WINTER_EXTRA_WARMTH_DECAY := 1
 ## Winter cuts each gathered resource (food/wood/materials) by this much.
 const WINTER_GATHER_PENALTY := 1
-const FOOD_HUNGER_VALUE := 2
-const WATER_THIRST_VALUE := 2
+const FOOD_HUNGER_VALUE := 1
+const WATER_THIRST_VALUE := 1
 ## Food spoilage: some surplus food spoils each day (slowed by the Kucharz's
 ## spoilage_multiplier and by Spiżarnia's slow_spoilage). Only bites above this
 ## stock, so early scarcity isn't punished; hoarding past HIGH_SPOILAGE_FOOD
@@ -160,7 +161,7 @@ const SPOILAGE_MIN_FOOD := 3
 const HIGH_SPOILAGE_FOOD := 6
 const STARVATION_DAMAGE := 2
 const DEHYDRATION_DAMAGE := 2
-const FREEZING_DAMAGE := 2
+const FREEZING_DAMAGE := 1
 const TOOLS_GAIN_BONUS := 1
 ## A standing "night_protection" building reduces protected events' negative
 ## health/warmth deltas by this many points.
@@ -479,9 +480,26 @@ func play_gather(card: ActionCardData) -> void:
 # --- Building maintenance (repairs and ruins, README BUM section) ---
 
 
-## Wood needed to fully repair a damaged building (1 per 2 missing HP).
+## Wood needed to fully repair a damaged building: the building's own wood
+## build cost, scaled by the missing HP fraction — so repair never costs more
+## wood than building it from scratch would.
 func repair_wood_cost(built: BuildingState) -> int:
-	return ceili((building_max_hp(built.data) - built.hp) / 2.0)
+	return _repair_resource_cost(built, built.data.wood_cost)
+
+
+## Same scaling for materials (kamień) — only nonzero for buildings whose
+## build cost includes materials, matching the resources actually spent to
+## build them (feedback: repairs used to be wood-only regardless of build cost).
+func repair_materials_cost(built: BuildingState) -> int:
+	return _repair_resource_cost(built, built.data.materials_cost)
+
+
+func _repair_resource_cost(built: BuildingState, build_cost: int) -> int:
+	if build_cost <= 0:
+		return 0
+	var max_hp := building_max_hp(built.data)
+	var missing := max_hp - built.hp
+	return ceili(build_cost * float(missing) / max_hp)
 
 
 ## Returns "" when the building on the current tile can be repaired (or, for
@@ -506,6 +524,8 @@ func can_repair(building_index: int) -> String:
 		return tr("Za mało energii (potrzeba %d).") % REPAIR_ENERGY_COST
 	if state.wood < repair_wood_cost(built):
 		return tr("Za mało drewna (potrzeba %d).") % repair_wood_cost(built)
+	if state.materials < repair_materials_cost(built):
+		return tr("Za mało kamienia (potrzeba %d).") % repair_materials_cost(built)
 	return ""
 
 
@@ -524,6 +544,7 @@ func repair(building_index: int) -> void:
 		return
 	state.energy -= REPAIR_ENERGY_COST
 	state.wood -= repair_wood_cost(built)
+	state.materials -= repair_materials_cost(built)
 	built.hp = building_max_hp(built.data)
 	log_message.emit("Naprawiasz: %s (HP %d/%d)." % [
 		tr(built.data.display_name), built.hp, building_max_hp(built.data)

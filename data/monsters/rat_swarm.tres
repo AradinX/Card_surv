@@ -9,5 +9,5 @@ display_name = "Rój szczurów"
 description = "Tysiące zębów w ścianach. Rano budynki są cieńsze."
 disaster_id = "plague"
 damage_to_player = 0
-damage_to_buildings = 3
+damage_to_buildings = 5
 copies_in_deck = 2

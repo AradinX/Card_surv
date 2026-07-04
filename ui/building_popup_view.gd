@@ -75,9 +75,10 @@ func set_content(data: Dictionary) -> void:
 
 	_title_label.text = tr(building_data.display_name) if building_data != null else ""
 	_hp_label.text = str(data.get("hp_text", ""))
+	var hp_low_color := Color(0.55, 0.08, 0.06, 1.0) if is_act2 else Color(1.0, 0.42, 0.38, 1.0)
 	_hp_label.add_theme_color_override(
 		"font_color",
-		Color(1.0, 0.42, 0.38, 1.0) if bool(data.get("hp_low", false)) else Color(0.15, 0.09, 0.04, 1.0)
+		hp_low_color if bool(data.get("hp_low", false)) else Color(0.15, 0.09, 0.04, 1.0)
 	)
 	if _status_label != null:
 		var status_text := str(data.get("status_text", ""))

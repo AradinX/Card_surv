@@ -513,15 +513,16 @@ func _fill_occupied_slot(slot: Panel, built: BuildingState, building_tooltip: St
 	var hp_low := not is_campfire and not built.is_ruined \
 		and built.hp * 2 < built.data.max_hp
 	var tag := Label.new()
+	var short_name := _short_building_name(built.data)
 	if built.is_ruined:
-		tag.text = "%s\nRUINA" % tr(built.data.display_name)
+		tag.text = "%s\nRUINA" % short_name
 	elif is_campfire:
 		tag.text = "%s\n%s" % [
-			tr(built.data.display_name),
+			short_name,
 			(tr("pali się: %d n.") % built.hp) if built.hp > 0 else tr("wygasłe"),
 		]
 	else:
-		tag.text = "%s\n%d HP" % [tr(built.data.display_name), built.hp]
+		tag.text = "%s\n%d HP" % [short_name, built.hp]
 	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	tag.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -536,6 +537,14 @@ func _fill_occupied_slot(slot: Panel, built: BuildingState, building_tooltip: St
 	tag.add_theme_constant_override("shadow_offset_y", 1)
 	_set_rect_anchors(tag, 0.0, 0.55, 1.0, 1.0)
 	slot.add_child(tag)
+
+
+## The on-tile tag is tiny (font size 7) — a two-word name (Magazyn kamienia,
+## Wieża obserwacyjna, Wzmocniony schron) pushes the HP line out of frame.
+## The building's own artwork above the tag already disambiguates, so the
+## first word is enough here (feedback: HP was getting clipped).
+func _short_building_name(data: BuildingCardData) -> String:
+	return tr(data.display_name).split(" ")[0]
 
 
 ## Smoldering FX on a ruined building's slot: scorch marks, a flickering fire at
