@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 1
-food_cost = 1
+food_cost = 2
 materials_gain = 2
 id = "barter_materials"
 display_name = "Wymiana: kamień"

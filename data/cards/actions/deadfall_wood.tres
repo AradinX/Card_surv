@@ -4,8 +4,8 @@
 
 [resource]
 script = ExtResource("1_script")
-energy_cost = 1
+energy_cost = 3
 wood_gain = 2
 id = "deadfall_wood"
 display_name = "Wiatrołom"
-description = "Zbierasz połamane przez wiatr konary — szybki opał bez wielkiego wysiłku."
+description = "Zbierasz połamane przez wiatr konary, plączące się w gęstym poszyciu."

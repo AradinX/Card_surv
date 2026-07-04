@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 health_delta = -2
-materials_gain = 3
+materials_gain = 2
 id = "push_through"
 display_name = "Zacisnąć zęby"
 description = "Pracujesz w bólu, byle wyrwać z gruzu tyle kamienia, ile się da."

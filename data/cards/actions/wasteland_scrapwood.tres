@@ -6,8 +6,8 @@
 script = ExtResource("1_script")
 energy_cost = 1
 thirst_delta = -1
-wood_gain = 1
+wood_gain = 2
 gather_only = true
 id = "wasteland_scrapwood"
 display_name = "Suchy chrust"
-description = "Zbierasz wyschnięte korzenie i połamane deski w spalonej ziemi. +1 drewna, -1 nawodnienia."
+description = "Zbierasz wyschnięte korzenie i połamane deski w spalonej ziemi. +2 drewna, -1 nawodnienia."

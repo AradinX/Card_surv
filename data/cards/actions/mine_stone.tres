@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_script")
 energy_cost = 2
-materials_gain = 2
+materials_gain = 3
 gather_only = true
 id = "mine_stone"
 display_name = "Wydobycie kamienia"
