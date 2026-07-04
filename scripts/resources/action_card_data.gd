@@ -48,3 +48,29 @@ var special: String = "none"
 ## stay tied to the biome that produces them (anti-camping economy), and for
 ## starter-deck-only fallbacks (Szukaj kamienia) that must not dilute rewards.
 @export var gather_only: bool = false
+
+## Optional per-catastrophe flavour text (Act II corrupted gather/water cards
+## that keep one mechanical identity but get 4 illustration variants — see
+## docs/asset_plan/ASSET_PROMPTS_DISASTER_TAINTED_*.md). Empty = fall back to
+## `description` for that catastrophe, so most cards need none of this.
+@export_group("Disaster flavor (optional)")
+@export_multiline var plague_description: String = ""
+@export_multiline var eclipse_description: String = ""
+@export_multiline var flood_description: String = ""
+@export_multiline var rift_description: String = ""
+
+
+## Description to show while `disaster_id` is active (Act II), falling back
+## to the base `description` when no override is set for that catastrophe.
+func description_for(disaster_id: String) -> String:
+	match disaster_id:
+		"plague":
+			return plague_description if plague_description != "" else description
+		"eclipse":
+			return eclipse_description if eclipse_description != "" else description
+		"flood":
+			return flood_description if flood_description != "" else description
+		"rift":
+			return rift_description if rift_description != "" else description
+		_:
+			return description

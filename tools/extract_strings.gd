@@ -7,7 +7,8 @@ extends SceneTree
 ##
 ## Sources:
 ##   1. data/**.tres        — display_name/description (+ biome corrupted_*,
-##                            disaster act2_rule_text, event choice label/result)
+##                            disaster act2_rule_text, event choice label/result,
+##                            ActionCardData per-disaster *_description overrides)
 ##   2. *.gd                — tr("...") / _tr("...") literals, every literal with
 ##                            Polish diacritics (const dictionaries translated at
 ##                            their use sites) and fragment args of the
@@ -95,6 +96,7 @@ func _collect_resource(res: Resource) -> void:
 	for prop in [
 		"display_name", "description",
 		"corrupted_display_name", "corrupted_description", "act2_rule_text",
+		"plague_description", "eclipse_description", "flood_description", "rift_description",
 	]:
 		var value: Variant = res.get(prop)
 		if value is String:

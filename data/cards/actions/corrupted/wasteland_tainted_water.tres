@@ -10,3 +10,7 @@ water_gain = 1
 id = "wasteland_tainted_water"
 display_name = "Kwaśna rosa"
 description = "Krople osiadłe na spalonym rumowisku są cierpkie i gryzące."
+plague_description = "Zielonkawa woda zbiera się w zardzewiałym zagłębieniu wśród popiołu."
+eclipse_description = "Woda zamarzła w zardzewiałym zagłębieniu, oszroniona pustkowiem."
+flood_description = "Stojąca woda wypełnia na wpół zasypane metalowe zagłębienie."
+rift_description = "Cienka strużka zapylonej, pomarańczowej wody sączy się do zagłębienia."

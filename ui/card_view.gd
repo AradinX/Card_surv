@@ -22,10 +22,6 @@ const ACTION_ART_DIR := "res://assets/art/cards/illustrations/actions_act1_candi
 const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_candidates"
 const EVENT_ART_DIR := "res://assets/art/cards/illustrations/events"
 const MONSTER_ART_DIR := "res://assets/art/cards/illustrations/monsters"
-const BUILDING_ART_ALIASES := {
-	"building_stone_storage": "building_quarry",
-}
-
 # Action cards resolve to a dedicated `action_<id>.png` first (see
 # _illustration_path); this map only covers the few ids whose art lives under a
 # different filename. find_water reuses the "Źródło" (spring_source) illustration.
@@ -62,7 +58,7 @@ func setup(
 	_cost_label.text = cost_override if cost_override != "" else _format_costs(card)
 	# Flavour on its own label (top), effects on a separate label (bottom) so the
 	# effect line can never be clipped by a long flavour or font auto-fit.
-	_desc_label.text = tr(card.description)
+	_desc_label.text = tr(_description_for_display(card))
 	var effects := str(effects_override) if effects_override != null else _effects_summary(card)
 	if card is BuildingCardData:
 		effects += ("  ·  " if effects != "" else "") + "%d HP" % (card as BuildingCardData).max_hp
@@ -210,11 +206,15 @@ func _apply_text_layout(card: CardData) -> void:
 		_desc_label.anchor_bottom = text_bottom
 
 
+func _description_for_display(card: CardData) -> String:
+	if card is ActionCardData and _disaster_id != "":
+		return (card as ActionCardData).description_for(_disaster_id)
+	return card.description
+
+
 func _illustration_path(card: CardData) -> String:
 	if card is BuildingCardData:
-		return "%s/%s.png" % [
-			BUILDING_ART_DIR, BUILDING_ART_ALIASES.get(card.id, card.id)
-		]
+		return "%s/%s.png" % [BUILDING_ART_DIR, card.id]
 	if card is MonsterCardData:
 		return "%s/%s.png" % [
 			MONSTER_ART_DIR, MONSTER_ART_ALIASES.get(card.id, card.id)

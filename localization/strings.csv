@@ -42,6 +42,7 @@ Cost: %d wood -> +%d nights of fuel"
 +1 złota moneta!  (masz: %d),+1 gold coin!  (you have: %d)
 "+2 jedzenia, jeśli grałeś już jedzenie",+2 food if you already played food today
 +2 karty do ręki,+2 cards to hand
+", %d kamienia",", %d stone"
 -%d HP budynku,-%d building HP
 "-%d sytości, -%d nawodnienia, -%d ciepła","-%d satiety, -%d hydration, -%d warmth"
 -%d zdrowia,-%d health
@@ -64,6 +65,7 @@ Bagienne zioła,Swamp herbs
 Bagno,Swamp
 "Bagno przykrywa cienki lód, ale pod spodem coś nadal oddycha.","Thin ice covers the swamp, but something still breathes beneath it."
 Bagno rozlało się bez granic. Każdy krok znika w zimnej mazi.,The swamp has spilled without end. Every step sinks into cold sludge.
+"Bagno wyschło do spękanego błota, na resztkach wody osiada kurz.","The bog has dried to cracked mud, dust settling on what water remains."
 Bandaż,Bandage
 Bastion,Bastion
 Bestia ucieka w mrok. Spokój.,The beast flees into the dark. Quiet.
@@ -82,6 +84,7 @@ Brak budynku do doraźnej naprawy na tym kaflu.,No building to patch up on this 
 Brak uszkodzonych budynków na tym kaflu.,No damaged buildings on this tile.
 Brak wolnych slotów w tym biomie.,No free slots in this biome.
 "Brodzisz po pas w gnijącej wodzie, by ściągnąć tobół z ciała.",You wade waist-deep in rotting water to pull the bundle off the corpse.
+"Brzeg usiany jest poszarpanymi, zardzewiałymi szczątkami rozbitych łodzi.","The shore is littered with jagged, rusted wreckage of broken boats."
 Budowa droższa o %d energii,Building costs %d more energy
 Budowa tańsza o %d energii,Building costs %d less energy
 Budowa tańsza o %d surowca,Building costs %d fewer resources
@@ -140,6 +143,9 @@ Cicha praca nocą,Quiet work at night
 "Ciemność odbiera wolę działania. -1 ciepła, -1 energii następnego dnia.","The darkness saps your will to act. -1 warmth, -1 energy the next day."
 Ciemność w jaskiniach zgęstniała. Echo wraca zimniejsze niż oddech.,The dark in the caves has thickened. The echo comes back colder than breath.
 Cienisty pełzacz,Shadow crawler
+"Cienka strużka pomarańczowej, zapylonej wody sączy się przez pękniętą skałę.",A thin trickle of dusty orange water seeps through the cracked rock.
+"Cienka strużka wody sączy się z popękanego stalaktytu, osiadając pyłem minerałów.","A thin trickle of water seeps from the cracked stalactite, settling as mineral dust."
+"Cienka strużka zapylonej, pomarańczowej wody sączy się do zagłębienia.",A thin trickle of dusty orange water seeps into the hollow.
 "Ciepła mżawka napełnia naczynia. +1 wody, -1 ciepła.","A warm drizzle fills your vessels. +1 water, -1 warmth."
 "Ciepło
 Spada każdej nocy.
@@ -164,18 +170,25 @@ Co noc daje 1 wody i zwiększa limit wody.,Produces 1 water every night and rais
 "Co noc: sytość -%d, nawodnienie -%d, ciepło -%d. Budynki mogą to zmienić.","Every night: satiety -%d, hydration -%d, warmth -%d. Buildings can change this."
 Combo jedzenia: +2 jedzenia za wcześniejszą kartę jedzenia.,Food combo: +2 food for an earlier food card.
 "Coś dużego przedziera się przez zarośla. -1 zdrowia, -1 jedzenia (schronienie chroni).","Something big is tearing through the brush. -1 health, -1 food (shelter protects)."
+"Coś leży pod czarnymi korzeniami, otoczone zielonkawym połyskiem. Mięso jest ciepłe, choć nie powinno.","Something lies beneath the black roots, wrapped in a greenish sheen. The meat is warm, though it shouldn't be."
+"Coś leży pod czarnymi korzeniami. Wolisz nie pytać, od kiedy.",Something lies beneath the black roots. You'd rather not ask since when.
 Coś metalicznego błyska w wydmie. Odkopujesz przydatny kawałek. +1 kamienia.,Something metallic glints in the dune. You dig up a useful piece. +1 stone.
 "Coś porusza się w skale i strop sypie się na obóz, miażdżąc zapasy. -1 kamienia, -1 zdrowia.","Something shifts in the rock and the ceiling rains down on the camp, crushing supplies. -1 stone, -1 health."
+"Coś przegrzebało zapasy w nocy. -1 jedzenia, -1 wody.","Something rummaged through your supplies overnight. -1 food, -1 water."
 Coś szura tuż za kręgiem światła. Sprawdzisz?,Something shuffles just beyond the circle of light. Will you check?
 Cuchnąca kałuża po deszczu — lepsze to niż nic.,A foul puddle after the rain — better than nothing.
 Cudzy obóz wmarzł w lód w połowie ruchu. Zapasy widać pod taflą szronu.,Someone's camp froze into the ice mid-stride. You can see supplies under the sheet of frost.
 Cysterna,Cistern
 Czarna Rzeka,Black River
 Czarna chmura dziobów. Tnie skórę i rwie strzechy.,A black cloud of beaks. It cuts skin and tears thatch.
+Czarna kałuża,Black puddle
 Czarna piana,Black foam
 Czarna pleśń,Black mould
+Czarna rosa,Black dew
+Czarna toń,Black deep
 "Czarna woda niesie wzdęte ścierwa, które zatruwają brzeg i odbierają apetyt. -1 jedzenia, -1 zdrowia.","Black water carries bloated carcasses that poison the shore and kill your appetite. -1 food, -1 health."
 Czarne Góry,Black Mountains
+Czarne jagody,Black berries
 "Czarne korzenie wpełzają w obóz i oplatają zapasy. -1 zdrowia, -1 energii następnego dnia.","Black roots creep into the camp and coil around your supplies. -1 health, -1 energy the next day."
 Czarne krople,Black drops
 Czarne słońce,Black sun
@@ -195,10 +208,14 @@ Daje narzędzia po zbudowaniu. Akcja naprawia budynki na tym kaflu.,Grants tools
 Dalej,Next
 Daleka wyprawa,Long expedition
 Darń rozdarły świeże rysy. Ziemia drży pod każdym krokiem.,Fresh cracks have torn the turf. The ground trembles under every step.
+"Deszcz podniósł poziom bagna, zalewając omszały pień.","Rain has raised the bog's level, flooding over the mossy log."
 Deszczówka,Rainwater
+"Deszczówka wypełniła zagłębienie po korzeniach mętną, brunatną wodą.",Rainwater has filled the root hollow with murky brown water.
+Dno jaskini zalała mętna woda kapiąca ze stropu.,Murky water dripping from the ceiling has flooded the cave floor.
 Dobierasz 2 karty.,You draw 2 cards.
-"Dobierasz co dzień 1 kartę więcej. Zajęty planowaniem, zapomina dorzucić do ogniska (+1 ciepła/dzień) — budowanie kosztuje też +1 energii.","Draws 1 extra card each day. Too busy planning to tend the fire (+1 warmth/day) — building also costs +1 energy."
+"Dobierasz co dzień 1 kartę więcej. Zajęty planowaniem, zapomina dorzucić do ogniska (+1 ciepła/dzień) — budowanie kosztuje też +1 energii.",Draws 1 extra card each day. Too busy planning to tend the fire (+1 warmth/day) — building also costs +1 energy.
 Dodaj do zapasów,Add to supplies
+Dogonić chore zwierzę jest łatwo — mięso jednak nie wygląda już apetycznie.,Catching a sick animal is easy — but the meat doesn't look appetizing anymore.
 Dokładasz drewno do ogniska: pali się jeszcze %d nocy.,You add wood to the campfire: it will burn for %d more nights.
 "Dopada cię gorączka. -2 zdrowia, -1 energii następnego dnia.","A fever takes hold of you. -2 health, -1 energy the next day."
 Doraźna naprawa,Quick fix
@@ -300,6 +317,8 @@ Górskie echo,Mountain echo
 Góry,Mountains
 Gęsta mgła,Dense fog
 Gęsta mgła znad wody spowalnia poranek. -1 energii następnego dnia.,Dense fog off the water slows the morning down. -1 energy the next day.
+"Gęsta, czarno-zielona woda bagienna błyszczy tłustym połyskiem.",Thick black-green bog water gleams with an oily sheen.
+"Gęsta, czarno-zielona woda zbiera się w naczyniu, z tłustym połyskiem na powierzchni.","Thick black-green water collects in the vessel, an oily sheen on its surface."
 Gęstwina zaprowadziła donikąd. -2 energii następnego dnia.,The thicket led nowhere. -2 energy the next day.
 Gęsty las pełen drewna i zwierzyny. Nocą słychać wilki.,A dense forest full of wood and game. At night you hear wolves.
 "Głosy z mroku nie dają zasnąć. -1 zdrowia, -1 energii następnego dnia.","Voices from the dark keep you awake. -1 health, -1 energy the next day."
@@ -315,15 +334,17 @@ Hałas w ciemności,Noise in the dark
 "Im więcej masz już za sobą, tym sprawniej idzie reszta. Najlepsze na koniec dnia.","The more you already have behind you, the smoother the rest goes. Best at the end of the day."
 Informatyk,Programmer
 Jagodowa polana,Berry glade
+Jagody zamarzły na krzaku pokrytym szronem.,The berries have frozen on the frost-covered bush.
 Jak grać,How to play
 Jaskinie,Caves
+Jaskiniowy rumosz,Cave rubble
 Jałowa ziemia,Barren ground
 "Jedzenie
 Zapas automatycznie zjadany nocą, gdy sytość jest niska.","Food
 A supply eaten automatically at night when satiety is low."
 Jedzenie %d,Food %d
 Jedzenie 2/8,Food 2/8
-"Jedzenie odnawia +50% głodu, zapasy psują się wolniej. Ciężkie, słone potrawy mocno wzmagają pragnienie (+2/dzień) — budowanie kosztuje też +1 energii.","Food restores +50% hunger and supplies spoil slower. Heavy, salty meals badly build thirst (+2/day) — building also costs +1 energy."
+"Jedzenie odnawia 2x więcej sytości, zapasy psują się wolniej. Ciężkie, słone potrawy mocno wzmagają pragnienie (+2/dzień) — budowanie kosztuje też +1 energii.","Food restores 2x more satiety, supplies spoil slower. Heavy, salty meals sharply increase thirst (+2/day) — building also costs +1 energy."
 Jedzenie syci o %d%% mniej,Food is %d%% less filling
 Jedzenie syci o %d%% więcej,Food is %d%% more filling
 Jesień,Autumn
@@ -355,6 +376,8 @@ Zabezpieczone rejony mają większą szansę ocalić kluczowe budynki. Po katast
 Secured regions have a better chance of saving your key buildings. After the disaster, rebuilding is more expensive, so repair what survived, tear down the ruins and watch your warmth, water and food."
 Katastrofa: %s (dzień %d),Disaster: %s (day %d)
 "Katastrofa: %s (dzień %d, po katastrofie: %d dni)","Disaster: %s (day %d, after the disaster: %d days)"
+Kawałki złomu leżą na wpół zatopione w stojącej wodzie i błocie.,Scrap fragments lie half-submerged in standing water and mud.
+Kałuża wyschła i pęka na krawędziach wśród zakurzonych korzeni.,The puddle has dried up and cracks at the edges among the dusty roots.
 Każdego ranka leczysz się o 1 zdrowia. Najłatwiejsza klasa — w sam raz na pierwsze przejście.,You heal 1 health every morning. The easiest class — a perfect fit for a first playthrough.
 Klasa: %s   ·   Poziom: %d (%d XP)   ·   Obrażenia: %d,Class: %s   ·   Level: %d (%d XP)   ·   Damage taken: %d
 "Klify pękają nad morzem, a fale wpadają w świeże rany skał.","The cliffs are cracking above the sea, and the waves crash into fresh wounds in the rock."
@@ -371,6 +394,10 @@ Koszt,Cost
 %s","Cost:
 %s"
 Koszt: %s,Cost: %s
+"Krople na czarnych liściach mają metaliczny, gorzki zapach.","The droplets on the black leaves carry a metallic, bitter smell."
+"Krople osiadłe na czarnych liściach mają metaliczny, gorzki zapach.","Droplets settled on black leaves carry a metallic, bitter smell."
+Krople osiadłe na spalonym rumowisku są cierpkie i gryzące.,Droplets settled on the scorched rubble are sharp and biting.
+Krople ze stalaktytów zamarzły w bladym lodzie — trzeba je odłupać.,The droplets from the stalactites have frozen into pale ice — you have to chip them off.
 Krucza chmara,Raven swarm
 Krzaki uginają się od owoców. +2 jedzenia.,The bushes sag with fruit. +2 food.
 Krzyk mew,Cry of the gulls
@@ -378,7 +405,11 @@ Ktoś tędy przechodził i coś zgubił. +1 kamienia.,Someone passed through her
 Kucharz,Cook
 "Kujesz w czarny lód, aż pękają palce z zimna.",You chip at the black ice until your fingers crack from the cold.
 "Kurz stał się ciężkim błotem, a resztki ruin zapadają się pod wodą.","The dust has turned to heavy mud, and what is left of the ruins sinks under the water."
+Kwaśna rosa,Sour dew
 "Kwiaty zamarzły w pełnym rozkwicie, a trawa chrzęści jak cienkie szkło.","The flowers froze in full bloom, and the grass crunches like thin glass."
+"Kłosy leżą przygniecione, na wpół zatopione w błotnistej powodzi.","The stalks lie flattened, half-submerged in the muddy flood."
+"Kłosy poczerniały od grzybni, ale ziarno w środku jeszcze się trzyma.","The stalks have blackened with fungus, but the grain inside still holds."
+"Kłosy poczerniały, ale ziarno w środku jeszcze się trzyma.","The grain has blackened, but the kernels inside still hold."
 Larwy w drewnie,Grubs in the wood
 Las,Forest
 Las Długiego Cienia,Forest of the Long Shadow
@@ -408,12 +439,15 @@ Limit: %d zabezpieczone rejony.,Limit: %d secured regions.
 "Lodowaty, słony wicher zrywa się znad martwego morza i wdziera do obozu. -1 ciepła, -1 nawodnienia, -1 zdrowia.","An icy, salty gale rises off the dead sea and forces its way into the camp. -1 warmth, -1 hydration, -1 health."
 Lodowy deszcz,Ice rain
 Lodowy szept,Icy whisper
+Lód i drobne sople oblepiły rumowisko jaskini bladym blaskiem.,Ice and small icicles cling to the cave rubble in a pale glow.
 Lśniące kryształy,Gleaming crystals
 Magazyn drewna,Wood storage
 Magazyn kamienia,Stone storage
 Martwe Wybrzeże,Dead Coast
 Martwe ptaki,Dead birds
 Martwe ptaki leżą pod drzewami. Żadne zwierzę ich nie tyka.,Dead birds lie under the trees. No animal will touch them.
+Martwe ryby na zamarzającym brzegu pokrył szron.,Frost coats the dead fish on the freezing shore.
+Martwe ryby plączą się w naniesionych sztormem odpadkach na brzegu.,Dead fish are tangled in storm-driven debris on the shore.
 Martwy Las,Dead Forest
 Martwy upał,Dead heat
 Masz już narzędzia.,You already have tools.
@@ -437,6 +471,7 @@ Mniejszy głód,Less hunger
 Mokra mgła wpełza pod ubranie i przenika do kości. -1 ciepła.,Wet fog creeps under your clothes and soaks into your bones. -1 warmth.
 Mokradło gra tysiącem żabich gardeł. Monotonny chór w końcu kołysze cię do snu. +1 energii następnego dnia.,The wetland plays with a thousand frog throats. The monotonous chorus finally rocks you to sleep. +1 energy the next day.
 Mokre powietrze wciska chłód pod skórę. -1 ciepła (schronienie chroni).,The damp air presses cold under your skin. -1 warmth (shelter protects).
+"Mokre, błyszczące rumowisko leży w płytkiej wodzie zalewającej jaskinię.","Wet, glistening rubble sits in shallow water flooding the cave."
 "Morski sztorm smaga obóz lodowatą wodą. -2 ciepła, -1 zdrowia (schronienie chroni).","A sea storm lashes the camp with icy water. -2 warmth, -1 health (shelter protects)."
 "Morze nabiega krwistą barwą trującego kwiatu. Ryby konają i gniją na brzegu. -1 jedzenia, -1 zdrowia.","The sea swells with the blood-red hue of a poisonous bloom. Fish die and rot on the shore. -1 food, -1 health."
 Morze weszło na ląd. Plaża jest tylko pasem piany i porwanych szczątków.,The sea has come onto the land. The beach is just a strip of foam and torn debris.
@@ -470,6 +505,7 @@ Nabierz wody,Draw water
 Nabierz wody ze strumienia.,Draw water from the stream.
 Naciągasz koc na głowę i zasypiasz.,You pull the blanket over your head and fall asleep.
 Nad ranem szron ścina ziemię. -2 ciepła (schronienie chroni).,"Towards morning, frost stiffens the ground. -2 warmth (shelter protects)."
+Nadgryzione zapasy,Gnawed-at supplies
 Nagroda: %s dołącza do talii (%d kart).,Reward: %s joins your deck (%d cards).
 Nagroda: +1 maks. energii (%d).,Reward: +1 max energy (%d).
 Nagroda: +1 maks. zdrowia (%d).,Reward: +1 max health (%d).
@@ -487,6 +523,7 @@ Naprawa do pełnego HP.,Repairs to full HP.
 Naprawa: niedostępna.,Repair: unavailable.
 Naprawa: pełne HP.,Repair: full HP.
 Naprawić budynek?,Repair the building?
+Napęczniałe od wody jagody wiszą na wpół zatopionym krzaku.,Water-swollen berries hang on the half-submerged bush.
 "Narzędzia
 Gdy są gotowe, karty z jedzeniem i drewnem dają większy zysk.","Tools
 Once ready, food and wood cards give bigger yields."
@@ -500,6 +537,7 @@ Natrafiasz na porzucony obóz. Zostały jakieś rzeczy.,You come across an aband
 Natrafiasz na porzucony plecak. +2 kamienia.,You come across an abandoned backpack. +2 stone.
 Nauczyłeś się naprawdę regenerować — budzisz się silniejszy i zdrowszy.,You have learned to truly recover — you wake up stronger and healthier.
 Nawet po zmroku rozgrzana ziemia oddaje suchy żar. Gardło piecze. -1 nawodnienia.,Even after dark the scorched ground radiates dry heat. Your throat burns. -1 hydration.
+"Nawet w Martwym Lesie zostały jagody, ale mają gorzki, chemiczny posmak.","Even in the Dead Forest some berries remain, but they taste bitter and chemical."
 "Nawodnienie
 Spada każdej nocy.
 Latem i na suchych biomach spada szybciej.","Hydration
@@ -528,6 +566,7 @@ Przykład: przy Ognisku możesz dodatkowo się ogrzać, Warsztat może wykonać 
 Example: at the Campfire you can warm yourself up extra, the Workshop can craft tools, the Well lets you draw water. Using a building wears down its HP, so do not click everything without need."
 Nieprzenikniona ciemność,Impenetrable darkness
 Niespokojny sen,Restless sleep
+Nieszczelny bukłak,Leaky waterskin
 Nieustępliwość,Relentlessness
 Niewiele widać na krok. Jutro każdy ruch kosztuje +1 energii.,You can barely see a step ahead. Tomorrow every move costs +1 energy.
 Nieznany teren,Unknown terrain
@@ -544,6 +583,7 @@ Nocą daje ciepło i chroni przed częścią strat zdrowia lub ciepła.,At night
 Nocą słychać głuchy huk gdzieś w głębi ziemi.,At night a dull rumble sounds somewhere deep in the earth.
 Nowa gra,New game
 "Nurt ginie w pęknięciach i wraca gorący, mętny, niepewny.","The current vanishes into the cracks and comes back hot, murky, uncertain."
+Nurt ma dziwną barwę i metaliczny posmak.,The current has a strange color and a metallic taste.
 Nurt niesie kry i martwe światło. Woda parzy zimnem przy dotyku.,The current carries ice floes and a dead light. The water scalds with cold at a touch.
 "O zmierzchu chmura nietoperzy wylewa się z korytarza. Czuwasz dłużej, nasłuchując skrzydeł. -1 energii następnego dnia.","At dusk a cloud of bats pours out of the passage. You stay up longer, listening for wings. -1 energy the next day."
 O zmierzchu ryby biją w taflę. Zarzucasz sieć i masz łup. +1 jedzenia.,At dusk the fish strike the surface. You cast the net and take your haul. +1 food.
@@ -557,6 +597,7 @@ Obrabowujesz cudze ognisko — ale w mroku ktoś mógł czuwać.,You loot someon
 Obróbka kamienia,Stoneworking
 Obsuw skalny,Rockslide
 Obsuw stropu,Ceiling collapse
+Ochwacone zwierzę,Foundered animal
 Odblokowano: %s!,Unlocked: %s!
 Oddajesz nadmiar kamienia za porządny zapas drewna.,You trade your excess stone for a solid stock of wood.
 Oddajesz zapas drewna za coś do garnka.,You trade a stock of wood for something for the pot.
@@ -568,6 +609,8 @@ Odpoczynek: Głęboki sen,Rest: Deep sleep
 Odprawiasz obcego z niczym. Spokojna noc.,You send the stranger away with nothing. A quiet night.
 Odpędź go,Chase him off
 Odstępujesz część prowiantu wędrownemu kamieniarzowi za zapas kamienia.,You give part of your provisions to a wandering stonemason for a stock of stone.
+"Odłamki ze ściany jaskini pokryte są dziwnym, cierpkim nalotem.","Chips from the cave wall are coated in a strange, acrid film."
+Odłamki złomu pokrył szron i lód pustkowia.,Frost and ice from the wasteland coat the scrap fragments.
 "Ogień powinien zabić to, co w środku. Powinien.",Fire should kill whatever is inside. Should.
 Ognisko,Campfire
 Ognisko: %s.,Campfire: %s.
@@ -595,6 +638,7 @@ Otwiera się rozpadlina,A crevice opens up
 "Owiń się wszystkim, co masz, i przeczekaj chłód.",Wrap yourself in everything you have and wait out the cold.
 "Owoce są miękkie i cuchną, ale głód nie wybiera.","The fruit is soft and reeks, but hunger does not get to choose."
 "Ożywiony rumowiskiem, miażdży wszystko na drodze.","Animated by the rubble, it crushes everything in its path."
+Padlina spod korzeni,Carrion under the roots
 Padlinożercy,Scavengers
 Pali się jeszcze %d nocy,Burns for %d more nights
 Palisada,Palisade
@@ -627,10 +671,13 @@ Satiety -%d
 Hydration -%d
 Warmth %s (night -%d, buildings +%d)
 Supplies: %d food, %d water%s"
+Poczerniałe jagody błyszczą zielonkawo na zwiędłym krzaku.,The blackened berries gleam greenish on the withered bush.
+Poczerniałe kłosy,Blackened grain
 "Pod drzewem siedzi milczący starzec. Zdaje się wiedzieć więcej, niż mówi.",A silent old man sits under a tree. He seems to know more than he says.
 Pod stosem zarażonych ciał widać czyjś plecak. Sięgnąć głębiej czy nie ryzykować?,"Under a pile of infected bodies you can see someone's backpack. Reach deeper, or not risk it?"
 Pod ziemią nie ma wiatru ani głosów. W tej absolutnej ciszy śpisz jak kamień. +1 energii następnego dnia.,There is no wind and no voices underground. In that absolute silence you sleep like a stone. +1 energy the next day.
 Podchodząca woda,Rising water
+Podejrzana zdobycz,Suspicious catch
 Podreperuj konstrukcje,Patch up the structures
 Podtopione Łąki,Waterlogged Meadows
 Podziel się jedzeniem,Share your food
@@ -652,6 +699,7 @@ Postać:,Character:
 Potwor,Monster
 Potwór,Monster
 Potwór: %s — %s,Monster: %s — %s
+Powierzchnię bagna skuł lód — pod pękniętą taflą wciąż jest woda.,Ice has locked the bog's surface — there's still water beneath the cracked sheet.
 "Powietrze gęstnieje od zarodników. -1 zdrowia, -1 ciepła.","The air thickens with spores. -1 health, -1 warmth."
 Powietrze jest ciężkie od wilgoci. Wszystko pleśnieje.,The air is heavy with damp. Everything is going mouldy.
 Powietrze pachnie sosną i ciepłą ziemią. Śpisz głęboko. +1 energii następnego dnia.,The air smells of pine and warm earth. You sleep deeply. +1 energy the next day.
@@ -689,6 +737,7 @@ Przejść na kafel?,Move to the tile?
 Przekrocz swoje granice.,Push past your limits.
 Przekąska,Snack
 "Przemoczony do suchej nitki. -1 zdrowia, -1 ciepła (schronienie chroni). +1 wody.","Soaked to the bone. -1 health, -1 warmth (shelter protects). +1 water."
+"Przepalony metal kruszy się w palcach, tnie jak brzytwa.","The scorched metal crumbles in your fingers, cuts like a razor."
 Przepłosz ogniem,Scare it off with fire
 Przerób drewno na użyteczne części.,Work wood into useful parts.
 Przeszukaj ciała (ryzyko zarazy),Search the bodies (risk of plague)
@@ -726,6 +775,7 @@ Rejon zabezpieczony,Region secured
 Robactwo toczy zapasy drewna. -2 drewna.,Vermin are eating through the wood supplies. -2 wood.
 Rojowisko much,Swarm of flies
 Rojowisko z rozpadliny,Swarm from the crevice
+Rosa zamarzła na oszronionych liściach w twardą skorupę lodu.,The dew has frozen on the frost-covered leaves into a hard crust of ice.
 "Rozbierasz %s: %s (+%d drewna, +%d kamienia).","You tear down %s: %s (+%d wood, +%d stone)."
 Rozbierz,Demolish
 Rozbite Wybrzeże,Shattered Coast
@@ -754,6 +804,8 @@ Ruletka postaci,Character roulette
 Ruletka postaci (%d %s),Character roulette (%d %s)
 Ruletka postaci (1 moneta),Character roulette (1 coin)
 Rybie żerowisko,Fish feeding ground
+"Ryby wyławiasz martwe na brzuchu, ze skórą zielonkawo-czarną od zarazy.","You pull up fish dead and belly-up, their skin greenish-black from the plague."
+"Ryby wyławiasz martwe na brzuchu, łuski poplamione czarną smugą.","You pull up fish dead and belly-up, their scales streaked with black."
 Rytm dnia,Rhythm of the day
 Ryzykujesz dłuższe grzebanie po zmroku.,You risk a longer dig after dark.
 Rzadkie powietrze,Thin air
@@ -792,6 +844,8 @@ Skały gasną pod lodowym cieniem. Każdy podmuch zabiera resztki ciepła.,The r
 Skażona studnia,Tainted well
 Skażona zwierzyna,Tainted game
 Skażone mięso,Tainted meat
+Skażone połowy,Tainted catch
+Skażony roztop,Tainted meltwater
 Skażony złom,Tainted scrap
 Skleć prymitywne narzędzia.,Put together crude tools.
 Skowronki w górze,Larks overhead
@@ -802,10 +856,12 @@ Skrytka wędrowca,Wanderer's cache
 Skulony przy szlaku ktoś dygocze z zimna. Ledwo żywy.,"Someone huddles by the trail, shivering with cold. Barely alive."
 "Skwar wysusza gardło. -2 nawodnienia, -1 energii następnego dnia.","The heat dries out your throat. -2 hydration, -1 energy the next day."
 "Skóra pęka ropiejącymi wrzodami, a dreszcze nie ustają. -2 zdrowia, -1 ciepła.","The skin cracks into festering sores, and the shivers will not stop. -2 health, -1 warmth."
+"Skórowana zdobycz leży w zielonkawo zabarwionej, zgniłej trawie łąki.","The skinned carcass lies in the greenish-stained, rotting meadow grass."
 Smakują wybornie... chyba.,They taste delicious... probably.
 "Sny są ciężkie i lepkie. -1 zdrowia, -1 energii następnego dnia.","The dreams are heavy and sticky. -1 health, -1 energy the next day."
 Sny są coraz cięższe. Coś nadchodzi.,The dreams grow heavier. Something is coming.
 "Sobota, 10:00","Saturday, 10:00"
+Sople ociekają bladoniebieską wodą do zamarzającego zbiornika w skale.,Icicles drip pale blue water into a freezing stone basin.
 "Spalona, jałowa ziemia usiana gruzem. Kamienia w bród, jedzenia jak na lekarstwo.","Scorched, barren ground strewn with rubble. Stone galore, food scarce as medicine."
 Specjalne: %s,Special: %s
 Spiekota popiołów,Scorch of the ashes
@@ -819,6 +875,7 @@ Spod ziemi wystaje róg skrzyni. Ktoś coś tu ukrył.,The corner of a chest sti
 Spokojny wieczór,A calm evening
 "Spomiędzy czarnych pni sączą się głosy. Nie śpisz całą noc. -1 zdrowia, -2 energii następnego dnia.","Voices seep from between the black trunks. You do not sleep all night. -1 health, -2 energy the next day."
 Spopielone Pustkowie,Ashen Wasteland
+Spopielony złom,Ashen scrap
 Sprawdź sidła,Check the snares
 Spędź kilka godzin nad wodą.,Spend a few hours by the water.
 "Stada zaropiałych ptaków obsiadają obóz i plądrują zapasy. -2 jedzenia, -1 zdrowia.","Flocks of festering birds settle on the camp and plunder the supplies. -2 food, -1 health."
@@ -828,11 +885,13 @@ Stare ślady,Old tracks
 Start: ,Start: 
 Stary pustelnik,Old hermit
 Stałe ujęcie wody na miejscu. Możesz nabrać większy zapas za energię.,A permanent water source on site. You can draw a bigger supply for energy.
+Stojąca woda wypełnia na wpół zasypane metalowe zagłębienie.,Standing water fills the half-buried metal hollow.
 Stoki osuwają się po ulewach. Kamienie jadą w dół razem z błotem.,The slopes give way after the downpours. Stones slide down along with the mud.
 Strateg,Strategist
 Strop jaskini sypie się bez ostrzeżenia. -2 zdrowia.,The cave ceiling crumbles without warning. -2 health.
 Studnia,Well
 Sucha okolica obozu odbiera dodatkowe nawodnienie. -%d nawodnienia.,The dry country around the camp drains extra hydration. -%d hydration.
+"Suche, kruche kłosy trzeszczą w spękanej, zapylonej ziemi.","Dry, brittle stalks crackle in the cracked, dusty soil."
 Suchy chrust,Dry kindling
 Suchy skład na opał i budulec. Zwiększa limit drewna.,A dry store for firewood and building material. Raises the wood cap.
 Suchy upał,Dry heat
@@ -852,21 +911,21 @@ Sytość %d/%d,Satiety %d/%d
 Sytość 8/10,Satiety 8/10
 Sytość jest już pełna.,Satiety is already full.
 Sytość spadła do 0: tracisz zdrowie z głodu (-%d zdrowia).,Satiety hit 0: hunger is costing you health (-%d health).
+Szara ulewna woda spływa po śliskiej skale prosto w zagłębienie.,Grey rainwater pours down the slick rock straight into the hollow.
 Szałas,Hut
 Szałas osłania cię przed atakiem.,The hut shields you from the attack.
 Szałas osłania cię przed nocą.,The hut shields you from the night.
 Szczury,Rats
-Nieszczelny bukłak,Leaky waterskin
-"Zapas wody wyciekł w nocy. -2 wody.","Your water stock leaked out overnight. -2 water."
-Nadgryzione zapasy,Gnawed-at supplies
-"Coś przegrzebało zapasy w nocy. -1 jedzenia, -1 wody.","Something rummaged through your supplies overnight. -1 food, -1 water."
 Szept w ciemności,A whisper in the dark
 Szept z czerni,A whisper out of the black
+Szron oblepił poczerniałe kłosy sterczące ze śniegu.,Frost coats the blackened stalks poking through the snow.
 Sztorm,Sea storm
+Sztorm naniósł złom razem z ciemnym drewnem na brzeg.,The storm washed the scrap ashore together with dark driftwood.
 Szukaj kamienia,Scavenge
 Szum fal,Sound of the waves
 Szum nurtu,Murmur of the current
 Szybciej marznie,Freezes faster
+"Szybki, mętny nurt wypełnia naczynie wirującymi odłamkami.","A fast, murky current fills the vessel with swirling debris."
 Szybsze psucie jedzenia,Faster food spoilage
 Słoneczny poranek,Sunny morning
 Słony szkwał,Salt squall
@@ -889,6 +948,7 @@ Ten rejon jest już zabezpieczony.,This region is already secured.
 To ruina — można ją tylko rozebrać.,It is a ruin — all you can do is tear it down.
 To są akcje dostępne na aktualnym biomie. Na lesie możesz pozyskać drewno. Przeciągnij kartę Rąb drewno na kartkę logów albo na obecny kafel.,These are the actions available on the current biome. In the forest you can gather wood. Drag the Chop wood card onto the log sheet or the current tile.
 "To talia akcji dobrana na bieżący dzień. Zagraj Źródło, aby uzupełnić wodę, oraz Zbieractwo, aby zdobyć jedzenie i poprawić sytość.","This is the action deck drawn for today. Play Spring to top up water, and Foraging to get food and improve satiety."
+"To, co złapałeś, jest wmarznięte w taflę bagna — trzeba wyrąbać.",What you caught is frozen into the bog's surface — you'll have to chop it free.
 Topielec,Drowned one
 Trafiasz na powalone drzewo. +2 drewna.,You come across a fallen tree. +2 wood.
 "Trawa gnije na stojąco, a ziemia mlaszcze pod stopami.","The grass rots where it stands, and the ground squelches underfoot."
@@ -899,6 +959,7 @@ Treść,Body
 Tropy zwierzyny,Animal tracks
 Trudne warunki: każdy ruch kosztuje dziś +%d energii.,Hard going: every move today costs +%d energy.
 Trujące Mokradła,Poisonous Wetlands
+Trujący osad,Poisonous deposit
 Trupi wyziew,Cadaver stench
 Trupia woda,Corpse water
 Trupy w nurcie,Corpses in the current
@@ -936,9 +997,11 @@ Użyć akcji budynku?,Use the building's action?
 W blasku ogniska ściany jaskini iskrzą się tysiącem kryształów. Odłupujesz kilka twardych odłamków. +1 kamienia.,In the campfire's glow the cave walls sparkle with a thousand crystals. You chip off a few hard shards. +1 stone.
 W ciemności coś leżało — łup zdobyty.,Something was lying in the dark — loot claimed.
 W mroku jaskini trudno o sen i odpoczynek. -1 energii następnego dnia.,"In the dark of the cave, sleep and rest come hard. -1 energy the next day."
+W naczyniu grzechoczą kawałki lodu z niemal zamarzniętej wody.,Chunks of ice rattle in the vessel of near-frozen water.
 "W oddali dogasa czyjeś ognisko. Nie widać, czy ktoś jeszcze przy nim siedzi.",Someone's campfire is dying down in the distance. You cannot tell if anyone still sits by it.
 "W rozedrganym powietrzu majaczy postać z ognia i popiołu. Idzie za tobą. -1 zdrowia, -1 energii następnego dnia.","In the shimmering air a figure of fire and ash looms. It follows you. -1 health, -1 energy the next day."
 W skalnych sadzawkach po odpływie zostają muszle i gładkie krzemienie. +1 kamienia.,Shells and smooth flints remain in the rock pools after the tide. +1 stone.
+"W spękanym korycie zbiera się tylko błotnista, prawie wyschnięta kałuża.","Only a muddy, nearly dried-up puddle collects in the cracked riverbed."
 W zamian opatruje twoje rany.,In return she dresses your wounds.
 WYNIK,RESULT
 Walcz o wszystko (ryzyko),Fight for everything (risky)
@@ -995,7 +1058,10 @@ Woda w naczyniach pokryła się rano cienkim lodem.,By morning the water in the 
 Woda wdarła się do spiżarni i zniszczyła część jedzenia. -2 jedzenia.,Water broke into the pantry and destroyed part of the food. -2 food.
 "Woda zalewa wszystko. Zapasy gniją, a z mętnych nizin nadciąga zaraza.","Water floods everything. Supplies rot, and plague drifts in from the murky lowlands."
 "Woda zamarza w bukłakach, a jedzenie pokrywa szron i kruszy się w lód. -2 nawodnienia, -1 jedzenia.","Water freezes in the waterskins, and the food frosts over and crumbles into ice. -2 hydration, -1 food."
+"Woda zamarzła w zardzewiałym zagłębieniu, oszroniona pustkowiem.","Water has frozen in the rusted hollow, rimed with wasteland frost."
 "Woda zaszła zgnilizną, a spod mułu sączy się czarna maź.","The water has gone foul, and black ooze seeps from under the silt."
+"Woda ze stalaktytów ma nienaturalny kolor, skażona trującym minerałem.","Water from the stalactites has an unnatural color, tainted by a poisonous mineral."
+Woda ścieka po skale w nienaturalnym kolorze.,Water trickles down the rock in an unnatural color.
 Wodny wąż,Water snake
 Wojskowy dryl,Military drill
 Wokół obozu krąży głodne zwierzę. Zapolujesz czy je odstraszysz?,A hungry animal circles the camp. Will you hunt it or scare it off?
@@ -1020,6 +1086,8 @@ Night: %s"
 "Wychudły drapieżnik o lodowym oddechu, poluje w watasze.",A gaunt predator with icy breath; it hunts in a pack.
 Wycie w szczelinach,Howling in the crevices
 Wyciskasz z siebie wszystko ponad granicę. Jutro zapłacisz zmęczeniem.,You squeeze out everything past your limit. Tomorrow you will pay in fatigue.
+"Wyciągasz coś z mułu. Wygląda podejrzanie, ale mówisz sobie, że jeszcze jadalne.","You pull something out of the muck. It looks suspicious, but you tell yourself it's still edible."
+"Wyciągasz z mułu coś wzdętego, pokrytego fioletowym nalotem grzyba.","You pull something bloated from the mud, coated in a purple fungal film."
 "Wyciągasz, co da się dosięgnąć bez schodzenia.",You pull out what you can reach without climbing down.
 "Wyciągasz, co łatwo dostępne.",You pull out what is within easy reach.
 Wydobycie kamienia,Stone mining
@@ -1039,11 +1107,15 @@ Wymieniacie się szybko i rozchodzicie bez walki.,You trade quickly and part way
 Wymień się,Trade
 Wypatruj zagrożeń,Watch for threats
 Wypełza z ciemności i obgryza belki budowli.,It crawls out of the darkness and gnaws the beams of your buildings.
+"Wypłowiały, zasolony złom leży na wpół zasypany w spękanym rumowisku brzegu.","Sun-bleached, salt-crusted scrap lies half-buried in the cracked shore rubble."
 Wyrusz na cały dzień w nieznane.,Set out for a whole day into the unknown.
 Wyrusz na polowanie w głąb lasu.,Set out to hunt deep into the forest.
 Wyrusz w nieznane tereny.,Set out into unknown lands.
+Wyrzucony złom,Washed-up scrap
 Wyrzuć,Discard
 Wysoko nad łąką dzwonią skowronki. Serce robi się lżejsze. +1 zdrowia.,High above the meadow the larks are ringing. Your heart grows lighter. +1 health.
+"Wysuszone, osolone rybie truchła leżą na spękanej, zakurzonej skale.","Sun-dried, salt-crusted fish carcasses lie on the cracked, dusty rock."
+"Wysuszone, pomarszczone jagódki trzymają się kruchego, martwego krzaka.","Dried, shriveled berries cling to the brittle, dead bush."
 "Wysysa ciepło z obozu. Tam, gdzie przejdzie, zostaje szron.",It drains the warmth from the camp. Frost remains wherever it passes.
 Wyszukaj zioła i przygotuj okład.,Find herbs and prepare a poultice.
 Wysłuchaj rad,Listen to his advice
@@ -1052,6 +1124,7 @@ Wyziewy obozu wywołują chorobę nocą (-%d zdrowia).,The camp's fumes bring on
 Wyziewy z rozpadliny,Fumes from the crevice
 "Wyłuskujesz z lodu to, co łatwo dostępne.",You pick out of the ice what is within easy reach.
 "Wzburzone fale niosą tłustą maź, która oblepia zapasy i naczynia. -1 jedzenia, -1 nawodnienia, -1 zdrowia.","The rough waves carry a greasy sludge that coats supplies and vessels. -1 food, -1 hydration, -1 health."
+Wzdęte truchło unosi się w mętnej wodzie między korzeniami.,A bloated carcass floats in murky water among the roots.
 Wzmocniony schron,Reinforced shelter
 Wznów,Resume
 Wędkowanie,Fishing
@@ -1102,19 +1175,23 @@ Zamarznięty obóz,Frozen camp
 Zamieć drapieżna,Predatory blizzard
 Zamknij,Close
 Zapadłe Bagno,Sunken Swamp
+Zapas wody wyciekł w nocy. -2 wody.,Your water stock leaked out overnight. -2 water.
 Zapasy ukryte na szlaku — w sam raz na teraz.,Supplies hidden along the trail — just what you need right now.
 "Zapasy: jedzenie %d/%d, woda %d/%d, drewno %d/%d, kamień %d/%d, narzędzia: %s","Supplies: food %d/%d, water %d/%d, wood %d/%d, stone %d/%d, tools: %s"
 Zapał,Zeal
 Zapał: każda kolejna karta dziś zwraca +1 energii.,Zeal: every further card today refunds +1 energy.
 Zapoluj (ryzyko),Hunt it (risky)
-"Zaprawiony w terenie i wytrzymały (+1 HP) — mniej go suszy (−1 pragnienia/dzień) i startuje z zapasem kamienia.","Field-hardened and tough (+1 HP) — dries out less (−1 thirst/day) and starts with a stock of stone."
+Zaprawiony w terenie i wytrzymały (+1 HP) — mniej go suszy (−1 pragnienia/dzień) i startuje z zapasem kamienia.,Field-hardened and tough (+1 HP) — dries out less (−1 thirst/day) and starts with a stock of stone.
 Zapędzony szabrownik,Cornered looter
 Zarażony wilk,Infected wolf
+Zardzewiały złom na zamarzającym brzegu pokrył szron.,Frost coats the rusted scrap on the freezing shore.
+"Zardzewiały, zielonkawo zabarwiony złom leży wśród mokrych skał.","Rusted, greenish-stained scrap lies among the wet rocks."
 Zarodniki w powietrzu,Spores in the air
 Zarzuć sieci,Cast the nets
 Zastaw wnyki na zwierzynę.,Set snares for game.
 Zastawiasz sidła wokół obozu — pierwszy nocny napastnik w nie wpadnie.,You set snares around the camp — the first night attacker will walk into them.
 Zastawiasz wnyki — pierwszy nocny napastnik wpadnie w pułapkę.,You set the snare trap — the first night attacker will fall into it.
+Zasuszona padlina rozpada się w palcach jak stara skóra.,The dried-out carrion crumbles in your fingers like old leather.
 Zatopione Wybrzeże,Drowned Coast
 Zatrute Jaskinie,Poisoned Caves
 Zaćmienie,Eclipse
@@ -1123,7 +1200,8 @@ Zbadaj (ryzyko),Investigate (risky)
 Zbiera wodę z deszczu. Co noc daje 1 wodę i lekko zwiększa limit.,Collects rainwater. Gives 1 water every night and slightly raises the cap.
 Zbieractwo,Foraging
 Zbieractwo: Spiżarka,Foraging: Larder
-Zbierasz połamane przez wiatr konary, plączące się w gęstym poszyciu.,You collect boughs snapped by the wind, tangled in the dense undergrowth.
+"Zbierasz połamane przez wiatr konary, plączące się w gęstym poszyciu.","You collect boughs snapped by the wind, tangled in the dense undergrowth."
+"Zbierasz to, co zostało z kałuży zgnilizny — brzydko wygląda, gorzej pachnie.","You gather what's left of a rotting puddle — it looks bad, smells worse."
 "Zbierasz wyschnięte korzenie i połamane deski w spalonej ziemi. +2 drewna, -1 nawodnienia.","You gather dried-out roots and broken boards from the scorched earth. +2 wood, -1 hydration."
 Zbierz co na wierzchu,Gather what is on top
 Zbierz deszczówkę,Collect rainwater
@@ -1134,6 +1212,9 @@ Zbuduj osadę. Przetrwaj katastrofę. Dotrwaj do dnia 50.,Build a settlement. Su
 Zdarzenie nocne,Night event
 Zdarzenie: %s,Event: %s
 Zdarzenie: %s — %s,Event: %s — %s
+"Zdobycz leży wzdęta, na wpół zatopiona w zalanej trawie.","The carcass lies bloated, half-submerged in the flooded grass."
+"Zdobycz unosi się na powierzchni zalanego bagna, napęczniała od deszczu.","The catch floats on the surface of the flooded bog, swollen from the rain."
+"Zdobycz zmumifikowała się, skóra popękana i sucha jak pergamin.","The carcass has mummified, its hide cracked and dry as parchment."
 "Zdrowie
 Gdy spadnie do 0, run się kończy.
 Tracisz je od ran, potworów i pustych potrzeb.","Health
@@ -1154,6 +1235,8 @@ Zgubiony szlak,Lost trail
 Zielarka,Herbalist
 Zielarnia,Herbalist's hut
 "Zielonkawa poświata nie gaśnie. -1 energii następnego dnia, +1 kamienia z popiołu.","The greenish glow does not fade. -1 energy the next day, +1 stone from the ash."
+Zielonkawa woda zbiera się w zardzewiałym zagłębieniu wśród popiołu.,Greenish water collects in the rusted hollow amid the ashes.
+"Zielonkawa woda ścieka ze stalaktytów, pachnąca trucizną.","Greenish water drips from the stalactites, smelling of poison."
 Ziemia drży coraz częściej. W skałach pojawiają się rysy.,The earth trembles more and more often. Cracks appear in the rocks.
 "Ziemia faluje, a zgromadzony budulec zsuwa się w nowo otwartą szczelinę. -2 kamienia, -1 zdrowia.","The ground rolls, and your stored materials slide into a newly opened crevice. -2 stone, -1 health."
 Ziemia pęka z hukiem. Z rozpadlin bucha pył i wypełzają istoty z głębi.,The earth splits with a roar. Dust erupts from the crevices and creatures crawl up from the deep.
@@ -1184,6 +1267,7 @@ Zmarznięty podróżny,Freezing traveller
 "Zmuszasz ciało, by zniosło chłód — kosztem paru sił.",You force your body to bear the cold — at the cost of some strength.
 "Znajdujesz deszczówkę i jagody. +1 wody, +1 jedzenia.","You find rainwater and berries. +1 water, +1 food."
 Znajdujesz gniazdo pełne jaj. +2 jedzenia.,You find a nest full of eggs. +2 food.
+"Znajdujesz ją zeschniętą w spękanym błocie tam, gdzie bagno wyschło.",You find it shriveled in the cracked mud where the bog has dried up.
 "Znajdujesz krzak nieznanych owoców. Kuszące, ale czy bezpieczne?","You find a bush of unknown fruit. Tempting, but is it safe?"
 Znalezisko,Lucky find
 Znasz już najlepsze ujęcie — nabierasz pełen zapas czystej wody.,You know the best source by now — you draw a full supply of clean water.
@@ -1205,6 +1289,10 @@ Zwiad odsłania sąsiedni teren: %s.,The scouting reveals neighbouring terrain: 
 Zwiad: Rekonesans,Scouting: Reconnaissance
 Zwiad: brak nieodkrytych sąsiednich kafli.,Scouting: no undiscovered neighbouring tiles.
 Zwierzyna ucichła. Las wstrzymuje oddech.,The game has gone silent. The forest holds its breath.
+Zwęglone odłamki złomu są na wpół zasypane w zakurzonej szczelinie.,Charred scrap fragments are half-buried in a dusty fissure.
+"Zwęglone, zielonkawe odłamki złomu leżą w popiele.","Charred, greenish scrap fragments lie in the ashes."
+"Zwłoki zamarzły na kamień pod szronem, futro sztywne od lodu.","The corpse has frozen solid under the frost, its fur stiff with ice."
+"Zwłoki zamarzły na kamień pod szronem. Trzeba je odłupać, nie odkroić.","The corpse has frozen solid under the frost. You have to chip it loose, not cut it."
 Zyskujesz kartę do talii: %s.,You gain a card for your deck: %s.
 Złap oddech i zbierz siły.,Catch your breath and gather your strength.
 Złote monety: %d,Gold coins: %d
@@ -1283,12 +1371,15 @@ zima -%d kamienia,winter -%d stone
 Łąki,Meadows
 Łąki zmieniły się w płytkie jezioro pełne gnijących kęp trawy.,The meadows have turned into a shallow lake full of rotting clumps of grass.
 Ściana lodowatego deszczu zalewa obóz. -2 ciepła (schronienie chroni).,A wall of icy rain floods the camp. -2 warmth (shelter protects).
+Ściekająca po skale zielonkawa breja pachnie trucizną.,Greenish sludge trickling down the rock smells of poison.
 Ścieżka w mroku,Path in the dark
 Ścinasz i znosisz solidny ładunek drewna na opał i rozbudowę.,You fell and haul in a solid load of wood for fuel and building.
 "Ślepa bestia z podziemnych korytarzy, zwabiona ciepłem.","A blind beast from the underground passages, drawn by warmth."
 "Ślepia świecą zielenią. Poluje na ciebie, nie na twoje mury.","Its eyes glow green. It hunts you, not your walls."
+"Śliski, jaskrawozielony nalot pokrywa zatrute rumowisko jaskini.","A slick, bright-green film covers the poisoned cave rubble."
 "Śnieżna zamieć tnie obóz. -2 ciepła, -1 energii następnego dnia (schronienie chroni).","A snow blizzard slashes the camp. -2 warmth, -1 energy the next day (shelter protects)."
 Świat już nie jest ten sam. Przetrwaj do dnia %d.,The world is no longer the same. Survive until day %d.
+"Świeży, zakurzony gruz osiada na spękanym dnie jaskini.","Fresh, dusty rubble settles on the cracked cave floor."
 "Świt nie nadchodzi. Mróz wgryza się głębiej, a ty marniejesz w ciemności. -2 ciepła, -1 energii następnego dnia.","Dawn does not come. The frost bites deeper, and you waste away in the dark. -2 warmth, -1 energy the next day."
 Źródło,Spring
 Źródło: Bystry strumień,Spring: Swift stream

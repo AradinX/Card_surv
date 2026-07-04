@@ -10,3 +10,7 @@ food_gain = 3
 id = "coast_tainted"
 display_name = "Skażone połowy"
 description = "Ryby wyławiasz martwe na brzuchu, łuski poplamione czarną smugą."
+plague_description = "Ryby wyławiasz martwe na brzuchu, ze skórą zielonkawo-czarną od zarazy."
+eclipse_description = "Martwe ryby na zamarzającym brzegu pokrył szron."
+flood_description = "Martwe ryby plączą się w naniesionych sztormem odpadkach na brzegu."
+rift_description = "Wysuszone, osolone rybie truchła leżą na spękanej, zakurzonej skale."

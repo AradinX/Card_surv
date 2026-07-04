@@ -10,3 +10,7 @@ water_gain = 1
 id = "mountains_tainted"
 display_name = "Skażony roztop"
 description = "Woda ścieka po skale w nienaturalnym kolorze."
+plague_description = "Ściekająca po skale zielonkawa breja pachnie trucizną."
+eclipse_description = "Sople ociekają bladoniebieską wodą do zamarzającego zbiornika w skale."
+flood_description = "Szara ulewna woda spływa po śliskiej skale prosto w zagłębienie."
+rift_description = "Cienka strużka pomarańczowej, zapylonej wody sączy się przez pękniętą skałę."

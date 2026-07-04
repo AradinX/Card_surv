@@ -2267,6 +2267,42 @@ więc run.gd/testy/bot nie wymagały przepisania.
     silnika PRZY WYJŚCIU po wypisaniu "OK"; potwierdzone jako pre-istniejące
     przez `git stash` na czysty `a2c1747`, niezwiązane z tą zmianą).
 
+### Regresja ekonomii jedzenia/wody + domknięcie assetów Aktu II (2026-07-05)
+
+- **Diagnoza regresji:** commit „karty drewna/kamienia" zbity smoke testem do
+  6/50 (był ~42-46/50). Root cause NIE był w tym commicie (rewert dał tylko
+  10/50) — winowajca to skumulowane zaciśnięcie ekonomii z wcześniejszych
+  commitów tego samego dnia (barter +1 energii, potwory mocniejsze/częstsze,
+  `FOOD_HUNGER_VALUE`/`WATER_THIRST_VALUE` 1). **Naprawa:** obie stałe 1→**2**
+  (`systems/survival_system.gd`) — 1 jedzenie/woda = 2 sytości/nawodnienia
+  znowu, tak jak przed dokręceniem. Kucharz (`food_hunger_multiplier=2.0`)
+  skaluje się z bazą automatycznie (2×2=4 sytości/jedzenie), bez osobnej
+  zmiany. Po naprawie: 24/50 (48%), klasy w okolicach docelowej krzywej
+  (Kucharz wyszedł wyraźnie mocniejszy niż cel 25% — do rozważenia osobno).
+- **Post-BUM surcharge — luka domknięta:** `_has_post_bum_surcharge`
+  zwalniała z dopłaty tylko Ognisko/Szałas, mimo że Studnia/Spiżarnia/
+  Palisada miały zostać w tej samej taniej warstwie (ustalone 2026-07-01).
+  Dodano `POST_BUM_SURCHARGE_EXEMPT_IDS` z tymi 3 budynkami.
+- **Audyt assetów:** wszystkie karty (89 akcji, 20 budynków, 15 potworów, 148
+  zdarzeń) sprawdzone pod kątem unikalnych obrazków i braków. Znaleziono i
+  naprawiono: `building_stone_storage` pożyczał art Kamieniołomu przez
+  `BUILDING_ART_ALIASES` (usunięty alias, budynek dostał własny obrazek —
+  jedyna faktyczna luka, reszta budynków/potworów już unikalna); 2 zdarzenia
+  (`gnawed_supplies`, `leaky_waterskin`) bez ilustracji w ogóle. Wszystkie 3
+  dograne (`docs/asset_plan/ASSET_PROMPTS_MISSING_ART_2026_07_04.md`).
+- **Spójność opisów skażonych kart z katastrofą:** 15 kart Aktu II (8 gather +
+  4 wodne + 3 dzielone) miało jeden opis dla 4 ilustracji katastrof — kilka
+  zakładało konkretną pogodę (np. "mięso ciepłe" przy zamarzniętych zwłokach
+  w Zaćmieniu). Poprawiono neutralnie, a potem dodano właściwy mechanizm:
+  `ActionCardData.plague_description`/`eclipse_description`/
+  `flood_description`/`rift_description` (opcjonalne, puste = fallback do
+  `description`), wybierane w `card_view._description_for_display()` po tym
+  samym `_disaster_id`, który już wybiera ilustrację. `tools/extract_strings.gd`
+  rozszerzony o te 4 pola. +120 wpisów w `strings.csv` (60 PL + 60 EN).
+- Weryfikacja: reimport + pełna czternastka zielona (poza znanymi flakami
+  silnika przy wyjściu na Windows — `hand_draw_test`/`season_test` drukują
+  "OK" przed segfaultem, CI liniowy na Linuksie tego nie widzi).
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).

@@ -10,3 +10,7 @@ water_gain = 1
 id = "forest_tainted_water"
 display_name = "Czarna rosa"
 description = "Krople osiadłe na czarnych liściach mają metaliczny, gorzki zapach."
+plague_description = "Krople na czarnych liściach mają metaliczny, gorzki zapach."
+eclipse_description = "Rosa zamarzła na oszronionych liściach w twardą skorupę lodu."
+flood_description = "Deszczówka wypełniła zagłębienie po korzeniach mętną, brunatną wodą."
+rift_description = "Kałuża wyschła i pęka na krawędziach wśród zakurzonych korzeni."

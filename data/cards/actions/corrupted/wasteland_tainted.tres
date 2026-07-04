@@ -10,3 +10,7 @@ materials_gain = 1
 id = "wasteland_tainted"
 display_name = "Spopielony złom"
 description = "Przepalony metal kruszy się w palcach, tnie jak brzytwa."
+plague_description = "Zwęglone, zielonkawe odłamki złomu leżą w popiele."
+eclipse_description = "Odłamki złomu pokrył szron i lód pustkowia."
+flood_description = "Kawałki złomu leżą na wpół zatopione w stojącej wodzie i błocie."
+rift_description = "Zwęglone odłamki złomu są na wpół zasypane w zakurzonej szczelinie."
