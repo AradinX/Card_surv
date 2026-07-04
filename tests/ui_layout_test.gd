@@ -13,6 +13,7 @@ func _init() -> void:
 
 
 func _run() -> void:
+	TranslationServer.set_locale("pl")  # assertions below check Polish strings regardless of runner locale
 	var root_control := Control.new()
 	root_control.size = Vector2(1280, 720)
 	root.add_child(root_control)

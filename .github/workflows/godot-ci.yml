@@ -89,7 +89,7 @@ jobs:
           for test in "${tests[@]}"; do
             echo "::group::$test"
 
-            if godot --headless --path . -s "tests/$test"; then
+            if timeout 120 godot --headless --path . -s "tests/$test"; then
               echo "| \`$test\` | ✅ Zielony |" >> "$GITHUB_STEP_SUMMARY"
               passed=$((passed + 1))
             else
