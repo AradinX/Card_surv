@@ -19,7 +19,8 @@
 | Automatyczne testy Godot | ✅ 14 testów |
 | Balans klas i aktów | 🟡 |
 | Eksport/CI | ✅ |
-| Dokumentacja licencji audio | 🟡 (manifest + regulamin Suno zweryfikowany 2026-07-03; zostaje dowód subskrypcji) |
+| Dokumentacja licencji audio | ✅ (manifest + regulamin + dowód subskrypcji zarchiwizowany 2026-07-06) |
+| Grafika bez Higgsfield | 🔴 (decyzja 2026-07-06: 3 ramki + 4 potwory Plagi do regeneracji) |
 
 ## Klasy postaci
 
@@ -230,12 +231,13 @@ ambientu Aktu II.
 ✅ SFX kart, budowy, naprawy, BUM, potwora, awansu, odkrycia, jedzenia,
 picia, przycisku i przegranej.
 
-🟡 Brak `coin.wav`; nagroda monety działa bez dźwięku.
+✅ Nagroda monety celowo bez SFX, a Plaga celowo gra generyczny ambient Aktu II
+(decyzja 2026-07-06; klucze `coin`/`act2_plague` usunięte z AudioManagera).
 
-🟡 `assets/audio/LICENSES.txt` to wypełniony manifest (23 pliki, źródło Suno Pro,
+✅ `assets/audio/LICENSES.txt` to wypełniony manifest (23 pliki, źródło Suno Pro,
 zweryfikowany 1:1 z dyskiem i kluczami AudioManager); creditsy w grze działają
-(Menu → „Twórcy"). Przed publicznym wydaniem zostaje checklista prawna: potwierdzić
-aktualny regulamin Suno dla użytego planu i zachować dowód subskrypcji z dat generacji.
+(Menu → „Twórcy"). Checklista prawna domknięta 2026-07-06: regulamin zweryfikowany,
+dowód subskrypcji Pro z dat generacji zarchiwizowany w `docs/licenses/Suno_faktura.png`.
 
 ✅ Muzyka została przekonwertowana z WAV do OGG Vorbis (`q=6`): 123,46 MB
 → 12,13 MB bez zmiany długości utworów. Ambient i krótkie SFX pozostają w WAV.
@@ -286,5 +288,6 @@ oraz przygotowanie rejonów na BUM.
 
 1. Balans Aktu II po BUM 20–26, zabezpieczeniach rejonów i droższej decyzji
    przygotowawczej.
-2. Dowód subskrypcji Suno z dat generacji (checklista w `assets/audio/LICENSES.txt`).
+2. Wymiana assetów Higgsfield (3 ramki kart + 4 potwory Plagi; prompty w
+   `docs/asset_plan/ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md`).
 3. Dalsza meta-progresja (kolekcja, odblokowania) i pełny zwiad nieodkrytych biomów.

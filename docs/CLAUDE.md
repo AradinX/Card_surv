@@ -2344,6 +2344,30 @@ więc run.gd/testy/bot nie wymagały przepisania.
   `popup_act2_test.gd` (set_act2/set_content na 4 popupach, asserty na
   font 24 po re-skinie i kolory per akt) — dopisany do listy w CI.
 
+### Licencje domknięte + decyzja o wymianie Higgsfield + cięcie 2 dźwięków (2026-07-06)
+
+- **Suno — checklista prawna DOMKNIĘTA:** faktura Apple (Suno Pro, 22.06.2026)
+  zarchiwizowana w `docs/licenses/Suno_faktura.png` (celowo poza `assets/` —
+  zawiera dane osobowe, `docs/` ma `.gdignore`, nie wchodzi do buildu). Autor
+  potwierdził: zakup 22.06 16:05, pierwszy plik 16:07, wszystkie 23 pliki po
+  zakupie. Odhaczone w `assets/audio/LICENSES.txt`.
+- **OpenAI:** historia faktur ChatGPT (10.2025–07.2026) w
+  `docs/licenses/OpenAI_faktury.png`. Generacja grafiki szła z 2 kont cloud
+  (adrianpatera2137@gmail.com + przempatpl@gmail.com) — odnotowane w
+  `assets/art/LICENSES.txt`; jeśli część powstała na planie płatnym drugiego
+  konta, potrzebny analogiczny dowód.
+- **Higgsfield — decyzja o pełnej rezygnacji.** Zidentyfikowane produkcyjne
+  pliki Higgsfield: 3 ramki kart (`card_frame_building/event/monster`) +
+  4 pierwotne bestie Plagi (`monster_rotting_one/plague_wolf/crow_swarm/
+  rat_swarm`); do potwierdzenia zestawy `*_act1_candidates` (dokumentacja nie
+  zapisała narzędzia). Gotowe prompty zamienników:
+  `docs/asset_plan/ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md` (ramki muszą
+  powtórzyć układ stref — okna tekstu/artu w `card_view.gd` są na sztywno).
+- **Cięcie 2 opcjonalnych dźwięków (decyzja autora):** klucze `coin` (SFX)
+  i `act2_plague` (ambient) usunięte z AudioManagera + wywołanie w `result.gd`
+  + allowlisty w `audio_test.gd`. Moneta gra bez SFX; Plaga gra generyczny
+  `ambience_act2` jako stały wybór.
+
 ### Review popupów nocnych + fix ustawień w trakcie runa (2026-07-06)
 
 - Popupy nocne (single/monster/decision/decision_two) przejrzane tą samą

@@ -30,8 +30,8 @@ func _init() -> void:
 			])
 
 	failures += _check_catalog(manager, "music", manager.MUSIC, ["act2"])
-	failures += _check_catalog(manager, "ambience", manager.AMBIENCE, ["act2_plague"])
-	failures += _check_catalog(manager, "sfx", manager.SFX, ["coin"])
+	failures += _check_catalog(manager, "ambience", manager.AMBIENCE)
+	failures += _check_catalog(manager, "sfx", manager.SFX)
 
 	manager.play_music("menu")
 	await create_timer(0.25).timeout

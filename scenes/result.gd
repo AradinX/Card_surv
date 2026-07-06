@@ -49,7 +49,6 @@ func _ready() -> void:
 	_summary_label.text = _build_telemetry_summary(won)
 	if GameManager.last_run_coin_awarded:
 		_coin_label.text = tr("+1 złota moneta!  (masz: %d)") % GameManager.meta_state.gold_coins
-		AudioManager.play_sfx("coin")
 	else:
 		_coin_label.text = ""
 	_retry_button.pressed.connect(GameManager.start_new_run)

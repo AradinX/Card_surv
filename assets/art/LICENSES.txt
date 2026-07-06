@@ -1,12 +1,12 @@
 GRAFIKA — Dzień 50
 ==================
-Stan na 2026-06-22.
+Stan na 2026-07-06.
 
 Cała grafika w assets/art/ jest WYGENEROWANA AI z promptów projektowych
 (oryginalna dla tej gry — brak stocków, brak cudzych prac). Narzędzia:
 
   - GPT Image (OpenAI) — wbudowane `imagegen` / pipeline przez Codex
-  - Higgsfield (GPT Image 2) — wcześniejsze partie (ramki kart, biomy, ikony)
+  - Higgsfield (GPT Image 2) — wcześniejsze partie; DO WYMIANY (patrz niżej)
 
 LICENCJA / PRAWA
 ----------------
@@ -15,6 +15,35 @@ zgodnie z regulaminami dostawców użytkownik może go wykorzystywać komercyjni
 (OpenAI: użytkownik jest właścicielem outputu; Higgsfield: prawa komercyjne na
 planie płatnym). Zachowaj dowód konta/subskrypcji.
 (To nie jest porada prawna — zweryfikuj aktualne regulaminy przed wydaniem.)
+
+DOWODY (2026-07-06):
+  - docs/licenses/OpenAI_faktury.png — historia faktur subskrypcji
+    ChatGPT/OpenAI (24,60 USD/mies., opłacone 10.2025–07.2026 — okres
+    pokrywa całą generację grafiki). Celowo POZA assets/ (dane rozliczeniowe;
+    docs/ ma .gdignore, nie wchodzi do buildu).
+  - Generacja prowadzona z DWÓCH kont cloud (Claude/Codex):
+    adrianpatera2137@gmail.com (bieżące) oraz przempatpl@gmail.com.
+    Faktury na scrinie dotyczą jednego konta — jeśli część grafiki powstała
+    na planie płatnym drugiego konta, zachowaj analogiczny dowód i dla niego.
+
+HIGGSFIELD — DECYZJA O WYMIANIE (2026-07-06)
+--------------------------------------------
+Autor rezygnuje z assetów Higgsfield w wydaniu. Zidentyfikowane produkcyjne
+pliki z pipeline'u Higgsfield GPT Image 2 (wg docs/asset_plan/
+generated_asset_samples.md):
+  - cards/frames/card_frame_building.png / card_frame_event.png /
+    card_frame_monster.png (ramki wszystkich kart)
+  - cards/illustrations/monsters/monster_rotting_one.png (Zgnilec),
+    monster_plague_wolf.png (Zarażony wilk), monster_crow_swarm.png
+    (Krucza chmara), monster_rat_swarm.png (Rój szczurów) — 4 pierwotne
+    bestie Plagi; pozostałe 11 potworów to późniejszy pipeline OpenAI.
+  - DO POTWIERDZENIA przez autora: jasne zestawy ilustracji Akt I
+    (cards/illustrations/actions_act1_candidates/ — 10 plików,
+    buildings_act1_candidates/ — 15 plików) powstały w tej samej erze;
+    dokumentacja nie zapisała dla nich narzędzia.
+Prompty do regeneracji: docs/asset_plan/ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md
+Po wymianie: usunąć „Higgsfield" z tego pliku i z creditsów w grze
+(ui/credits_overlay.gd).
 
 ZAKRES (kategorie wygenerowane z promptów)
 ------------------------------------------

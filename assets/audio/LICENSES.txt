@@ -29,7 +29,7 @@ SFX  -> assets/audio/sfx/  (w podfolderach)
   bum/        bum_explosion
   monsters/   monster_attack
   day_cycle/  level_up  eat  drink
-  ui/         button_click  [coin — BRAK, patrz BRAKI]
+  ui/         button_click
 
 Muzyka jest przechowywana jako OGG Vorbis. AudioManager ustawia zapętlenie
 w runtime, więc import nie wymaga ręcznego zaznaczania opcji „Loop”.
@@ -55,14 +55,18 @@ WERYFIKACJA REGULAMINU SUNO — 2026-07-03 (oficjalna baza wiedzy Suno):
     output w wielu jurysdykcjach (m.in. USA) nie podlega ochronie copyright —
     monetyzacja legalna, ale słaba pozycja wobec kopiujących.
 
-DO ZROBIENIA PRZED PUBLICZNYM WYDANIEM (tylko właściciel konta może):
-  - [ ] zachować dowód aktywnej subskrypcji Pro obejmującej daty generacji
-        (screenshot/faktura z panelu Suno — billing history);
-  - [ ] potwierdzić, że wszystkie 23 pliki wygenerowano NA KONCIE z aktywnym
-        Pro (nie na darmowym przed subskrypcją — prawa nie działają wstecz);
-  - [ ] uzupełnić rzeczywiste daty generacji per plik, jeśli różnią się
-        od 2026-06-22.
-  (To nie jest porada prawna — to checklista na podstawie bazy wiedzy Suno
+CHECKLISTA WŁAŚCICIELA KONTA — DOMKNIĘTA 2026-07-06:
+  - [x] dowód aktywnej subskrypcji Pro obejmującej daty generacji:
+        docs/licenses/Suno_faktura.png — faktura Apple z 22.06.2026
+        (Suno Pro Plan, miesięczna, konto Apple xaradinx@gmail.com,
+        odnowienie 22.07.2026). Celowo POZA assets/ — faktura zawiera
+        dane osobowe i nie może trafić do buildu gry (docs/ ma .gdignore).
+  - [x] potwierdzone przez autora (2026-07-06): subskrypcja Pro kupiona
+        22.06.2026 o 16:05, pierwszy plik wygenerowany 22.06.2026 o 16:07;
+        WSZYSTKIE użyte pliki wygenerowano PO zakupie, na koncie z aktywnym Pro.
+  - [x] daty generacji per plik: wszystkie 2026-06-22 (zgodnie z manifestem
+        poniżej) — brak rozjazdów do uzupełnienia.
+  (To nie jest porada prawna — checklista na podstawie bazy wiedzy Suno
   z 2026-07-03.)
 
 Skrót tych informacji widnieje też w grze: Menu główne -> „Twórcy"
@@ -102,5 +106,6 @@ SFX (assets/audio/sfx/)
 BRAKI (referencjonowane w AudioManager, ale nieobecne — gra działa bez nich):
   music/music_act2.ogg              — generyczny utwór Aktu II; NIEUŻYWANY, bo
                                       każda z 4 katastrof ma własny track
-  ui/coin.wav                       — cisza przy nagrodzie monety
-  ambience/ambience_act2_plague.wav — Plaga gra generyczny ambience_act2
+  (2026-07-06: coin.wav i ambience_act2_plague.wav usunięte z planu decyzją
+  autora — klucze wycięte z AudioManagera; moneta gra bez SFX, Plaga gra
+  generyczny ambience_act2 jako stały wybór, nie fallback braku pliku.)

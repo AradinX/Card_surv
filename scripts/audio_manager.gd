@@ -28,14 +28,12 @@ const SFX := {
 	"eat": "res://assets/audio/sfx/day_cycle/eat.ogg",
 	"drink": "res://assets/audio/sfx/day_cycle/drink.ogg",
 	"button": "res://assets/audio/sfx/ui/button_click.ogg",
-	"coin": "res://assets/audio/sfx/ui/coin.ogg",
 }
 ## Looping nature/atmosphere layer under the music (forest birds in Act I, bleak
 ## wind / per-disaster dread in Act II). Real ambience = field recordings.
 const AMBIENCE := {
 	"forest": "res://assets/audio/ambience/ambience_forest.ogg",
 	"act2": "res://assets/audio/ambience/ambience_act2.ogg",
-	"act2_plague": "res://assets/audio/ambience/ambience_act2_plague.ogg",
 	"act2_eclipse": "res://assets/audio/ambience/ambience_act2_eclipse.ogg",
 	"act2_rift": "res://assets/audio/ambience/ambience_act2_rift.ogg",
 	"act2_flood": "res://assets/audio/ambience/ambience_act2_flood.ogg",
