@@ -8,7 +8,7 @@ extends RefCounted
 const DIR := "res://assets/art/ui/icons/stats/"
 
 ## Keys used across the game: health, hunger, thirst, warmth, energy,
-## food, water, wood, stone, tools.
+## food, water, wood, stone, tools, random (losowe znalezisko), card (dobór).
 static func texture(key: String) -> Texture2D:
 	var path := "%sicon_%s.png" % [DIR, key]
 	if ResourceLoader.exists(path):

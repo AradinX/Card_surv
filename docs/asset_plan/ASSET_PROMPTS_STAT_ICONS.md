@@ -1,6 +1,7 @@
 # Prompty: zestaw ikon statystyk i zasobów (2026-07-06)
 
-10 małych ikon do górnego HUD i wiersza kosztów na kartach. Kod jest już
+12 małych ikon: 10 do górnego HUD i wiersza kosztów na kartach + 2 do
+efektów kart (losowe znalezisko, dobór karty). Kod jest już
 wpięty (plug-and-play): wrzucenie plików do `assets/art/ui/icons/stats/`
 automatycznie włącza ikony na pasku HUD i zamienia słowne koszty na kartach
 na ikona+cyfra. Brak plików = obecny wygląd tekstowy, zero regresji.
@@ -18,7 +19,14 @@ assets/art/ui/icons/stats/icon_water.png    (zapas wody)
 assets/art/ui/icons/stats/icon_wood.png     (drewno)
 assets/art/ui/icons/stats/icon_stone.png    (kamień)
 assets/art/ui/icons/stats/icon_tools.png    (narzędzia)
+assets/art/ui/icons/stats/icon_random.png   (losowe znalezisko — „?")
+assets/art/ui/icons/stats/icon_card.png     (dobierz/dodaj kartę)
 ```
+
+Uwaga: `icon_random` i `icon_card` dotyczą efektów kart („+1 losowe
+znalezisko", „+2 karty do ręki"). Linia efektów jest dziś zwykłym Labelem
+(tekst) — te 2 ikony generujemy razem z zestawem, a ich wpięcie w linię
+efektów to osobny krok (RichTextLabel), do decyzji gdy assety będą gotowe.
 
 ## Pipeline
 
@@ -64,6 +72,8 @@ letters, numbers, multiple objects, photorealism, painterly blur, 3D render.
 | icon_wood | two stacked cut logs seen from the side, visible rings | warm timber brown, cream rings |
 | icon_stone | a rough gray stone chunk with a flint edge | cool gray with lighter facets |
 | icon_tools | a crossed stone axe and flint knife | wooden handles, gray stone heads |
+| icon_random | a bold question mark carved like weathered wood | aged gold with dark grain |
+| icon_card | a single playing card seen slightly tilted, blank dark-green face with a thin gold border | forest green face, aged gold trim |
 
 Uwaga na pary „stat vs zapas": sytość (miska gulaszu) ≠ jedzenie (koszyk),
 nawodnienie (kropla) ≠ woda (bukłak) — symbole muszą się wyraźnie różnić,
