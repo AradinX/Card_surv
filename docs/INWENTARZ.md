@@ -20,7 +20,7 @@
 | Balans klas i aktów | 🟡 |
 | Eksport/CI | ✅ |
 | Dokumentacja licencji audio | ✅ (manifest + regulamin + dowód subskrypcji zarchiwizowany 2026-07-06) |
-| Grafika bez Higgsfield | 🔴 (decyzja 2026-07-06: 3 ramki + 4 potwory Plagi do regeneracji) |
+| Grafika bez Higgsfield | 🟡 (decyzja 2026-07-06: tylko 4 potwory Plagi do regeneracji; ramki i Akt I to OpenAI) |
 
 ## Klasy postaci
 

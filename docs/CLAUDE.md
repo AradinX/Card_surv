@@ -2356,13 +2356,13 @@ więc run.gd/testy/bot nie wymagały przepisania.
   (adrianpatera2137@gmail.com + przempatpl@gmail.com) — odnotowane w
   `assets/art/LICENSES.txt`; jeśli część powstała na planie płatnym drugiego
   konta, potrzebny analogiczny dowód.
-- **Higgsfield — decyzja o pełnej rezygnacji.** Zidentyfikowane produkcyjne
-  pliki Higgsfield: 3 ramki kart (`card_frame_building/event/monster`) +
-  4 pierwotne bestie Plagi (`monster_rotting_one/plague_wolf/crow_swarm/
-  rat_swarm`); do potwierdzenia zestawy `*_act1_candidates` (dokumentacja nie
-  zapisała narzędzia). Gotowe prompty zamienników:
-  `docs/asset_plan/ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md` (ramki muszą
-  powtórzyć układ stref — okna tekstu/artu w `card_view.gd` są na sztywno).
+- **Higgsfield — decyzja o pełnej rezygnacji.** Po weryfikacji z autorem
+  jedyne produkcyjne pliki Higgsfield to 4 pierwotne bestie Plagi
+  (`monster_rotting_one/plague_wolf/crow_swarm/rat_swarm`) — ramki kart
+  i jasne zestawy `*_act1_candidates` autor poprawiał/generował w OpenAI,
+  zostają. Gotowe prompty zamienników (scaffold + 4 subjecty, referencje
+  z 11 potworów OpenAI): `docs/asset_plan/ASSET_PROMPTS_HIGGSFIELD_
+  REPLACEMENT.md`.
 - **Cięcie 2 opcjonalnych dźwięków (decyzja autora):** klucze `coin` (SFX)
   i `act2_plague` (ambient) usunięte z AudioManagera + wywołanie w `result.gd`
   + allowlisty w `audio_test.gd`. Moneta gra bez SFX; Plaga gra generyczny

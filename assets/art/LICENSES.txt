@@ -28,19 +28,15 @@ DOWODY (2026-07-06):
 
 HIGGSFIELD — DECYZJA O WYMIANIE (2026-07-06)
 --------------------------------------------
-Autor rezygnuje z assetów Higgsfield w wydaniu. Zidentyfikowane produkcyjne
-pliki z pipeline'u Higgsfield GPT Image 2 (wg docs/asset_plan/
-generated_asset_samples.md):
-  - cards/frames/card_frame_building.png / card_frame_event.png /
-    card_frame_monster.png (ramki wszystkich kart)
-  - cards/illustrations/monsters/monster_rotting_one.png (Zgnilec),
-    monster_plague_wolf.png (Zarażony wilk), monster_crow_swarm.png
-    (Krucza chmara), monster_rat_swarm.png (Rój szczurów) — 4 pierwotne
-    bestie Plagi; pozostałe 11 potworów to późniejszy pipeline OpenAI.
-  - DO POTWIERDZENIA przez autora: jasne zestawy ilustracji Akt I
-    (cards/illustrations/actions_act1_candidates/ — 10 plików,
-    buildings_act1_candidates/ — 15 plików) powstały w tej samej erze;
-    dokumentacja nie zapisała dla nich narzędzia.
+Autor rezygnuje z assetów Higgsfield w wydaniu. Po weryfikacji z autorem
+(2026-07-06) jedyne produkcyjne pliki Higgsfield to 4 pierwotne bestie Plagi:
+  - cards/illustrations/monsters/monster_rotting_one.png (Zgnilec)
+  - cards/illustrations/monsters/monster_plague_wolf.png (Zarażony wilk)
+  - cards/illustrations/monsters/monster_crow_swarm.png (Krucza chmara)
+  - cards/illustrations/monsters/monster_rat_swarm.png (Rój szczurów)
+Ramki kart oraz jasne zestawy ilustracji Aktu I (*_act1_candidates) autor
+poprawiał/generował w OpenAI — zostają. Pozostałe 11 potworów to pipeline
+OpenAI.
 Prompty do regeneracji: docs/asset_plan/ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md
 Po wymianie: usunąć „Higgsfield" z tego pliku i z creditsów w grze
 (ui/credits_overlay.gd).
