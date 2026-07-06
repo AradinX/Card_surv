@@ -71,6 +71,10 @@ func set_content(data: Dictionary) -> void:
 	var building_data := data.get("building_data") as BuildingCardData
 	var is_act2 := bool(data.get("act2", false))
 	_panel_art.texture = load(PANEL_ACT2 if is_act2 and ResourceLoader.exists(PANEL_ACT2) else PANEL_ACT1)
+	# Dolne tabliczki przycisków na panelu Act II są niemal czarne (kontrast
+	# brązu ~1.6) — skin przełącza font na jasny krem.
+	for button: Button in [_use_button, _repair_button, _demolish_button]:
+		ButtonSkin.apply_panel_action(button, 2 if is_act2 else 1)
 	_building_art.texture = _building_texture(building_data)
 
 	_title_label.text = tr(building_data.display_name) if building_data != null else ""

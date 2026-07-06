@@ -2303,6 +2303,64 @@ więc run.gd/testy/bot nie wymagały przepisania.
   silnika przy wyjściu na Windows — `hand_draw_test`/`season_test` drukują
   "OK" przed segfaultem, CI liniowy na Linuksie tego nie widzi).
 
+### Ujednolicenie popupów: „X", tytuły, dolne przyciski (2026-07-06)
+
+- Wszystkie 5 „X" zamknięcia ma teraz jeden spec: **56×56 px, font 24,
+  czerwień #BC0F00** (normal/hover/pressed jak dotąd). Pozycje NIE zostały
+  przesunięte — środek każdego „X" zmierzony centroidem czerwonej pieczęci
+  woskowej na arcie panelu (Akt I i II mają pieczęć w tym samym miejscu,
+  różnice ≤5 px) i zapisany jako czysty punkt kotwicy + offsety ±28
+  (koniec ułamkowych anchorów z ręcznego przeciągania). „X" popupu „Budynki"
+  w `run.tscn` dostał brakujące czerwone kolory (był domyślny szary, font 28).
+- Tytuły: secure 24→26 (jak confirm/deck); settings 24→26 + złoty kolor
+  (1, 0.84, 0.4) jak help/credits. Building popup celowo bez zmian
+  (mniejszy panel 640×480, własny styl z cieniem).
+- Dolne przyciski: settings „OK" 260×88/18 → **„Zamknij" 260×60/16**
+  (spójnie z help/credits; klucz „Zamknij" już był w `strings.csv`).
+- Treść confirm 18→16 (jak secure). Popupy nocne nietknięte (fonty pod
+  okna tekstu na arcie karty).
+- Weryfikacja: `--import` + `ui_layout_test` zielone, headless instancjacja
+  5 edytowanych scen popupów OK. Do rzutu oka w edytorze przy okazji.
+
+### Review grafiki popupów cz. 2: geometria vs art + kontrast Act II (2026-07-06)
+
+- Metoda jak przy „X": prostokąty node'ów naniesione programowo (PIL) na
+  panele act1/act2 + pomiar kontrastu WCAG (kolor fontu vs średni kolor artu
+  pod rectem). Geometria we wszystkich 4 popupach z artem siedzi (treść
+  confirm trafia w linijki, region secure w niebieskie okno, OK w szyldy,
+  building w tabliczki) — sceny bez zmian.
+- **Bug**: `ButtonSkin.apply_panel_close()` ustawiał font 20 i w `_ready()`
+  nadpisywał ujednolicone 24 ze scen confirm/secure/deck → naprawione u
+  źródła (20→24 w `button_skin.gd`).
+- **Kontrast Act II**: na act1 tekst ma 5.9–9.5, na ciemnych panelach act2
+  brąz spadał do 1.5–2.8. Fix: `apply_panel_action(button, act)` — act2 daje
+  jasny krem; `set_act2()` w secure (tytuł/koszt/efekt) i deck (tytuł) →
+  krem (0.93, 0.88, 0.72); confirm act2 jest szarobury, więc tam odwrotnie —
+  tytuł/treść przyciemnione do (0.07, 0.05, 0.03) (kontrast ~4–5.5);
+  building `set_content()` skinuje 3 dolne przyciski przez
+  `apply_panel_action` z aktem. „X" bez zmian (czerwień na pieczęci/sęku to
+  świadomy spec z cz. 1).
+- Weryfikacja: `--import` + `ui_layout_test` zielone + nowy test
+  `popup_act2_test.gd` (set_act2/set_content na 4 popupach, asserty na
+  font 24 po re-skinie i kolory per akt) — dopisany do listy w CI.
+
+### Review popupów nocnych + fix ustawień w trakcie runa (2026-07-06)
+
+- Popupy nocne (single/monster/decision/decision_two) przejrzane tą samą
+  metodą overlay: wszystkie recty trafiają w art (ilustracja w ramie, tytuł
+  w ciemnym szyldzie, opis/efekty na notkach, wybory w slotach notek,
+  „Dalej" nachodzi na ostatnią notkę celowo — widoczność przełączana
+  naprzemiennie z przyciskami wyboru). Zero zmian w scenach.
+- **Bug ustawień w runie**: instancja `SettingsOverlay` w `run.tscn` miała
+  nadpisane właściwości sceny źródłowej (`anchors_preset = 0`,
+  `anchor_right/bottom = 0.0` itd.), co zwijało pełnoekranowy overlay do
+  0×0 w lewym górnym rogu. Fix: usunięte nadpisania, zostało samo
+  `visible = false` (jak w działającym `main_menu.tscn`). Do tego overlay
+  przegrywał z z_index popupów (300) i zoomu talii (600) — `run.gd` ustawia
+  mu teraz `z_index = 700` + `z_as_relative = false`, więc jest zawsze na
+  wierzchu po otwarciu z pauzy.
+- Weryfikacja: `--import` + `ui_layout_test` + `smoke_test` zielone.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).

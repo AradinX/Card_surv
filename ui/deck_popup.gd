@@ -51,6 +51,8 @@ func set_act2() -> void:
 	_act = 2
 	_refresh_panel()
 	_refresh_skin()
+	# Pas tytułu Act II jest ciemny (kontrast brązu ~2.3) — jasny krem daje ~4.8.
+	_title_label.add_theme_color_override("font_color", Color(0.93, 0.88, 0.72, 1))
 
 
 func _refresh_panel() -> void:
@@ -63,7 +65,7 @@ func _refresh_panel() -> void:
 
 func _refresh_skin() -> void:
 	ButtonSkin.apply_panel_close(_close_button)
-	ButtonSkin.apply_panel_action(_ok_button)
+	ButtonSkin.apply_panel_action(_ok_button, _act)
 
 
 func _rebuild_cards(cards: Array[CardData]) -> void:

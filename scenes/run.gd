@@ -218,6 +218,9 @@ func _ready() -> void:
 	])
 	_pause_resume_button.pressed.connect(_hide_pause)
 	_pause_settings_button.pressed.connect(_settings_overlay.open)
+	# Nad wszystkim (popupy 300, zoom talii 600) — otwierane z pauzy.
+	_settings_overlay.z_index = 700
+	_settings_overlay.z_as_relative = false
 	_pause_menu_button.pressed.connect(GameManager.return_to_menu)
 	_setup_building_info_popup()
 	_apply_responsive_layout()

@@ -58,6 +58,11 @@ func set_act2() -> void:
 	_act = 2
 	_refresh_panel()
 	_refresh_skin()
+	# Tabliczki Act II są ciemne (kontrast brązu ~1.9-2.4) — jasny krem daje ~4.5-5.
+	var cream := Color(0.93, 0.88, 0.72, 1)
+	_title_label.add_theme_color_override("font_color", cream)
+	_cost_label.add_theme_color_override("font_color", cream)
+	_effect_label.add_theme_color_override("font_color", cream)
 
 
 func _refresh_panel() -> void:
@@ -69,7 +74,7 @@ func _refresh_panel() -> void:
 
 
 func _refresh_skin() -> void:
-	ButtonSkin.apply_panel_action(_ok_button)
+	ButtonSkin.apply_panel_action(_ok_button, _act)
 	ButtonSkin.apply_panel_close(_close_button)
 
 

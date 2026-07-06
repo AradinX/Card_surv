@@ -14,3 +14,6 @@ tests/_*
 
 # Robocze pliki generowania assetów
 tmp/
+
+# Lokalne ustawienia/cache narzędzia Claude Code
+.claude/

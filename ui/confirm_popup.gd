@@ -50,6 +50,10 @@ func set_act2() -> void:
 	_act = 2
 	_refresh_panel()
 	_refresh_skin()
+	# Panel Act II jest szarobury (śr. ~#8E7B62) — brąz z Act I daje kontrast
+	# ~3.1-3.8, przyciemnienie do sepii podnosi go do ~4-5.5.
+	_title_label.add_theme_color_override("font_color", Color(0.07, 0.05, 0.03, 1))
+	_body_label.add_theme_color_override("font_color", Color(0.07, 0.05, 0.03, 1))
 
 
 func _refresh_panel() -> void:
@@ -61,8 +65,8 @@ func _refresh_panel() -> void:
 
 
 func _refresh_skin() -> void:
-	ButtonSkin.apply_panel_action(_cancel_button)
-	ButtonSkin.apply_panel_action(_ok_button)
+	ButtonSkin.apply_panel_action(_cancel_button, _act)
+	ButtonSkin.apply_panel_action(_ok_button, _act)
 	ButtonSkin.apply_panel_close(_close_button)
 
 
