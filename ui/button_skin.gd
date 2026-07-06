@@ -4,11 +4,13 @@ extends RefCounted
 const ACT1_DIR := "res://assets/art/ui/buttons/act1/"
 const ACT2_DIR := "res://assets/art/ui/buttons/act2/"
 
+# 9-slice cut matching the constant ~20 px border band of the 448x224 button
+# art (2026-07-06 set) — corners stay crisp at any button size.
 const _TEXTURE_MARGINS := {
-	"left": 0,
-	"top": 0,
-	"right": 0,
-	"bottom": 0,
+	"left": 20,
+	"top": 20,
+	"right": 20,
+	"bottom": 20,
 }
 
 const _CONTENT_MARGINS := {

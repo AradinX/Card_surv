@@ -2344,6 +2344,25 @@ więc run.gd/testy/bot nie wymagały przepisania.
   `popup_act2_test.gd` (set_act2/set_content na 4 popupach, asserty na
   font 24 po re-skinie i kolory per akt) — dopisany do listy w CI.
 
+### Nowe przyciski runu + pasek HUD Act II: post-processing i 9-slice (2026-07-06)
+
+- Gracz wygenerował nowy zestaw (8 przycisków bez kwiatów + pasek act2 wg
+  `ASSET_PROMPTS_UI_BUTTONS_TOPBAR_2026_07_06.md`), ale: tła były OPAQUE
+  czarne (generator nie dał przezroczystości), a stany hover/pressed/disabled
+  miały ZUPEŁNIE inne ramki niż baza (animacja klikania by „morfowała").
+- Post-processing (PIL, one-off w tmp): stany WYPROWADZONE programowo z bazy
+  `button_primary` (hover = jaśniej, pressed = ciemniej, disabled =
+  odbarwienie) — identyczna geometria wszystkich stanów; czarne rogi wycięte
+  flood-fillem od narożników (act1), act2 dostał PRZESZCZEP alphy z act1
+  (jego wypełnienie jest zbyt czarne na flood — przeciekał przez ciemną
+  ramkę). Pasek act2: przeszczep kanału alpha z paska act1 (geometria 1:1
+  zgodnie z promptem) — koniec ucięcia/rozciągnięcia.
+- `button_skin.gd _TEXTURE_MARGINS` 0 → 20 (9-slice): narożniki nie
+  deformują się przy żadnym rozmiarze przycisku. UWAGA: przy wymianie artu
+  przycisków na inny trzeba dopasować margines do grubości nowej ramki.
+- `ui_layout_test` + `popup_act2_test` zielone. Do obejrzenia w edytorze
+  (hover/pressed w ruchu).
+
 ### Ikony statów/zasobów (plug-and-play) + hover-preview efektów karty (2026-07-06)
 
 - **`ui/stat_icons.gd`** (`StatIcons.texture(key)`): jedno źródło ścieżek ikon
