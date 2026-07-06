@@ -18,3 +18,4 @@ tmp/
 # Lokalne ustawienia/cache narzędzia Claude Code
 .claude/
 docs/licenses/
+docs/steam_screens/
