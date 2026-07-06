@@ -1401,11 +1401,14 @@ func _refresh_build_cards() -> void:
 	for child in _build_cards.get_children():
 		_build_cards.remove_child(child)
 		child.queue_free()
+	_top_status_bar.clear_effect_preview()
 	for building in _survival.available_buildings():
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
 		_build_cards.add_child(view)
-		view.setup(building, _survival.can_build(building), _build_cost_summary(building))
+		view.setup(building, _survival.can_build(building), _build_cost_summary(building),
+			null, "", _survival.effective_build_cost(building))
 		_setup_draggable_card(view, building, "build", -1, tr("Przeciągnij budowlę na aktualny biom albo kartkę logów."))
+		_setup_hover_preview(view, building)
 
 
 ## Update greying of existing build cards without rebuilding the row (cheaper on
@@ -1415,7 +1418,8 @@ func _refresh_build_playability() -> void:
 	var views := _build_cards.get_children()
 	for i in mini(views.size(), catalog.size()):
 		var view := views[i] as CardView
-		view.setup(catalog[i], _survival.can_build(catalog[i]), _build_cost_summary(catalog[i]))
+		view.setup(catalog[i], _survival.can_build(catalog[i]), _build_cost_summary(catalog[i]),
+			null, "", _survival.effective_build_cost(catalog[i]))
 		view.set_drag_payload({
 			"type": "play_card",
 			"source": "build",
@@ -1562,6 +1566,7 @@ func _on_gather_actions_changed(_actions: Array[ActionCardData]) -> void:
 func _rebuild_cards(
 	container: HBoxContainer, cards: Array[CardData], on_pressed: Callable, source: String = ""
 ) -> void:
+	_top_status_bar.clear_effect_preview()
 	for child in container.get_children():
 		container.remove_child(child)
 		child.queue_free()
@@ -1571,6 +1576,7 @@ func _rebuild_cards(
 		view.setup(cards[i], "", "", _card_effect_override(cards[i]), _active_disaster_id())
 		var card := cards[i]
 		var index := i
+		_setup_hover_preview(view, card)
 		if source != "":
 			_setup_draggable_card(
 				view, card, source, index,
@@ -1580,6 +1586,42 @@ func _rebuild_cards(
 			view.pressed.connect(func() -> void:
 				_fx.card_feedback_fx(card, view)
 				on_pressed.call(index, card))
+
+
+## While the cursor rests on a card, the top HUD shows "+X / -Y" badges next to
+## every stat/resource the card would change (costs included, computed at hover
+## time so post-BUM surcharges stay fresh).
+func _setup_hover_preview(view: CardView, card: CardData) -> void:
+	view.mouse_entered.connect(func() -> void:
+		_top_status_bar.show_effect_preview(_card_preview_deltas(card)))
+	view.mouse_exited.connect(func() -> void:
+		_top_status_bar.clear_effect_preview())
+
+
+func _card_preview_deltas(card: CardData) -> Dictionary:
+	var deltas := {}
+	if card is ActionCardData:
+		var a := card as ActionCardData
+		deltas = {
+			"health": a.health_delta,
+			"hunger": a.hunger_delta,
+			"thirst": a.thirst_delta,
+			"warmth": a.warmth_delta,
+			"energy": a.energy_delta - a.energy_cost,
+			"food": a.food_gain - a.food_cost,
+			"water": a.water_gain,
+			"wood": a.wood_gain - a.wood_cost,
+			"materials": a.materials_gain - a.materials_cost,
+		}
+	elif card is BuildingCardData:
+		var cost: Dictionary = _survival.effective_build_cost(card)
+		deltas = {
+			"energy": -int(cost.get("energy", 0)),
+			"food": -int(cost.get("food", 0)),
+			"wood": -int(cost.get("wood", 0)),
+			"materials": -int(cost.get("materials", 0)),
+		}
+	return deltas
 
 
 func _setup_draggable_card(

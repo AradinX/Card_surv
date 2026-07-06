@@ -2344,6 +2344,37 @@ więc run.gd/testy/bot nie wymagały przepisania.
   `popup_act2_test.gd` (set_act2/set_content na 4 popupach, asserty na
   font 24 po re-skinie i kolory per akt) — dopisany do listy w CI.
 
+### Ikony statów/zasobów (plug-and-play) + hover-preview efektów karty (2026-07-06)
+
+- **`ui/stat_icons.gd`** (`StatIcons.texture(key)`): jedno źródło ścieżek ikon
+  `assets/art/ui/icons/stats/icon_<key>.png` (health/hunger/thirst/warmth/
+  energy/food/water/wood/stone/tools). Ikony to OPCJONALNE assety — brak pliku
+  = obecny wygląd tekstowy (wzorzec `ResourceLoader.exists`, jak art kart).
+  Prompty + pipeline (green-key 1024 → 64): `docs/asset_plan/
+  ASSET_PROMPTS_STAT_ICONS.md`. Stary płaski pack 36 ikon już nie istniał
+  (skasowany przy porządkach 2026-07-03), nowy jest do wygenerowania.
+- **HUD** (`top_status_bar_view.gd _add_stat_icons()`): ikona w szczelinie po
+  lewej każdego boxa statystyki (anchor boxa − 24 px) + ikony wpinane jako
+  rodzeństwo etykiet w ResourceRow (HBox sam układa).
+- **Karty** (`card_view.gd _apply_cost_icons()`): wiersz kosztów zamienia słowa
+  na pary ikona+cyfra (`CostIconRow` w oknie CostLabel), gdy istnieją WSZYSTKIE
+  potrzebne ikony; inaczej zostaje tekst. `setup()` dostał opcjonalny
+  `cost_values: Dictionary` — run.gd podaje `effective_build_cost()` dla
+  budynków (zniżki klasy + dopłata post-BUM w ikonach). Linia EFEKTÓW celowo
+  zostaje tekstem (kwalifikatory „nocą"/„jutro" + specjale — ikony zrobiłyby
+  hieroglif).
+- **Hover-preview (feedback gracza):** najechanie na kartę ręki/okolicy/
+  katalogu budowy pokazuje na HUD badge `+X/−Y` (zielony/czerwony) przy każdej
+  statystyce i zasobie, który karta zmieni — łącznie z kosztami (energia ujemna
+  itd.). `run.gd _setup_hover_preview` + `_card_preview_deltas` (liczone przy
+  hoverze — dopłaty post-BUM świeże), `top_status_bar_view.show_effect_preview/
+  clear_effect_preview` (badge w prawej części etykiety statu; przy zasobach
+  tuż za etykietą, w separacji HBoxa). Preview czyszczone przy każdej
+  przebudowie rzędów kart.
+- Weryfikacja: `--import` czysty, `ui_layout_test` (125 kart) i `smoke_test`
+  (21/50, Akt I 0 zgonów — baseline) zielone. Do obejrzenia w edytorze po
+  wygenerowaniu ikon.
+
 ### Licencje domknięte + decyzja o wymianie Higgsfield + cięcie 2 dźwięków (2026-07-06)
 
 - **Suno — checklista prawna DOMKNIĘTA:** faktura Apple (Suno Pro, 22.06.2026)

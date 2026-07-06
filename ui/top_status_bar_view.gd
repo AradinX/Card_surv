@@ -33,6 +33,9 @@ const ACT2_FRAME := "res://assets/art/ui/panels/top_status_bar_panel_act2_wither
 @onready var _tools_label: Label = $Inset/Rows/ResourceRow/ToolsLabel
 
 
+var _preview_badges := {}
+
+
 func _ready() -> void:
 	_resource_row.visible = true
 	_resource_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -40,6 +43,107 @@ func _ready() -> void:
 		label.custom_minimum_size = Vector2(108, 0)
 		label.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_add_stat_icons()
+
+
+## Optional icons (assets/art/ui/icons/stats/icon_<key>.png): stat icons sit in
+## the gap left of each stat box, resource icons become HBox siblings before
+## their labels. No file = no node = current text-only HUD.
+func _add_stat_icons() -> void:
+	var stat_boxes := {
+		"health": _health_box, "hunger": _hunger_box, "thirst": _thirst_box,
+		"warmth": _warmth_box, "energy": _energy_box,
+	}
+	for key: String in stat_boxes:
+		var texture := StatIcons.texture(key)
+		if texture == null:
+			continue
+		var box: Control = stat_boxes[key]
+		var icon := _make_icon(texture)
+		box.get_parent().add_child(icon)
+		icon.anchor_left = box.anchor_left
+		icon.anchor_right = box.anchor_left
+		icon.anchor_top = 0.0
+		icon.anchor_bottom = 1.0
+		icon.offset_left = box.offset_left - 24.0
+		icon.offset_right = box.offset_left - 2.0
+		icon.offset_top = 4.0
+		icon.offset_bottom = -4.0
+	var resource_labels := {
+		"food": _food_label, "water": _water_label, "wood": _wood_label,
+		"stone": _materials_label, "tools": _tools_label,
+	}
+	for key: String in resource_labels:
+		var texture := StatIcons.texture(key)
+		if texture == null:
+			continue
+		var label: Label = resource_labels[key]
+		var icon := _make_icon(texture)
+		icon.custom_minimum_size = Vector2(22, 0)
+		_resource_row.add_child(icon)
+		_resource_row.move_child(icon, label.get_index())
+
+
+func _make_icon(texture: Texture2D) -> TextureRect:
+	var icon := TextureRect.new()
+	icon.texture = texture
+	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return icon
+
+
+## Hover preview: "+2 / -1" badges next to the stats/resources a card would
+## change. `deltas` keys: health, hunger, thirst, warmth, energy, food, water,
+## wood, materials. Cleared with clear_effect_preview().
+func show_effect_preview(deltas: Dictionary) -> void:
+	clear_effect_preview()
+	var anchors := {
+		"health": _health_label, "hunger": _hunger_label, "thirst": _thirst_label,
+		"warmth": _warmth_label, "energy": _energy_label,
+		"food": _food_label, "water": _water_label, "wood": _wood_label,
+		"materials": _materials_label,
+	}
+	# Stat labels are left-aligned in a full-width box (free space inside on the
+	# right); resource labels are centered at min-width (badge goes just outside,
+	# into the row separation gap).
+	var inside_keys := ["health", "hunger", "thirst", "warmth", "energy"]
+	for key: String in deltas:
+		var value := int(deltas[key])
+		if value == 0 or not anchors.has(key):
+			continue
+		var parent: Label = anchors[key]
+		var badge := Label.new()
+		badge.text = "%+d" % value
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge.z_index = 5
+		badge.add_theme_font_size_override("font_size", 13)
+		badge.add_theme_color_override("font_color",
+			Color(0.55, 1.0, 0.45) if value > 0 else Color(1.0, 0.4, 0.32))
+		badge.add_theme_color_override("font_shadow_color", Color(0.03, 0.04, 0.02))
+		badge.add_theme_constant_override("shadow_offset_x", 1)
+		badge.add_theme_constant_override("shadow_offset_y", 1)
+		parent.add_child(badge)
+		badge.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+		badge.grow_horizontal = Control.GROW_DIRECTION_END
+		badge.offset_top = -9.0
+		badge.offset_bottom = 9.0
+		if key in inside_keys:
+			badge.offset_left = -40.0
+			badge.offset_right = -2.0
+			badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		else:
+			badge.offset_left = 2.0
+			badge.offset_right = 40.0
+		_preview_badges[key] = badge
+
+
+func clear_effect_preview() -> void:
+	for key: String in _preview_badges:
+		var badge: Label = _preview_badges[key]
+		if is_instance_valid(badge):
+			badge.queue_free()
+	_preview_badges.clear()
 
 
 func setup_max_values() -> void:

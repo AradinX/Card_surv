@@ -42,17 +42,20 @@ var _block_reason := ""
 var _feedback_tween: Tween
 var _feedback_frame: Panel
 var _disaster_id := ""
+var _cost_row: HBoxContainer
 
 
 ## `cost_override` lets the caller show a context-dependent cost (e.g. the
 ## effective build cost incl. class discount + post-BUM surcharge) instead of the
-## card's static base cost.
+## card's static base cost. `cost_values` carries the same cost as raw numbers
+## ({energy, food, wood, materials}) for the icon cost row.
 func setup(
 		card: CardData,
 		block_reason: String,
 		cost_override: String = "",
 		effects_override: Variant = null,
-		disaster_id: String = "") -> void:
+		disaster_id: String = "",
+		cost_values: Dictionary = {}) -> void:
 	_disaster_id = disaster_id
 	_name_label.text = tr(card.display_name)
 	_cost_label.text = cost_override if cost_override != "" else _format_costs(card)
@@ -71,6 +74,7 @@ func setup(
 	self_modulate = Color(0.62, 0.62, 0.62, 1.0) if is_play_blocked() else Color.WHITE
 	_apply_art(card)
 	_apply_text_layout(card)
+	_apply_cost_icons(card, cost_values)
 	_fit_all_text()
 	call_deferred("_fit_all_text")
 
@@ -421,6 +425,90 @@ func _format_costs(card: CardData) -> String:
 	elif card is EventCardData:
 		return tr("Zdarzenie nocne")
 	return "   ·   ".join(parts)
+
+
+## When the stat icon set exists (assets/art/ui/icons/stats/), the textual cost
+## line is swapped for icon+number pairs in the same frame window. Missing icons
+## (or monster/event cards) keep the current text — plug-and-play like card art.
+func _apply_cost_icons(card: CardData, cost_values: Dictionary) -> void:
+	var parts := _icon_cost_parts(card, cost_values)
+	var icons: Array[Texture2D] = []
+	for part in parts:
+		icons.append(StatIcons.texture(part[0]))
+	if parts.is_empty() or icons.has(null):
+		if _cost_row != null:
+			_cost_row.visible = false
+		return
+	if _cost_row == null:
+		_cost_row = HBoxContainer.new()
+		_cost_row.name = "CostIconRow"
+		_cost_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_cost_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		_cost_row.add_theme_constant_override("separation", 3)
+		add_child(_cost_row)
+		_cost_row.anchor_left = _cost_label.anchor_left
+		_cost_row.anchor_top = _cost_label.anchor_top
+		_cost_row.anchor_right = _cost_label.anchor_right
+		_cost_row.anchor_bottom = _cost_label.anchor_bottom
+		_cost_row.offset_left = _cost_label.offset_left
+		_cost_row.offset_top = _cost_label.offset_top
+		_cost_row.offset_right = _cost_label.offset_right
+		_cost_row.offset_bottom = _cost_label.offset_bottom
+	for child in _cost_row.get_children():
+		child.queue_free()
+	var font_color := _cost_label.get_theme_color("font_color")
+	for i in parts.size():
+		var icon := TextureRect.new()
+		icon.texture = icons[i]
+		icon.custom_minimum_size = Vector2(15, 0)
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_cost_row.add_child(icon)
+		var amount := Label.new()
+		amount.text = str(parts[i][1])
+		amount.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		amount.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		amount.add_theme_font_size_override("font_size", 11)
+		amount.add_theme_color_override("font_color", font_color)
+		_cost_row.add_child(amount)
+	_cost_row.visible = true
+	_cost_label.visible = false
+
+
+## [[icon_key, amount], ...] for the cost row; empty = keep the text line.
+func _icon_cost_parts(card: CardData, cost_values: Dictionary) -> Array:
+	var energy := 0
+	var food := 0
+	var wood := 0
+	var materials := 0
+	if not cost_values.is_empty():
+		energy = int(cost_values.get("energy", 0))
+		food = int(cost_values.get("food", 0))
+		wood = int(cost_values.get("wood", 0))
+		materials = int(cost_values.get("materials", 0))
+	elif card is ActionCardData:
+		var action := card as ActionCardData
+		energy = action.energy_cost
+		food = action.food_cost
+		wood = action.wood_cost
+		materials = action.materials_cost
+	elif card is BuildingCardData:
+		var building := card as BuildingCardData
+		energy = building.energy_cost
+		food = building.food_cost
+		wood = building.wood_cost
+		materials = building.materials_cost
+	else:
+		return []
+	var parts := [["energy", energy]]
+	if food > 0:
+		parts.append(["food", food])
+	if wood > 0:
+		parts.append(["wood", wood])
+	if materials > 0:
+		parts.append(["stone", materials])
+	return parts
 
 
 func _ensure_feedback_frame() -> void:
