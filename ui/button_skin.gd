@@ -27,7 +27,9 @@ static func apply_primary(button: Button, act: int = 1) -> void:
 	button.add_theme_stylebox_override("pressed", _make_style(_path(act, "button_primary_pressed.png")))
 	button.add_theme_stylebox_override("hover_pressed", _make_style(_path(act, "button_primary_pressed.png")))
 	button.add_theme_stylebox_override("disabled", _make_style(_path(act, "button_disabled.png")))
-	button.add_theme_stylebox_override("focus", _make_style(_path(act, "button_primary_hover.png")))
+	# Focus draws ON TOP of the current state — a hover texture here made the
+	# clicked button look permanently highlighted until focus moved elsewhere.
+	button.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
 	button.add_theme_color_override("font_color", Color(0.98, 0.93, 0.76))
 	button.add_theme_color_override("font_hover_color", Color(1.0, 0.97, 0.78))
 	button.add_theme_color_override("font_pressed_color", Color(0.86, 0.78, 0.54))

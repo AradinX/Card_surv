@@ -2344,6 +2344,24 @@ więc run.gd/testy/bot nie wymagały przepisania.
   `popup_act2_test.gd` (set_act2/set_content na 4 popupach, asserty na
   font 24 po re-skinie i kolory per akt) — dopisany do listy w CI.
 
+### Fix: badge'e preview przy zasobach + „zawieszone" podświetlenie przycisku (2026-07-06)
+
+- **Badge'e hover-preview nie pokazywały się przy zasobach** (jedzenie/woda/
+  drewno/kamień), tylko przy statystykach. Przyczyna (potwierdzona wizualną
+  sondą headless→render): `Label.clip_text = true` PRZYCINA TEŻ DZIECI do
+  prostokąta etykiety — badge zakotwiczony poza wąską (108 px, wyśrodkowaną)
+  etykietą zasobu był ucinany w całości; przy szerokich etykietach statystyk
+  badge mieścił się w środku, więc działał. Fix: badge'e zasobów są dziećmi
+  `Rows` (zwykły Control bez clipa), pozycjonowane przy show w przerwę
+  separacji HBoxa za etykietą. Gracz wrzucił już 12 ikon statów — HUD/karty
+  renderują je poprawnie (zweryfikowane sondą).
+- **Przycisk „Budowanie" zostawał podświetlony** po kliknięciu (i po powrocie
+  do „Akcje"). Przyczyna: `ButtonSkin.apply_primary` ustawiał stylebox `focus`
+  na teksturę HOVER, a Godot rysuje focus NA WIERZCHU aktualnego stanu — po
+  kliknięciu przycisk trzyma fokus, więc wyglądał jak wiecznie podświetlony
+  (z nowym, wyraźnie jaśniejszym hoverem stało się to widoczne). Fix:
+  `focus = StyleBoxEmpty` (jak w apply_minimal).
+
 ### Nowe przyciski runu + pasek HUD Act II: post-processing i 9-slice (2026-07-06)
 
 - Gracz wygenerował nowy zestaw (8 przycisków bez kwiatów + pasek act2 wg

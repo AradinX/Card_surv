@@ -104,10 +104,12 @@ func show_effect_preview(deltas: Dictionary) -> void:
 		"food": _food_label, "water": _water_label, "wood": _wood_label,
 		"materials": _materials_label,
 	}
-	# Stat labels are left-aligned in a full-width box (free space inside on the
-	# right); resource labels are centered at min-width (badge goes just outside,
-	# into the row separation gap).
+	# Stat labels are wide with left-aligned text — the badge fits inside their
+	# right end. Resource labels are narrow/centered AND Label.clip_text clips
+	# children to the label rect, so their badges live on the row's parent
+	# (plain Control, no clipping) positioned into the HBox separation gap.
 	var inside_keys := ["health", "hunger", "thirst", "warmth", "energy"]
+	var rows := _resource_row.get_parent() as Control
 	for key: String in deltas:
 		var value := int(deltas[key])
 		if value == 0 or not anchors.has(key):
@@ -123,18 +125,23 @@ func show_effect_preview(deltas: Dictionary) -> void:
 		badge.add_theme_color_override("font_shadow_color", Color(0.03, 0.04, 0.02))
 		badge.add_theme_constant_override("shadow_offset_x", 1)
 		badge.add_theme_constant_override("shadow_offset_y", 1)
-		parent.add_child(badge)
-		badge.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-		badge.grow_horizontal = Control.GROW_DIRECTION_END
-		badge.offset_top = -9.0
-		badge.offset_bottom = 9.0
 		if key in inside_keys:
+			parent.add_child(badge)
+			badge.set_anchors_preset(Control.PRESET_CENTER_RIGHT)
+			badge.grow_horizontal = Control.GROW_DIRECTION_END
+			badge.offset_top = -9.0
+			badge.offset_bottom = 9.0
 			badge.offset_left = -40.0
 			badge.offset_right = -2.0
 			badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		else:
-			badge.offset_left = 2.0
-			badge.offset_right = 40.0
+			rows.add_child(badge)
+			var local := parent.global_position - rows.global_position
+			badge.position = Vector2(
+				local.x + parent.size.x + 2.0,
+				local.y + parent.size.y * 0.5 - 9.0
+			)
+			badge.size = Vector2(36, 18)
 		_preview_badges[key] = badge
 
 
