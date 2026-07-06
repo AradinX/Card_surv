@@ -569,12 +569,14 @@ stump + split logs), forage (wicker basket of berries/mushrooms/herbs),
 treat wounds (bandage + herb bowl + drop), spring source (spring between
 mossy stones), craft tools (stone axe + flint knife + cordage).
 
-## Plague monster illustrations (completed, 2026-06-12)
+## Plague monster illustrations (completed, 2026-06-12; REGENERATED 2026-07-06)
 
-Status: Act II monster card illustrations, same illustration pipeline but
-corrupted palette. 1024x688, text-free, centered single creature/swarm,
-ominous but no gore. References: `card_back_monster.png` +
-`biome_forest_plague_bg.png` (corrupted palette anchor). GPT Image 2 medium.
+Status: Act II monster card illustrations, corrupted palette. 1024x688,
+text-free, centered single creature/swarm, ominous but no gore.
+UPDATE 2026-07-06: all four files regenerated in the OpenAI pipeline (author
+dropped Higgsfield entirely); prompts and style references in
+`ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md`. The original Higgsfield GPT Image 2
+pipeline notes below are history only.
 
 Paths:
 

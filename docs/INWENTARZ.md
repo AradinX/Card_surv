@@ -20,7 +20,7 @@
 | Balans klas i aktów | 🟡 |
 | Eksport/CI | ✅ |
 | Dokumentacja licencji audio | ✅ (manifest + regulamin + dowód subskrypcji zarchiwizowany 2026-07-06) |
-| Grafika bez Higgsfield | 🟡 (decyzja 2026-07-06: tylko 4 potwory Plagi do regeneracji; ramki i Akt I to OpenAI) |
+| Grafika bez Higgsfield | ✅ (4 potwory Plagi zregenerowane w OpenAI 2026-07-06; creditsy i manifest zaktualizowane) |
 
 ## Klasy postaci
 
@@ -288,6 +288,4 @@ oraz przygotowanie rejonów na BUM.
 
 1. Balans Aktu II po BUM 20–26, zabezpieczeniach rejonów i droższej decyzji
    przygotowawczej.
-2. Wymiana assetów Higgsfield (3 ramki kart + 4 potwory Plagi; prompty w
-   `docs/asset_plan/ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md`).
-3. Dalsza meta-progresja (kolekcja, odblokowania) i pełny zwiad nieodkrytych biomów.
+2. Dalsza meta-progresja (kolekcja, odblokowania) i pełny zwiad nieodkrytych biomów.

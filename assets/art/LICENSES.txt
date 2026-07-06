@@ -3,17 +3,16 @@ GRAFIKA — Dzień 50
 Stan na 2026-07-06.
 
 Cała grafika w assets/art/ jest WYGENEROWANA AI z promptów projektowych
-(oryginalna dla tej gry — brak stocków, brak cudzych prac). Narzędzia:
+(oryginalna dla tej gry — brak stocków, brak cudzych prac). Narzędzie:
 
   - GPT Image (OpenAI) — wbudowane `imagegen` / pipeline przez Codex
-  - Higgsfield (GPT Image 2) — wcześniejsze partie; DO WYMIANY (patrz niżej)
+  (Higgsfield: usunięty z produkcji 2026-07-06 — patrz sekcja niżej)
 
 LICENCJA / PRAWA
 ----------------
-Output obu narzędzi jest generowany przez użytkownika z własnych promptów;
-zgodnie z regulaminami dostawców użytkownik może go wykorzystywać komercyjnie
-(OpenAI: użytkownik jest właścicielem outputu; Higgsfield: prawa komercyjne na
-planie płatnym). Zachowaj dowód konta/subskrypcji.
+Output jest generowany przez użytkownika z własnych promptów; zgodnie
+z regulaminem OpenAI użytkownik jest właścicielem outputu i może go
+wykorzystywać komercyjnie. Zachowaj dowód konta/subskrypcji.
 (To nie jest porada prawna — zweryfikuj aktualne regulaminy przed wydaniem.)
 
 DOWODY (2026-07-06):
@@ -26,20 +25,16 @@ DOWODY (2026-07-06):
     Faktury na scrinie dotyczą jednego konta — jeśli część grafiki powstała
     na planie płatnym drugiego konta, zachowaj analogiczny dowód i dla niego.
 
-HIGGSFIELD — DECYZJA O WYMIANIE (2026-07-06)
---------------------------------------------
-Autor rezygnuje z assetów Higgsfield w wydaniu. Po weryfikacji z autorem
-(2026-07-06) jedyne produkcyjne pliki Higgsfield to 4 pierwotne bestie Plagi:
-  - cards/illustrations/monsters/monster_rotting_one.png (Zgnilec)
-  - cards/illustrations/monsters/monster_plague_wolf.png (Zarażony wilk)
-  - cards/illustrations/monsters/monster_crow_swarm.png (Krucza chmara)
-  - cards/illustrations/monsters/monster_rat_swarm.png (Rój szczurów)
-Ramki kart oraz jasne zestawy ilustracji Aktu I (*_act1_candidates) autor
-poprawiał/generował w OpenAI — zostają. Pozostałe 11 potworów to pipeline
-OpenAI.
-Prompty do regeneracji: docs/asset_plan/ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md
-Po wymianie: usunąć „Higgsfield" z tego pliku i z creditsów w grze
-(ui/credits_overlay.gd).
+HIGGSFIELD — WYMIANA WYKONANA (2026-07-06)
+------------------------------------------
+Autor zrezygnował z assetów Higgsfield. Jedyne produkcyjne pliki Higgsfield
+(4 pierwotne bestie Plagi: monster_rotting_one, monster_plague_wolf,
+monster_crow_swarm, monster_rat_swarm) zostały 2026-07-06 zregenerowane
+w pipeline OpenAI (prompty: docs/asset_plan/
+ASSET_PROMPTS_HIGGSFIELD_REPLACEMENT.md). Ramki kart i jasne zestawy
+ilustracji Aktu I (*_act1_candidates) autor poprawiał/generował w OpenAI.
+W assets/art/ nie ma już żadnych plików Higgsfield; creditsy w grze
+zaktualizowane (ui/credits_overlay.gd).
 
 ZAKRES (kategorie wygenerowane z promptów)
 ------------------------------------------

@@ -1,4 +1,4 @@
-# Wymiana assetów Higgsfield (decyzja autora, 2026-07-06)
+# Wymiana assetów Higgsfield (decyzja autora, 2026-07-06) — WYKONANA 2026-07-06
 
 Autor rezygnuje ze wszystkich plików wygenerowanych przez Higgsfield.
 Po weryfikacji z autorem (2026-07-06) dotyczy to WYŁĄCZNIE 4 pierwotnych
@@ -65,9 +65,10 @@ Subjects:
 - `monster_rat_swarm` — a surging wave of infected rats reading as one mass,
   matted fur, toxic-green sheen, many small glinting eyes.
 
-## Po wymianie (checklista)
+## Po wymianie (checklista) — domknięta 2026-07-06
 
-- [ ] `--import` + `ui_layout_test` + ręczny rzut oka na 4 karty potworów w edytorze.
-- [ ] Usunąć „Higgsfield" z `assets/art/LICENSES.txt` (sekcja narzędzi + decyzja o wymianie).
-- [ ] Usunąć „Higgsfield" z creditsów w grze (`ui/credits_overlay.gd`).
-- [ ] Zaktualizować `docs/asset_plan/generated_asset_samples.md` (sekcja potworów Plagi).
+- [x] `--import` czysty + `ui_layout_test` zielony (125 kart); wymiary 4×1024x688 zweryfikowane.
+- [x] „Higgsfield" usunięty z `assets/art/LICENSES.txt` (sekcja narzędzi + sekcja wymiany).
+- [x] „Higgsfield" usunięty z creditsów w grze (`ui/credits_overlay.gd`).
+- [x] `docs/asset_plan/generated_asset_samples.md` zaktualizowany (sekcja potworów Plagi).
+- [ ] Ręczny rzut oka na 4 karty potworów w edytorze (Akt II) — przy okazji playtestu.

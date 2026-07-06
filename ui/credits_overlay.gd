@@ -21,7 +21,6 @@ Silnik gry
 Cała grafika wygenerowana przez AI z autorskich promptów
 (oryginalna dla tej gry — brak stocków i cudzych prac):
     •  GPT Image  (OpenAI)
-    •  Higgsfield  (GPT Image 2)
 
 
 ———  MUZYKA I DŹWIĘK  ———
@@ -39,7 +38,7 @@ Asystent kodu i treści: Claude (Anthropic)
 
 Grafika oraz audio to output wygenerowany przez autora
 z własnych promptów; wykorzystanie zgodne z regulaminami
-dostawców (OpenAI / Higgsfield / Suno).
+dostawców (OpenAI / Suno).
 Pełny wykaz: assets/art/LICENSES.txt oraz
 assets/audio/LICENSES.txt
 
