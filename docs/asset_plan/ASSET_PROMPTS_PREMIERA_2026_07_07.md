@@ -1,5 +1,31 @@
 # Prompty: pakiet graficzny przed premierą (2026-07-07)
 
+## 0. DOPISEK do trwającej sesji generowania — wklej do czatu
+
+Czat produkuje już pakiet wg wcześniejszej wersji tego pliku. Dwie korekty
+obowiązują WSZYSTKIE pliki (także już zlecone — jeśli któryś wyszedł
+z czarnym tłem, wygenerować ponownie):
+
+```text
+CORRECTIONS for ALL assets in this batch (also regenerate any already made
+with a black background):
+
+1. BACKGROUND RULE: everything outside the actual artwork (around panel
+   corners, outside torn paper edges, around logo letters) must be SOLID
+   PURE BLUE #0000FF. Never black, never transparent, never dark gradient.
+   The blue is chroma-keyed out later.
+
+2. HUD STRIP (top_status_bar_slim_act1/act2, 1920x96) — measured layout:
+   left text block ends at x=274, right stats block starts at x=874.
+   The decorative vignette must live ONLY between x=330 and x=810, be at
+   most 60 px tall and clearly smaller than its zone — a modest accent that
+   never overwhelms, fading into plain flat dark fill well before x=330 and
+   x=810. Zones x=0-320 and x=820-1920 stay completely plain (game text is
+   drawn there at runtime).
+```
+
+
+
 Ustalenia z autorem po przeglądzie screenów (`docs/steam_screens/pl/`):
 
 1. Pasek HUD — subtelna plecionka dookoła + art w wolnej strefie między
@@ -306,6 +332,56 @@ backgrounds. Avoid: total destruction, fire, photorealism, painterly blur.
 Wpięcie (Claude): lookup w `biome_tile_view`/`building_popup_view`/
 `card_view` — preferuj `buildings_act2/` gdy kafel skażony / po BUM,
 fallback do jasnego artu (plug-and-play per plik: można generować partiami).
+
+## 6. Ramka kart Aktu II — 1 plik, 1024×1536 (zamiast 89 nowych ilustracji)
+
+Pytanie autora: czy karty AKCJI też powinny mieć inne obrazki w Akcie II?
+Opinia Claude: NIE pełny komplet — 89 ilustracji akcji to ogromny koszt,
+a karty w ręce pokazują CZYNNOŚCI gracza, nie świat (świat pokazują kafle
+i budynki). Mechanizm punktowych podmian już istnieje: `card_view` sam
+podnosi `action_<id>_<disaster>.png`, więc pojedyncze karty, które gryzą się
+z katastrofą, można dorabiać w dowolnym momencie bez zmian w kodzie.
+
+Zamiast tego JEDEN plik, który zmienia nastrój WSZYSTKICH kart naraz po BUM:
+mroczny wariant wspólnej ramki (używają jej akcje, budynki, zbieranie
+i nagrody; ramki event/monster są już mroczne z natury).
+
+```text
+assets/art/cards/frames/card_frame_building_act2.png
+```
+
+Referencja OBOWIĄZKOWA (dołącz jako obraz): `assets/art/cards/frames/
+card_frame_building.png` — wzorzec geometrii.
+
+Prompt:
+
+```text
+Pixel art CARD FRAME for Act II of the dark survival card roguelike Dzien 50,
+1024x1536. Use the attached Act I card frame as the EXACT geometry reference:
+same canvas, same border thickness, same title band position and size, same
+illustration window position and size, same description and cost areas —
+every window must overlap the reference within a few pixels, because card
+text and art are placed by those exact rectangles at runtime.
+
+Theme swap only — the same frame AFTER THE CATASTROPHE: the living green
+embroidery and aged gold turn into blackened corroded bronze, dry cracked
+thorn tendrils instead of fresh vines, faint sickly gray-green tint, a few
+subtle scratches on the border band. Keep all text/illustration windows as
+clean and readable as the reference — decay lives ON THE BORDER, not in the
+windows.
+
+Background outside the frame edges: SOLID PURE BLUE #0000FF, not black,
+not transparent.
+
+Style: clearly visible pixels, hard edges, controlled dithering, no smooth
+painting. Text: no text, no letters, no numbers.
+Avoid: moving or resizing any window, heavy damage over text areas, black
+background, photorealism, painterly blur.
+```
+
+Weryfikacja: nałożyć na ramkę Aktu I — okna muszą się pokrywać co do kilku
+pikseli. Wpięcie (Claude): `card_view._frame_path` preferuje wariant `_act2`
+po BUM (fallback do obecnej ramki, plug-and-play).
 
 ## Poza tym plikiem (czysto kodowe, bez generowania — robi Claude)
 
