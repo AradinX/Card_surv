@@ -2514,6 +2514,19 @@ więc run.gd/testy/bot nie wymagały przepisania.
   ptak niezniekształcony w obu, brak szwu po wycięciu; `ui_layout_test`
   zielony. Screenshot diagnostyczny przeniesiony z `assets/` do `tmp/`.
 
+### Pasek HUD: powrót do złotej ramki, art robi gracz (2026-07-07)
+
+- Malowane paski (v2/v3) nie przekonały — decyzja: **powrót do płaskiej
+  złotej ramki** (StyleBoxFlat fallback). Oba `top_status_bar_slim_*.png`
+  usunięte; kod warstwy winiety wycofany do prostego wariantu v2 (pre-skala
+  do wysokości paska + 9-slice, marginesy 16%). Plug-and-play zostaje: nowy
+  plik pod tą samą ścieżką podnosi się automatycznie.
+- Pasek zostaje na **80 px** (feedback: 64 było za nisko). Realne wymiary na
+  scenie (z sondy): pozycja (16, 8), **1248×80 px przy 16:9** (canvas
+  1280×720), na szerszych oknach rośnie tylko szerokość — u gracza
+  (2550×1288) **1393×80 px** (fizycznie ~2492×143 px). Zalecany nowy art:
+  **2496×160** (2× od 1248×80); środek 9-slice rozciąga się do ~12%.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).

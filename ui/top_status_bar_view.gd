@@ -11,15 +11,6 @@ extends Control
 const SLIM_FRAME_ACT1 := "res://assets/art/ui/panels/top_status_bar_slim_act1.png"
 const SLIM_FRAME_ACT2 := "res://assets/art/ui/panels/top_status_bar_slim_act2.png"
 
-# Art geometry of the slim strips (2496×128): the vine/bird motif lives in
-# VIGNETTE_ZONE. It is lifted out and drawn as its own left-anchored layer at
-# a fixed scale, so it never stretches with the window and never crowds the
-# right-aligned stats when the bar grows taller. 0.5 = its size on the
-# original 64 px bar; x 215 puts it right after the day/level text.
-const VIGNETTE_ZONE := Rect2i(400, 18, 700, 92)
-const VIGNETTE_SCALE := 0.5
-const VIGNETTE_POS_X := 215.0
-
 const VALUE_COLOR := Color(0.98, 0.93, 0.78)
 const RESOURCE_COLOR := Color(0.92, 0.88, 0.69)
 const LOW_COLOR := Color(1.0, 0.78, 0.4)
@@ -41,7 +32,6 @@ const CAPTION_COLOR := Color(0.85, 0.78, 0.62, 0.9)
 @onready var _frame: NinePatchRect = $Frame
 @onready var _row: HBoxContainer = $Row
 
-var _vignette: TextureRect
 var _day_label: Label
 var _season_label: Label
 var _level_label: Label
@@ -264,42 +254,17 @@ func _apply_panel_style(act: int) -> void:
 	if ResourceLoader.exists(art):
 		var img: Image = (load(art) as Texture2D).get_image()
 		var bar_height := int(custom_minimum_size.y)
-		# The motif as its own layer, pre-scaled (project may filter nearest).
-		var vignette := img.get_region(VIGNETTE_ZONE)
-		vignette.resize(
-			int(round(VIGNETTE_ZONE.size.x * VIGNETTE_SCALE)),
-			int(round(VIGNETTE_ZONE.size.y * VIGNETTE_SCALE)),
-			Image.INTERPOLATE_LANCZOS)
-		if _vignette == null:
-			_vignette = TextureRect.new()
-			_vignette.name = "Vignette"
-			_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			add_child(_vignette)
-			move_child(_vignette, _frame.get_index() + 1)
-		_vignette.texture = ImageTexture.create_from_image(vignette)
-		_vignette.position = Vector2(VIGNETTE_POS_X,
-			(bar_height - vignette.get_height()) * 0.5)
-		_vignette.visible = true
-		# The 9-slice gets a fully plain strip (vignette zone cut out), so any
-		# window width only ever stretches calm weave — never the vine/bird.
-		var right_x := VIGNETTE_ZONE.position.x + VIGNETTE_ZONE.size.x
-		var plain := Image.create_empty(img.get_width() - VIGNETTE_ZONE.size.x,
-			img.get_height(), false, img.get_format())
-		plain.blit_rect(img,
-			Rect2i(0, 0, VIGNETTE_ZONE.position.x, img.get_height()),
-			Vector2i.ZERO)
-		plain.blit_rect(img,
-			Rect2i(right_x, 0, img.get_width() - right_x, img.get_height()),
-			Vector2i(VIGNETTE_ZONE.position.x, 0))
 		# NinePatch draws its margins at 1:1 texture pixels, so the art must be
 		# pre-scaled to the bar's height — otherwise a taller source renders a
 		# fatter border and a vertically squashed centre (the "stretched" bug).
-		plain.resize(
-			int(round(plain.get_width() * float(bar_height) / plain.get_height())),
-			bar_height, Image.INTERPOLATE_LANCZOS)
-		_frame.texture = ImageTexture.create_from_image(plain)
-		# 9-slice: the braid border keeps its thickness no matter how wide the
-		# bar gets (stretch/aspect="expand" widens it past the art's aspect).
+		if img.get_height() != bar_height:
+			img.resize(
+				int(round(img.get_width() * float(bar_height) / img.get_height())),
+				bar_height, Image.INTERPOLATE_LANCZOS)
+		_frame.texture = ImageTexture.create_from_image(img)
+		# 9-slice: the border keeps its thickness no matter how wide the bar
+		# gets (stretch/aspect="expand" widens it past the art's aspect); the
+		# centre stretches, so decoration there must stay calm.
 		var margin := int(round(bar_height * 0.16))
 		_frame.patch_margin_left = margin
 		_frame.patch_margin_right = margin
@@ -319,6 +284,4 @@ func _apply_panel_style(act: int) -> void:
 	style.set_corner_radius_all(8)
 	_panel.add_theme_stylebox_override("panel", style)
 	_frame.visible = false
-	if _vignette != null:
-		_vignette.visible = false
 	_panel.visible = true
