@@ -532,7 +532,9 @@ static func _resolve_campfire_fuel(sys: SurvivalSystem) -> void:
 				continue
 			built.hp -= 1
 			if built.hp > 0:
-				burning.append("%s: paliwo na %d nocy" % [_tr(built.data.display_name), built.hp])
+				# Every campfire is named "Ognisko" and the log line already says
+				# so — repeating the name here doubled it ("Ognisko: Ognisko: ...").
+				burning.append(_tr("paliwo na %d nocy") % built.hp)
 			else:
 				expired.append(_tr(built.data.display_name))
 	if not burning.is_empty():
