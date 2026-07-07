@@ -97,9 +97,6 @@ func show_card(card: CardData) -> void:
 	# before its effects resolve (re-enabled on the reveal tween's `finished`).
 	_night_continue_button.disabled = true
 	_night_title.text = tr(card.display_name)
-	# The choice panel's description sheet only keeps its top third clear (the
-	# lower two-thirds are the 3 pinned choice notes baked into the art).
-	_night_desc.anchor_bottom = 0.466 if has_choices else 0.678
 	_night_desc.text = tr(card.description)
 	# The flavour text alone doesn't say what the attack does — the player had
 	# to check the log afterwards. Fold the same numbers already shown in the
@@ -166,21 +163,21 @@ func _bind_night_popup_nodes() -> void:
 		_night_continue_button.pressed.connect(continue_callable)
 	_clear_night_button_chrome(_night_continue_button)
 	_setup_night_button_hover(_night_continue_button)
-	# Description and result share ONE sheet window, centered both ways — the
-	# four popup scenes had them at slightly different hand-tuned rects and
-	# alignments. show_card/_on_night_choice only ever move the bottom edge
-	# (choice popups keep the lower sheet clear for the pinned notes).
+	# Each scene's DescLabel is hand-tuned to its painted sheet — it is the
+	# reference rect. ResultLabel mirrors it exactly (same place, same size),
+	# and both center their text. _on_night_choice widens only the result,
+	# over the sheet freed by the choice notes.
+	_night_result.anchor_left = _night_desc.anchor_left
+	_night_result.anchor_top = _night_desc.anchor_top
+	_night_result.anchor_right = _night_desc.anchor_right
+	_night_result.anchor_bottom = _night_desc.anchor_bottom
+	_night_result.offset_left = _night_desc.offset_left
+	_night_result.offset_top = _night_desc.offset_top
+	_night_result.offset_right = _night_desc.offset_right
+	_night_result.offset_bottom = _night_desc.offset_bottom
 	for sheet_label: Label in [_night_desc, _night_result]:
 		sheet_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		sheet_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		sheet_label.anchor_left = 0.545
-		sheet_label.anchor_right = 0.85
-		sheet_label.anchor_top = 0.224
-		sheet_label.offset_left = 6.0
-		sheet_label.offset_top = 0.0
-		sheet_label.offset_right = -6.0
-		sheet_label.offset_bottom = 0.0
-	_night_result.anchor_bottom = 0.678
 	# The summary note and choice sheets are small and their icon lines wrap —
 	# extra leading keeps wrapped lines from stacking on each other.
 	_night_summary.add_theme_constant_override("line_separation", 5)
@@ -510,8 +507,9 @@ func _choice_failure_summary(choice) -> String:
 
 ## Effect lines used to be one dense comma string; with inline icons the +/-
 ## items sat on top of each other. Gains come first, losses second, with wide
-## gaps inside groups and an extra-wide gap between them.
-func _join_effect_parts(parts: PackedStringArray) -> String:
+## gaps inside groups and `group_sep` between them (newline = one line of +,
+## one line of -).
+func _join_effect_parts(parts: PackedStringArray, group_sep := "     ") -> String:
 	var gains: PackedStringArray = []
 	var losses: PackedStringArray = []
 	for part in parts:
@@ -521,7 +519,7 @@ func _join_effect_parts(parts: PackedStringArray) -> String:
 		groups.append("  ".join(gains))
 	if not losses.is_empty():
 		groups.append("  ".join(losses))
-	return "     ".join(groups)
+	return group_sep.join(groups)
 
 
 func _night_summary_text(card: CardData) -> String:
@@ -535,7 +533,11 @@ func _night_summary_text(card: CardData) -> String:
 	lines.append(tr("Noc: %s") % _night_needs_summary())
 	var total := _night_total_summary(card)
 	if total != "":
-		lines.append(tr("Podsumowanie: %s") % total)
+		# Blank line pushes the block to the bottom of the note; the header
+		# gets its own line, then gains and losses each on their own line.
+		lines.append("")
+		lines.append(tr("Podsumowanie:"))
+		lines.append(total)
 	return "\n".join(lines)
 
 
@@ -557,7 +559,7 @@ func _night_total_summary(card: CardData) -> String:
 	totals[1] -= decays[0]
 	totals[2] -= decays[1]
 	totals[3] -= decays[2]
-	return _join_effect_parts(_stat_delta_parts(totals))
+	return _join_effect_parts(_stat_delta_parts(totals), "\n")
 
 
 func _night_card_effect_summary(card: CardData) -> String:
@@ -681,6 +683,10 @@ func _on_night_choice(index: int) -> void:
 	_reset_night_choice_controls()
 	_night_choices.visible = false
 	_night_desc.visible = false
+	# The result reclaims the full description sheet now that the choice
+	# notes (which used to cover its lower two-thirds) are gone.
+	_night_result.anchor_top = 0.224
+	_night_result.anchor_bottom = 0.678
 	_night_result.text = summary
 	_night_result.visible = true
 	_night_summary.text = StatIcons.iconify(tr("Wybór: %s\nNoc: %s") % [
