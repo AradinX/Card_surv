@@ -2533,7 +2533,9 @@ więc run.gd/testy/bot nie wymagały przepisania.
   gracz wygenerował pasek w kontekście całej klatki gry (wszystko `#0000FF`
   poza paskiem u góry) — generator utrzymał stałą grubość plecionki 18–24 px
   na wszystkich 4 krawędziach i spokojne strefy tekstu/statystyk. Źródła:
-  `assets/art/ui/panels/hud_fullscreen_act1/2.png` (1672×941, zachowane w repo).
+  `docs/asset_plan/hud_fullscreen_sources/hud_fullscreen_act1/2.png` (1672×941;
+  w `docs/`, bo `.gdignore` trzyma je poza importem i buildem — gra ładuje
+  tylko wycięte `top_status_bar_slim_*.png`).
 - Post-processing (PIL one-off): crop paska po bounding-boxie nie-niebieskich
   pikseli (oba akty: y 95–229 → 1672×135), chroma-key po odległości od
   `#0000FF` (progi INNER 90 / OUTER 150 + despill, jak `chroma_key_blue.gd`)
@@ -2543,6 +2545,15 @@ więc run.gd/testy/bot nie wymagały przepisania.
   — plecionka trzyma grubość, ptak niezniekształcony, statystyki czytelne na
   spokojnej tkaninie; `ui_layout_test` zielony. Akt II (martwa plecionka,
   kruk-brąz) wycięty czysto — do rzutu oka w grze po BUM.
+- **Ramka do krawędzi okna** (feedback: w mockupie plecionka biegnie edge-to-
+  edge, w grze pasek siedzi w MarginContainer z odstępem 16 px):
+  `top_status_bar_view._bleed_frame_to_window_edges()` rozlewa SAM NinePatch
+  poza margines layoutu do krawędzi okna (offsety = zmierzone `global_position`
+  vs szerokość viewportu, odświeżane deferowane przy `NOTIFICATION_RESIZED`);
+  teksty/statystyki w `Row` zostają w marginesach. Płaski fallback (brak PNG)
+  celowo bez rozlania. Wydane jako **v1.0.6** (tag → CI → GitHub Release);
+  lokalny tag `v1.0.5` wisiał niewypchnięty na starszym commicie, stąd skok
+  numeru.
 
 ## Konwencje
 
