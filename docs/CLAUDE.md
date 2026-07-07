@@ -2527,6 +2527,23 @@ więc run.gd/testy/bot nie wymagały przepisania.
   (2550×1288) **1393×80 px** (fizycznie ~2492×143 px). Zalecany nowy art:
   **2496×160** (2× od 1248×80); środek 9-slice rozciąga się do ~12%.
 
+### Pasek HUD v4: wycięty z pełnoklatkowych mockupów 1920×1080 (2026-07-07)
+
+- Nowe podejście z `ASSET_PROMPTS_HUD_PELNA_SCENA_2026_07_07.md` ZADZIAŁAŁO:
+  gracz wygenerował pasek w kontekście całej klatki gry (wszystko `#0000FF`
+  poza paskiem u góry) — generator utrzymał stałą grubość plecionki 18–24 px
+  na wszystkich 4 krawędziach i spokojne strefy tekstu/statystyk. Źródła:
+  `assets/art/ui/panels/hud_fullscreen_act1/2.png` (1672×941, zachowane w repo).
+- Post-processing (PIL one-off): crop paska po bounding-boxie nie-niebieskich
+  pikseli (oba akty: y 95–229 → 1672×135), chroma-key po odległości od
+  `#0000FF` (progi INNER 90 / OUTER 150 + despill, jak `chroma_key_blue.gd`)
+  → `top_status_bar_slim_act1/2.png`. Kod HUD (pre-skala do 80 px + 9-slice
+  16%) podniósł je plug-and-play, zero zmian w kodzie.
+- Weryfikacja sondą `tmp/probe_ui.tscn`: 1920×1080 i 2550×1288 (okno gracza)
+  — plecionka trzyma grubość, ptak niezniekształcony, statystyki czytelne na
+  spokojnej tkaninie; `ui_layout_test` zielony. Akt II (martwa plecionka,
+  kruk-brąz) wycięty czysto — do rzutu oka w grze po BUM.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).
