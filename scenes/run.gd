@@ -109,7 +109,7 @@ const TUTORIAL_DONE := 13
 @onready var _energy_button: Button = $LevelUpOverlay/Panel/RewardButtons/EnergyButton
 @onready var _health_button: Button = $LevelUpOverlay/Panel/RewardButtons/HealthButton
 @onready var _card_button: Button = $LevelUpOverlay/Panel/RewardButtons/CardButton
-@onready var _card_choices: HBoxContainer = $LevelUpOverlay/Panel/CardChoices
+@onready var _card_choices: Control = $LevelUpOverlay/Panel/CardChoices
 @onready var _night_overlay: NightOverlayView = $NightEventOverlay
 @onready var _forecast_label: Label = $Scroll/Margin/Layout/MidRow/LogPanel/ForecastLabel
 @onready var _pause_overlay: ColorRect = $PauseOverlay
@@ -1858,24 +1858,54 @@ func _on_reward_card() -> void:
 	_reward_buttons.visible = false
 	_clear_card_choices()
 	_level_title.text = tr("Wybierz kartę do talii (obecnie: %d kart)") % _survival.state.deck.size()
-	for card in rewards:
-		var choice_wrap := VBoxContainer.new()
-		choice_wrap.custom_minimum_size = Vector2(132, 228)
-		choice_wrap.add_theme_constant_override("separation", 4)
-		_card_choices.add_child(choice_wrap)
+	# Each choice lands on one of the three painted parchment notes — the same
+	# anchor rects the reward buttons use, so the cards follow any editor tweaks.
+	var note_slots: Array[Button] = [_energy_button, _health_button, _card_button]
+	for i in range(mini(rewards.size(), note_slots.size())):
+		var card: CardData = rewards[i]
+		var slot := note_slots[i]
+		var wrap := Control.new()
+		wrap.anchor_left = slot.anchor_left
+		wrap.anchor_top = slot.anchor_top
+		wrap.anchor_right = slot.anchor_right
+		wrap.anchor_bottom = slot.anchor_bottom
+		wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_card_choices.add_child(wrap)
+		var slot_size := Vector2(
+			(slot.anchor_right - slot.anchor_left) * LEVEL_PANEL_BASE.x,
+			(slot.anchor_bottom - slot.anchor_top) * LEVEL_PANEL_BASE.y
+		)
 
+		var count_text := tr("Masz w talii: %d") % _deck_count_for(card)
 		var view: CardView = CARD_VIEW_SCENE.instantiate()
-		choice_wrap.add_child(view)
+		wrap.add_child(view)
 		view.setup(card, "", "", _card_effect_override(card))
-		view.tooltip_text = tr("Masz w talii: %d") % _deck_count_for(card)
+		view.tooltip_text = count_text
 		view.pressed.connect(_on_reward_card_chosen.bind(card))
+		# Shrink the card so card + count line fit inside the note (the note's
+		# ragged painted edge eats the last ~10 px, keep the line above it).
+		var label_height := 16.0
+		var note_edge := 10.0
+		var card_size := view.custom_minimum_size
+		var card_scale := minf(
+			(slot_size.y - label_height - note_edge) / card_size.y,
+			slot_size.x / card_size.x
+		)
+		view.scale = Vector2(card_scale, card_scale)
+		view.position = Vector2((slot_size.x - card_size.x * card_scale) * 0.5, 0.0)
 
 		var count_label := Label.new()
-		count_label.text = tr("Masz w talii: %d") % _deck_count_for(card)
+		count_label.text = count_text
 		count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		count_label.add_theme_font_size_override("font_size", 12)
-		count_label.add_theme_color_override("font_color", Color(0.93, 0.87, 0.66, 1.0))
-		choice_wrap.add_child(count_label)
+		# Dark ink — the line sits on the parchment note, not on dark wood.
+		count_label.add_theme_color_override("font_color", Color(0.32, 0.2, 0.09, 1.0))
+		count_label.anchor_top = 1.0
+		count_label.anchor_bottom = 1.0
+		count_label.anchor_right = 1.0
+		count_label.offset_top = -label_height - note_edge
+		count_label.offset_bottom = -note_edge
+		wrap.add_child(count_label)
 	_card_choices.visible = true
 
 
