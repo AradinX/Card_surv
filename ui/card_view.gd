@@ -16,6 +16,7 @@ signal card_drag_finished
 @onready var _frame: TextureRect = $Frame
 
 const FRAME_BUILDING := "res://assets/art/cards/frames/card_frame_building.png"
+const FRAME_BUILDING_ACT2 := "res://assets/art/cards/frames/card_frame_building_act2.png"
 const FRAME_EVENT := "res://assets/art/cards/frames/card_frame_event.png"
 const FRAME_MONSTER := "res://assets/art/cards/frames/card_frame_monster.png"
 const ACTION_ART_DIR := "res://assets/art/cards/illustrations/actions_act1_candidates"
@@ -188,12 +189,16 @@ func _apply_art(card: CardData) -> void:
 
 
 ## Monster-attack and nature/biome night events get their own frames;
-## everything else (actions, buildings, gather cards) uses the base frame.
+## everything else (actions, buildings, gather cards) uses the base frame —
+## swapped for its corroded Act II variant after BUM (a non-empty disaster id
+## means the run is post-BUM). Plug-and-play: no file = Act I frame stays.
 func _frame_path(card: CardData) -> String:
 	if card is MonsterCardData:
 		return FRAME_MONSTER
 	if card is EventCardData:
 		return FRAME_EVENT
+	if _disaster_id != "" and ResourceLoader.exists(FRAME_BUILDING_ACT2):
+		return FRAME_BUILDING_ACT2
 	return FRAME_BUILDING
 
 
