@@ -1386,3 +1386,7 @@ zima -%d kamienia,winter -%d stone
 Żywiczny zapach,Resinous scent
 −%d obrażeń od potworów,−%d damage from monsters
 paliwo na %d nocy,fuel for %d nights
+"Kontynuuj — %s","Continue — %s"
+"Zapisany run gra postacią, którą go zaczęto.
+Wybór postaci obok dotyczy tylko nowej gry.","A saved run plays as the character it was started with.
+The character picker next to it only applies to a new game."

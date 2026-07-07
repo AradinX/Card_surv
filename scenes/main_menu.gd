@@ -155,6 +155,7 @@ func _make_character_card(character_class: CharacterClassData) -> PanelContainer
 func _refresh_meta_ui() -> void:
 	_coins_label.text = tr("Złote monety: %d") % GameManager.meta_state.gold_coins
 	_populate_class_selector()
+	_refresh_continue_button()
 	var can_spin: bool = GameManager.meta_state.can_spin(GameManager.class_count())
 	_roulette_button.disabled = not can_spin
 	if GameManager.meta_state.unlocked_class_ids.size() >= GameManager.class_count():
@@ -162,6 +163,20 @@ func _refresh_meta_ui() -> void:
 	else:
 		var coin_label := "moneta" if MetaState.SPIN_COST == 1 else "monety"
 		_roulette_button.text = tr("Ruletka postaci (%d %s)") % [MetaState.SPIN_COST, coin_label]
+
+
+## The saved run is locked to the class it was started with (the dropdown only
+## affects a NEW game) — say so on the button instead of letting the player
+## think the selection carries over.
+func _refresh_continue_button() -> void:
+	var saved_class: CharacterClassData = GameManager.class_catalog.get(
+		GameManager.saved_run_class_id()
+	)
+	if saved_class != null:
+		_continue_button.text = tr("Kontynuuj — %s") % tr(saved_class.display_name)
+		_continue_button.tooltip_text = tr(
+			"Zapisany run gra postacią, którą go zaczęto.\nWybór postaci obok dotyczy tylko nowej gry."
+		)
 
 
 func _populate_class_selector() -> void:

@@ -189,6 +189,19 @@ func has_saved_run() -> bool:
 	return FileAccess.file_exists(RUN_SAVE_PATH)
 
 
+## Class id stored in the autosave ("" when none/invalid). A run always resumes
+## with the class it was started with — the menu shows that on "Kontynuuj",
+## because the class selector applies only to a NEW run.
+func saved_run_class_id() -> String:
+	if not has_saved_run():
+		return ""
+	var file := FileAccess.open(RUN_SAVE_PATH, FileAccess.READ)
+	if file == null:
+		return ""
+	var data: Variant = JSON.parse_string(file.get_as_text())
+	return str(data.get("class_id", "")) if data is Dictionary else ""
+
+
 ## Persists the current run's state (called at every dawn via day_started).
 func save_run() -> void:
 	if survival != null and survival.state != null:
