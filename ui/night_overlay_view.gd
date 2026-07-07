@@ -42,7 +42,7 @@ var _night_hover_tweens: Dictionary = {}
 var _night_block_tweens: Dictionary = {}
 var _night_popup_kind := ""
 var _night_choice_buttons: Array[Button] = []
-var _night_choice_labels: Array[Label] = []
+var _night_choice_labels: Array[RichTextLabel] = []
 var _act2 := false
 var _act2_text_color := Color.WHITE
 
@@ -193,7 +193,7 @@ func _setup_night_button_hover(button: Button, target: Control = null) -> void:
 	var visual: Control = target if target != null else button
 	visual.pivot_offset = visual.size * 0.5
 	if not button.has_meta("night_hover_normal_color"):
-		button.set_meta("night_hover_normal_color", visual.get_theme_color("font_color"))
+		button.set_meta("night_hover_normal_color", _visual_font_color(visual))
 	var enter_callable := Callable(self, "_on_night_button_hover_changed").bind(button, target, true)
 	var exit_callable := Callable(self, "_on_night_button_hover_changed").bind(button, target, false)
 	if not button.mouse_entered.is_connected(enter_callable):
@@ -213,7 +213,7 @@ func _on_night_button_hover_changed(button: Button, target: Control, hovered: bo
 	var visual: Control = target if target != null and is_instance_valid(target) else button
 	if visual == null or not is_instance_valid(visual):
 		return
-	var normal_color: Color = button.get_meta("night_hover_normal_color", visual.get_theme_color("font_color"))
+	var normal_color: Color = button.get_meta("night_hover_normal_color", _visual_font_color(visual))
 	var block_reason := str(button.get_meta("choice_block_reason", ""))
 	var can_hover := hovered and not button.disabled and block_reason == ""
 	var target_scale := NIGHT_BUTTON_HOVER_SCALE if can_hover else Vector2.ONE
@@ -229,8 +229,7 @@ func _on_night_button_hover_changed(button: Button, target: Control, hovered: bo
 	tween.tween_callback(func() -> void:
 		_night_hover_tweens.erase(key)
 	).set_delay(0.1)
-	if visual is Label or visual is Button:
-		visual.add_theme_color_override("font_color", target_color)
+	_set_visual_font_color(visual, target_color)
 
 
 func _reset_night_button_hover(button: Button, target: Control = null) -> void:
@@ -245,9 +244,23 @@ func _reset_night_button_hover(button: Button, target: Control = null) -> void:
 		existing.kill()
 	_night_hover_tweens.erase(key)
 	visual.scale = Vector2.ONE
-	var normal_color: Color = button.get_meta("night_hover_normal_color", visual.get_theme_color("font_color"))
-	if visual is Label or visual is Button:
-		visual.add_theme_color_override("font_color", normal_color)
+	var normal_color: Color = button.get_meta("night_hover_normal_color", _visual_font_color(visual))
+	_set_visual_font_color(visual, normal_color)
+
+
+## Labels/Buttons colour their text via "font_color", RichTextLabels (choice
+## notes with inline stat icons) via "default_color".
+func _visual_font_color(visual: Control) -> Color:
+	if visual is RichTextLabel:
+		return visual.get_theme_color("default_color")
+	return visual.get_theme_color("font_color")
+
+
+func _set_visual_font_color(visual: Control, color: Color) -> void:
+	if visual is RichTextLabel:
+		visual.add_theme_color_override("default_color", color)
+	elif visual is Label or visual is Button:
+		visual.add_theme_color_override("font_color", color)
 
 
 func _collect_night_choice_controls() -> void:
@@ -257,7 +270,7 @@ func _collect_night_choice_controls() -> void:
 		var button := _night_panel.get_node_or_null("ChoiceButtons/ChoiceButton%d" % i) as Button
 		if button != null:
 			_night_choice_buttons.append(button)
-		var label := _night_panel.get_node_or_null("ChoiceButtons/ChoiceText%d" % i) as Label
+		var label := _night_panel.get_node_or_null("ChoiceButtons/ChoiceText%d" % i) as RichTextLabel
 		if label != null:
 			_night_choice_labels.append(label)
 
@@ -383,7 +396,7 @@ func _build_night_choices(card: CardData) -> void:
 		var button := _night_choice_buttons[i]
 		var hover_label: Control = _night_choice_labels[i] if i < _night_choice_labels.size() else null
 		_reset_night_button_hover(button, hover_label)
-		var label: Label = _night_choice_labels[i] if i < _night_choice_labels.size() else null
+		var label: RichTextLabel = _night_choice_labels[i] if i < _night_choice_labels.size() else null
 		var has_choice := i < choice_indices.size()
 		button.visible = has_choice
 		if label != null:
@@ -400,7 +413,8 @@ func _build_night_choices(card: CardData) -> void:
 		button.modulate = Color(0.72, 0.68, 0.62, 1.0) if block_reason != "" else Color.WHITE
 		button.text = ""
 		if label != null:
-			label.text = _choice_button_text(choice, block_reason)
+			label.text = "[center]%s[/center]" % StatIcons.iconify(
+				_choice_button_text(choice, block_reason), 14)
 			label.modulate = Color(0.72, 0.68, 0.62, 1.0) if block_reason != "" else Color.WHITE
 		_disconnect_night_choice_button(button)
 		button.pressed.connect(Callable(self, "_on_night_choice_button_pressed").bind(button))

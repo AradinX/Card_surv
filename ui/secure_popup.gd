@@ -16,7 +16,7 @@ const PANEL_ACT2 := "res://assets/art/ui/panels/secure_popup_panel_act2.png"
 @onready var _panel: Control = $Panel
 @onready var _title_label: Label = $Panel/TitleLabel
 @onready var _preview: TextureRect = $Panel/RegionPreview
-@onready var _cost_label: Label = $Panel/CostLabel
+@onready var _cost_label: RichTextLabel = $Panel/CostLabel
 @onready var _effect_label: Label = $Panel/EffectLabel
 @onready var _close_button: Button = $Panel/CloseButton
 @onready var _ok_button: Button = $Panel/OkButton
@@ -41,7 +41,7 @@ func open(
 		ok_text: String = "Zabezpiecz",
 		preview: Texture2D = null) -> void:
 	_title_label.text = title
-	_cost_label.text = cost_text
+	_cost_label.text = StatIcons.iconify(cost_text, 18)
 	_effect_label.text = effect_text
 	_ok_button.text = ok_text
 	_preview.texture = preview
@@ -61,7 +61,7 @@ func set_act2() -> void:
 	# Tabliczki Act II są ciemne (kontrast brązu ~1.9-2.4) — jasny krem daje ~4.5-5.
 	var cream := Color(0.93, 0.88, 0.72, 1)
 	_title_label.add_theme_color_override("font_color", cream)
-	_cost_label.add_theme_color_override("font_color", cream)
+	_cost_label.add_theme_color_override("default_color", cream)
 	_effect_label.add_theme_color_override("font_color", cream)
 
 

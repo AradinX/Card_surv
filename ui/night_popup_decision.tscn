@@ -170,7 +170,8 @@ offset_bottom = 0.05999756
 theme_override_styles/normal = SubResource("StyleBoxEmpty_r5ctm")
 clip_text = true
 
-[node name="ChoiceText1" type="Label" parent="ChoiceButtons"]
+[node name="ChoiceText1" type="RichTextLabel" parent="ChoiceButtons"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.026
@@ -181,14 +182,14 @@ offset_left = 18.979147
 offset_top = 1.9012146
 offset_right = -24.99997
 offset_bottom = -0.11998749
-theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
-theme_override_font_sizes/font_size = 12
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-clip_text = true
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+scroll_active = false
 
-[node name="ChoiceText2" type="Label" parent="ChoiceButtons"]
+[node name="ChoiceText2" type="RichTextLabel" parent="ChoiceButtons"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.02
@@ -199,14 +200,14 @@ offset_left = 18.802427
 offset_top = 2.769989
 offset_right = -27.631165
 offset_bottom = -10.078171
-theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
-theme_override_font_sizes/font_size = 12
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-clip_text = true
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+scroll_active = false
 
-[node name="ChoiceText3" type="Label" parent="ChoiceButtons"]
+[node name="ChoiceText3" type="RichTextLabel" parent="ChoiceButtons"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.02
@@ -217,12 +218,11 @@ offset_left = 23.802427
 offset_top = 6.339447
 offset_right = -24.922363
 offset_bottom = -6.200012
-theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
-theme_override_font_sizes/font_size = 12
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-clip_text = true
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/normal_font_size = 12
+bbcode_enabled = true
+scroll_active = false
 
 [node name="ContinueButton" type="Button" parent="."]
 layout_mode = 1

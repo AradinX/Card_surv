@@ -68,7 +68,8 @@ mouse_filter = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CostLabel" type="Label" parent="Panel"]
+[node name="CostLabel" type="RichTextLabel" parent="Panel"]
+clip_contents = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.13900001
@@ -79,11 +80,12 @@ offset_left = -0.08000946
 offset_top = 0.17999268
 offset_right = -0.2000122
 offset_bottom = -0.2000122
-theme_override_colors/font_color = Color(0.24, 0.16, 0.08, 1)
-theme_override_font_sizes/font_size = 16
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.24, 0.16, 0.08, 1)
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
 text = "Koszt"
-autowrap_mode = 3
-clip_text = true
+scroll_active = false
 
 [node name="EffectLabel" type="Label" parent="Panel"]
 layout_mode = 1
