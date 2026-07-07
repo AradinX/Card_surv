@@ -272,6 +272,7 @@ func _apply_panel_style(act: int) -> void:
 		_frame.patch_margin_bottom = margin
 		_frame.visible = true
 		_panel.visible = false
+		call_deferred("_bleed_frame_to_window_edges")
 		return
 	var style := StyleBoxFlat.new()
 	if act == 2:
@@ -285,3 +286,20 @@ func _apply_panel_style(act: int) -> void:
 	_panel.add_theme_stylebox_override("panel", style)
 	_frame.visible = false
 	_panel.visible = true
+
+
+## The bar sits inside the run layout's MarginContainer, but the painted
+## mockup's braid runs edge to edge — so the frame art bleeds over the layout
+## margins to the window edges (content in Row stays inside the margins).
+func _bleed_frame_to_window_edges() -> void:
+	if not is_inside_tree() or not _frame.visible:
+		return
+	var gap_left := global_position.x
+	var gap_right := get_viewport_rect().size.x - (global_position.x + size.x)
+	_frame.offset_left = -maxf(gap_left, 0.0)
+	_frame.offset_right = maxf(gap_right, 0.0)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_RESIZED:
+		call_deferred("_bleed_frame_to_window_edges")
