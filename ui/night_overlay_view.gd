@@ -166,6 +166,21 @@ func _bind_night_popup_nodes() -> void:
 		_night_continue_button.pressed.connect(continue_callable)
 	_clear_night_button_chrome(_night_continue_button)
 	_setup_night_button_hover(_night_continue_button)
+	# Description and result share ONE sheet window, centered both ways — the
+	# four popup scenes had them at slightly different hand-tuned rects and
+	# alignments. show_card/_on_night_choice only ever move the bottom edge
+	# (choice popups keep the lower sheet clear for the pinned notes).
+	for sheet_label: Label in [_night_desc, _night_result]:
+		sheet_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		sheet_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		sheet_label.anchor_left = 0.545
+		sheet_label.anchor_right = 0.85
+		sheet_label.anchor_top = 0.224
+		sheet_label.offset_left = 6.0
+		sheet_label.offset_top = 0.0
+		sheet_label.offset_right = -6.0
+		sheet_label.offset_bottom = 0.0
+	_night_result.anchor_bottom = 0.678
 	# The summary note and choice sheets are small and their icon lines wrap —
 	# extra leading keeps wrapped lines from stacking on each other.
 	_night_summary.add_theme_constant_override("line_separation", 5)
@@ -518,7 +533,31 @@ func _night_summary_text(card: CardData) -> String:
 	if passives != "":
 		lines.append(tr("Budynki: %s") % passives)
 	lines.append(tr("Noc: %s") % _night_needs_summary())
+	var total := _night_total_summary(card)
+	if total != "":
+		lines.append(tr("Podsumowanie: %s") % total)
 	return "\n".join(lines)
+
+
+## Net effect of the whole night — card + building passives + need decays —
+## so the player doesn't have to sum three lines in their head. Empty for
+## choice cards (the total depends on the pick).
+func _night_total_summary(card: CardData) -> String:
+	var totals := _building_passive_deltas()
+	if card is MonsterCardData:
+		totals[0] -= (card as MonsterCardData).damage_to_player
+	elif card is EventCardData:
+		var event := card as EventCardData
+		if not event.choices.is_empty():
+			return ""
+		var event_deltas := _event_stat_deltas(event)
+		for i in totals.size():
+			totals[i] += event_deltas[i]
+	var decays := _night_needs_decays()
+	totals[1] -= decays[0]
+	totals[2] -= decays[1]
+	totals[3] -= decays[2]
+	return _join_effect_parts(_stat_delta_parts(totals))
 
 
 func _night_card_effect_summary(card: CardData) -> String:
@@ -535,56 +574,65 @@ func _night_card_effect_summary(card: CardData) -> String:
 	var event := card as EventCardData
 	if not event.choices.is_empty():
 		return tr("wybierz opcję poniżej")
+	var event_parts := _stat_delta_parts(_event_stat_deltas(event))
+	return _join_effect_parts(event_parts) if not event_parts.is_empty() else "brak zmian"
+
+
+## [health, hunger, thirst, warmth, food, water, wood, stone, next_energy]
+## for a no-choice event, with shelter protection already applied.
+func _event_stat_deltas(event: EventCardData) -> Array[int]:
 	var health_delta := event.health_delta
 	var warmth_delta := event.warmth_delta
 	if event.shelter_protects and _has_standing_special("night_protection"):
 		health_delta = maxi(health_delta, mini(health_delta + SurvivalSystem.NIGHT_PROTECTION_VALUE, 0))
 		warmth_delta = maxi(warmth_delta, mini(warmth_delta + SurvivalSystem.NIGHT_PROTECTION_VALUE, 0))
-	var event_parts := _stat_delta_parts(
-		health_delta, event.hunger_delta, event.thirst_delta, warmth_delta,
+	return [health_delta, event.hunger_delta, event.thirst_delta, warmth_delta,
 		event.food_delta, event.water_delta, event.wood_delta, event.materials_delta,
-		event.next_day_energy_delta
-	)
-	return _join_effect_parts(event_parts) if not event_parts.is_empty() else "brak zmian"
+		event.next_day_energy_delta]
 
 
 func _night_building_passive_summary() -> String:
+	return _join_effect_parts(_stat_delta_parts(_building_passive_deltas()))
+
+
+## Same layout as _event_stat_deltas, summed over standing (non-ruined)
+## buildings. Workshop crafting (-1 wood, +1 stone) is folded into the numbers.
+func _building_passive_deltas() -> Array[int]:
+	var d: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0]
 	if _survival == null or _survival.state == null:
-		return ""
-	var health := 0
-	var hunger := 0
-	var thirst := 0
-	var warmth := 0
-	var food := 0
-	var water := 0
-	var wood := 0
-	var stone := 0
+		return d
 	var workshop_crafts := false
 	for tile in _survival.state.board:
 		for built in tile.buildings:
 			if built.is_ruined:
 				continue
 			var data: BuildingCardData = built.data
-			health += data.health_delta
-			hunger += data.hunger_delta
-			thirst += data.thirst_delta
-			warmth += data.warmth_delta
-			food += data.food_gain
-			water += data.water_gain
-			wood += data.wood_gain
-			stone += data.materials_gain
+			d[0] += data.health_delta
+			d[1] += data.hunger_delta
+			d[2] += data.thirst_delta
+			d[3] += data.warmth_delta
+			d[4] += data.food_gain
+			d[5] += data.water_gain
+			d[6] += data.wood_gain
+			d[7] += data.materials_gain
 			if data.special == "unlock_crafting" and _survival.state.wood > 0:
 				workshop_crafts = true
-	var parts := _stat_delta_parts(health, hunger, thirst, warmth, food, water, wood, stone, 0)
 	if workshop_crafts:
-		parts.append("+1 kamienia")
-		parts.append("-1 drewna")
-	return _join_effect_parts(parts)
+		d[6] -= 1
+		d[7] += 1
+	return d
 
 
 func _night_needs_summary() -> String:
+	var decays := _night_needs_decays()
+	return tr("-%d sytości, -%d nawodnienia, -%d ciepła") % [decays[0], decays[1], decays[2]]
+
+
+## Tonight's raw need decays as positive numbers: [hunger, thirst, warmth].
+func _night_needs_decays() -> Array[int]:
 	if _survival == null or _survival.state == null:
-		return tr("-3 sytości, -3 nawodnienia, -3 ciepła")
+		return [SurvivalSystem.DAILY_HUNGER_DECAY, SurvivalSystem.DAILY_THIRST_DECAY,
+			SurvivalSystem.DAILY_WARMTH_DECAY]
 	var state := _survival.state
 	var hunger_decay := SurvivalSystem.DAILY_HUNGER_DECAY + state.character_class.hunger_rate_delta
 	var thirst_decay := SurvivalSystem.DAILY_THIRST_DECAY + state.character_class.thirst_rate_delta
@@ -597,25 +645,22 @@ func _night_needs_summary() -> String:
 		thirst_decay += SurvivalSystem.SUMMER_EXTRA_THIRST_DECAY
 	if state.season == RunState.Season.WINTER:
 		warmth_decay += SurvivalSystem.WINTER_EXTRA_WARMTH_DECAY
-	return tr("-%d sytości, -%d nawodnienia, -%d ciepła") % [
-		hunger_decay, thirst_decay, warmth_decay
-	]
+	return [hunger_decay, thirst_decay, warmth_decay]
 
 
-func _stat_delta_parts(
-	health: int, hunger: int, thirst: int, warmth: int,
-	food: int, water: int, wood: int, stone: int, next_energy: int
-) -> PackedStringArray:
+## "+2 wody"-style parts from [health, hunger, thirst, warmth, food, water,
+## wood, stone, next_energy]; zero deltas are skipped.
+func _stat_delta_parts(d: Array[int]) -> PackedStringArray:
 	var parts: PackedStringArray = []
-	if health != 0: parts.append(tr("%+d zdrowia") % health)
-	if hunger != 0: parts.append(tr("%+d sytości") % hunger)
-	if thirst != 0: parts.append(tr("%+d nawodnienia") % thirst)
-	if warmth != 0: parts.append(tr("%+d ciepła") % warmth)
-	if food != 0: parts.append(tr("%+d jedzenia") % food)
-	if water != 0: parts.append(tr("%+d wody") % water)
-	if wood != 0: parts.append(tr("%+d drewna") % wood)
-	if stone != 0: parts.append(tr("%+d kamienia") % stone)
-	if next_energy != 0: parts.append(tr("%+d energii jutro") % next_energy)
+	if d[0] != 0: parts.append(tr("%+d zdrowia") % d[0])
+	if d[1] != 0: parts.append(tr("%+d sytości") % d[1])
+	if d[2] != 0: parts.append(tr("%+d nawodnienia") % d[2])
+	if d[3] != 0: parts.append(tr("%+d ciepła") % d[3])
+	if d[4] != 0: parts.append(tr("%+d jedzenia") % d[4])
+	if d[5] != 0: parts.append(tr("%+d wody") % d[5])
+	if d[6] != 0: parts.append(tr("%+d drewna") % d[6])
+	if d[7] != 0: parts.append(tr("%+d kamienia") % d[7])
+	if d[8] != 0: parts.append(tr("%+d energii jutro") % d[8])
 	return parts
 
 
@@ -636,10 +681,6 @@ func _on_night_choice(index: int) -> void:
 	_reset_night_choice_controls()
 	_night_choices.visible = false
 	_night_desc.visible = false
-	# The result reclaims the full description sheet now that the choice
-	# notes (which used to cover its lower two-thirds) are gone.
-	_night_result.anchor_top = 0.224
-	_night_result.anchor_bottom = 0.678
 	_night_result.text = summary
 	_night_result.visible = true
 	_night_summary.text = StatIcons.iconify(tr("Wybór: %s\nNoc: %s") % [
