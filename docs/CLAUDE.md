@@ -2456,6 +2456,30 @@ więc run.gd/testy/bot nie wymagały przepisania.
   wierzchu po otwarciu z pauzy.
 - Weryfikacja: `--import` + `ui_layout_test` + `smoke_test` zielone.
 
+### Wpięcie pakietu graficznego przed premierą (2026-07-07)
+
+- **15 zwietrzałych ilustracji budynków Aktu II** w `assets/art/cards/
+  illustrations/buildings_act2/` (id = nazwa pliku, jak Akt I). Po BUM
+  podmieniają art w trzech miejscach: karta w katalogu budowy (`card_view`,
+  po `_disaster_id`), slot na kaflu (`biome_tile_view`, po `tile.is_corrupted`)
+  i popup budynku (`building_popup_view`, po `is_act2`). Wszystko per plik
+  pod `ResourceLoader.exists` — brak pliku = jasny art Aktu I zostaje.
+- `building_stone_storage` dostał własny art w obu aktach — alias do
+  Kamieniołomu (`BUILDING_ART_ALIASES`) usunięty ze wszystkich 3 miejsc.
+- **Zregenerowane paski HUD** `top_status_bar_slim_act1/act2.png` (1920×96,
+  winieta tylko w strefie x 330–810 zmierzonej z gry) + **ramka kart Aktu II**
+  `card_frame_building_act2.png` (podnoszona po BUM, wpięta wcześniej).
+- **Malowany panel awansu** `level_up_panel.png`: `LevelUpOverlay/Panel`
+  w `run.tscn` przebudowany z PanelContainer na sztywny layout pod strefy
+  artu (baza 1024×427); przyciski nagród celowo BEZ drewnianej skórki —
+  siedzą na namalowanych pergaminowych notkach (wyjątek w
+  `_apply_button_skin`).
+- **Logo** `logo_dzien50.png` w menu głównym zastępuje tekstowy tytuł
+  i podtytuł (`main_menu.gd _apply_logo`, fallback do etykiet gdy brak pliku).
+- Weryfikacja: `--import` czysty, `ui_layout_test` (125 kart),
+  `popup_act2_test`, ścieżki panelu awansu w `run.tscn` sprawdzone headless.
+  Do rzutu oka w edytorze: panel awansu i HUD na żywo.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).
