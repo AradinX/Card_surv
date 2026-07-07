@@ -900,8 +900,9 @@ Trzy powiązane zmiany na prośbę gracza (gra była za łatwa: hoarding 100 jed
   Wojskowy 21, Wędrowiec 20 (swap survey→cache zabrał botowi losowe nagrody
   explore; dla człowieka pewny zysk). Spread 20–30/30 zachowany, drabinka nie
   złamana. `load`/`ui_layout` (80 kart) OK. Pula nagród nietknięta (27 akcji).
-- ZNANE: sygnatury bez ilustracji — renderują się ramką+tekstem (`card_view`
-  fallback `action_<id>.png`); art opcjonalny (kosmetyka).
+- ~~ZNANE: sygnatury bez ilustracji~~ NIEAKTUALNE (audyt 2026-07-08):
+  wszystkie 9 sygnatur ma dedykowane `action_<klasa>_signature.png`
+  w `actions_act1_candidates/` (dograne jeszcze tego samego dnia).
 
 ### Dwa nowe biomy: Bagno i Rzeka (2026-06-20)
 
@@ -2554,6 +2555,22 @@ więc run.gd/testy/bot nie wymagały przepisania.
   celowo bez rozlania. Wydane jako **v1.0.6** (tag → CI → GitHub Release);
   lokalny tag `v1.0.5` wisiał niewypchnięty na starszym commicie, stąd skok
   numeru.
+
+### Szlif przed premierą: blokada postaci przy kontynuacji + „Mocny sen" (2026-07-08)
+
+- **„Kontynuuj" jest jawnie przypięte do postaci z zapisu.** Mechanicznie
+  zawsze tak było (zapis trzyma `class_id`, `from_dict` ją odtwarza, dropdown
+  w menu czyta tylko `start_new_run` — potwierdzone sondą headless), ale UI
+  udawało co innego. Menu: przycisk pokazuje „Kontynuuj — <klasa>" (nowe
+  `GameManager.saved_run_class_id()` — peek w JSON zapisu) + tooltip, że wybór
+  postaci obok dotyczy tylko nowej gry.
+- **Duplikat nazwy karty rozwiązany:** samodzielna karta `deep_sleep`
+  (1E → +2E/+1HP, pula nagród, 2026-06-19) nazywała się „Głęboki sen" tak samo
+  jak późniejsze ulepszenie Odpoczynku `rest_up` „Odpoczynek: Głęboki sen"
+  (2026-06-28) — obie mogły leżeć w jednej talii. `deep_sleep` przemianowana na
+  **„Mocny sen"** (EN „Sound sleep"); id/mechanika/art bez zmian.
+- Wersja exe podbita do 1.0.7.0 (checklista `STEAM_RELEASE.md`); wydane jako
+  **v1.0.7**.
 
 ## Konwencje
 
