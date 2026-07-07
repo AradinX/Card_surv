@@ -26,9 +26,9 @@ static var _marker_path: String = PLAYER_MARKER
 ## Hover tooltip on the current-tile marker (class name + ability summary).
 static var _marker_tooltip: String = ""
 @export var secure_region_frame_texture: Texture2D
-const BUILDING_ART_ALIASES := {
-	"building_stone_storage": "building_quarry",
-}
+# building_stone_storage borrowed the quarry art until 2026-07-05; it has its
+# own illustration now, so no aliases remain.
+const BUILDING_ART_ALIASES := {}
 
 
 ## Pick the current-tile marker + hover tooltip for the played class (falls back
@@ -45,6 +45,7 @@ static func set_marker_for_class(character_class: CharacterClassData) -> void:
 	if summary != "":
 		_marker_tooltip += "\n" + summary
 const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_candidates"
+const BUILDING_ART_ACT2_DIR := "res://assets/art/cards/illustrations/buildings_act2"
 ## Discovery fog layers, stacked bottom -> top (reveal_01 at the back,
 ## reveal_02 on top). Peeled away in REVEAL_FADE_ORDER, with reveal_03 left for
 ## the final dissipating animation.
@@ -446,7 +447,7 @@ func _refresh_slots(tile: TileState, building_tooltips: Array[String] = []) -> v
 		var occupied := i < tile.buildings.size()
 		if i < tile.buildings.size():
 			tip = building_tooltips[i] if i < building_tooltips.size() else ""
-			_fill_occupied_slot(slot, tile.buildings[i], tip)
+			_fill_occupied_slot(slot, tile.buildings[i], tip, tile.is_corrupted)
 		# Wrap each slot so a per-slot top margin can stagger the row.
 		var slot_wrap := MarginContainer.new()
 		slot_wrap.mouse_filter = Control.MOUSE_FILTER_STOP if occupied else Control.MOUSE_FILTER_IGNORE
@@ -489,11 +490,15 @@ func _make_slot() -> Panel:
 	return slot
 
 
-func _fill_occupied_slot(slot: Panel, built: BuildingState, building_tooltip: String) -> void:
+func _fill_occupied_slot(slot: Panel, built: BuildingState, building_tooltip: String,
+		is_corrupted: bool = false) -> void:
 	slot.mouse_filter = Control.MOUSE_FILTER_PASS
 	slot.tooltip_text = building_tooltip
 	var art_id := str(BUILDING_ART_ALIASES.get(built.data.id, built.data.id))
-	var art_path := "%s/%s.png" % [BUILDING_ART_DIR, art_id]
+	# Weathered Act II art on corrupted tiles (plug-and-play per file).
+	var art_path := "%s/%s.png" % [BUILDING_ART_ACT2_DIR, art_id]
+	if not is_corrupted or not ResourceLoader.exists(art_path):
+		art_path = "%s/%s.png" % [BUILDING_ART_DIR, art_id]
 	if ResourceLoader.exists(art_path):
 		var thumb := TextureRect.new()
 		thumb.texture = load(art_path)

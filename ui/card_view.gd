@@ -21,6 +21,7 @@ const FRAME_EVENT := "res://assets/art/cards/frames/card_frame_event.png"
 const FRAME_MONSTER := "res://assets/art/cards/frames/card_frame_monster.png"
 const ACTION_ART_DIR := "res://assets/art/cards/illustrations/actions_act1_candidates"
 const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_candidates"
+const BUILDING_ART_ACT2_DIR := "res://assets/art/cards/illustrations/buildings_act2"
 const EVENT_ART_DIR := "res://assets/art/cards/illustrations/events"
 const MONSTER_ART_DIR := "res://assets/art/cards/illustrations/monsters"
 # Action cards resolve to a dedicated `action_<id>.png` first (see
@@ -225,6 +226,12 @@ func _description_for_display(card: CardData) -> String:
 
 func _illustration_path(card: CardData) -> String:
 	if card is BuildingCardData:
+		# Post-BUM the weathered Act II art takes over (per-file plug-and-play;
+		# missing file = bright Act I art stays).
+		if _disaster_id != "":
+			var act2_path := "%s/%s.png" % [BUILDING_ART_ACT2_DIR, card.id]
+			if ResourceLoader.exists(act2_path):
+				return act2_path
 		return "%s/%s.png" % [BUILDING_ART_DIR, card.id]
 	if card is MonsterCardData:
 		return "%s/%s.png" % [

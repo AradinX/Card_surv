@@ -62,7 +62,7 @@ const BIOME_PREVIEW_ART_IDS := {
 }
 const DESIGN_VIEWPORT := Vector2(1280, 720)
 const OVERLAY_PADDING := Vector2(32, 32)
-const LEVEL_PANEL_BASE := Vector2(900, 470)
+const LEVEL_PANEL_BASE := Vector2(1024, 427)
 const PAUSE_PANEL_BASE := Vector2(460, 430)
 const TUTORIAL_PANEL_BASE := Vector2(430, 190)
 const TUTORIAL_HIGHLIGHT_PAD := 8.0
@@ -103,13 +103,13 @@ const TUTORIAL_DONE := 13
 @onready var _build_toggle_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/BuildToggleButton
 @onready var _end_day_button: Button = $Scroll/Margin/Layout/CardsRow/BottomBar/ButtonColumn/EndDayButton
 @onready var _level_overlay: ColorRect = $LevelUpOverlay
-@onready var _level_panel: PanelContainer = $LevelUpOverlay/Panel
-@onready var _level_title: Label = $LevelUpOverlay/Panel/PanelMargin/VBox/TitleLabel
-@onready var _reward_buttons: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons
-@onready var _energy_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/EnergyButton
-@onready var _health_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/HealthButton
-@onready var _card_button: Button = $LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons/CardButton
-@onready var _card_choices: HBoxContainer = $LevelUpOverlay/Panel/PanelMargin/VBox/CardChoices
+@onready var _level_panel: Control = $LevelUpOverlay/Panel
+@onready var _level_title: Label = $LevelUpOverlay/Panel/TitleLabel
+@onready var _reward_buttons: Control = $LevelUpOverlay/Panel/RewardButtons
+@onready var _energy_button: Button = $LevelUpOverlay/Panel/RewardButtons/EnergyButton
+@onready var _health_button: Button = $LevelUpOverlay/Panel/RewardButtons/HealthButton
+@onready var _card_button: Button = $LevelUpOverlay/Panel/RewardButtons/CardButton
+@onready var _card_choices: HBoxContainer = $LevelUpOverlay/Panel/CardChoices
 @onready var _night_overlay: NightOverlayView = $NightEventOverlay
 @onready var _forecast_label: Label = $Scroll/Margin/Layout/MidRow/LogPanel/ForecastLabel
 @onready var _pause_overlay: ColorRect = $PauseOverlay
@@ -161,7 +161,6 @@ func _ready() -> void:
 	_main_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	_build_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_ALWAYS
 	_forecast_label.visible = false
-	_card_choices.custom_minimum_size = Vector2(0, 232)
 	_top_status_bar.setup_max_values()
 	_setup_overlay_layers()
 	_night_overlay.setup(_survival)
@@ -1509,10 +1508,9 @@ func _spawn_tile_fx(path: String, additive: bool) -> void:
 
 
 func _apply_button_skin() -> void:
+	# Reward buttons sit on the level-up panel's painted parchment notes —
+	# they keep their scene ink-on-paper style instead of the wooden skin.
 	var buttons := [
-		_energy_button,
-		_health_button,
-		_card_button,
 		_build_toggle_button,
 		_end_day_button,
 	]

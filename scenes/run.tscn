@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://bfy4qx1pqw7b7"]
+[gd_scene load_steps=13 format=3 uid="uid://bfy4qx1pqw7b7"]
 
 [ext_resource type="Script" uid="uid://d3xjy4e2jqie5" path="res://scenes/run.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bddvngethakv0" path="res://assets/art/board/backgrounds/bg_biome_board_act1.png" id="2_run_bg"]
@@ -8,6 +8,9 @@
 [ext_resource type="PackedScene" path="res://ui/settings_overlay.tscn" id="6_settings"]
 [ext_resource type="PackedScene" path="res://ui/night_popup_single.tscn" id="7_night_popup_single"]
 [ext_resource type="Script" path="res://ui/night_overlay_view.gd" id="8_night_overlay"]
+[ext_resource type="Texture2D" path="res://assets/art/ui/panels/level_up_panel.png" id="9_level_panel"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_reward"]
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_log"]
 
@@ -269,65 +272,136 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.55)
 
-[node name="Panel" type="PanelContainer" parent="LevelUpOverlay"]
+[node name="Panel" type="Control" parent="LevelUpOverlay"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
+offset_left = -512.0
+offset_top = -213.0
+offset_right = 512.0
+offset_bottom = 214.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PanelMargin" type="MarginContainer" parent="LevelUpOverlay/Panel"]
-layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 20
+[node name="PanelArt" type="TextureRect" parent="LevelUpOverlay/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("9_level_panel")
+expand_mode = 1
 
-[node name="VBox" type="VBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin"]
-layout_mode = 2
-theme_override_constants/separation = 16
-
-[node name="TitleLabel" type="Label" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 24
+[node name="TitleLabel" type="Label" parent="LevelUpOverlay/Panel"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.25
+anchor_top = 0.08
+anchor_right = 0.75
+anchor_bottom = 0.3
+theme_override_colors/font_color = Color(0.93, 0.83, 0.6, 1)
+theme_override_font_sizes/font_size = 20
 text = "Awans! Poziom 2 — wybierz nagrodę"
 horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 2
+clip_text = true
 
-[node name="RewardButtons" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 12
+[node name="RewardButtons" type="Control" parent="LevelUpOverlay/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="EnergyButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
-custom_minimum_size = Vector2(260, 78)
-layout_mode = 2
-theme = ExtResource("4_button_theme")
-theme_override_font_sizes/font_size = 16
+[node name="EnergyButton" type="Button" parent="LevelUpOverlay/Panel/RewardButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.075
+anchor_top = 0.39
+anchor_right = 0.32
+anchor_bottom = 0.85
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_colors/font_hover_color = Color(0.45, 0.2, 0.04, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.05, 0.02, 1)
+theme_override_colors/font_focus_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_colors/font_disabled_color = Color(0.48, 0.44, 0.37, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_reward")
 text = "+1 maks. energii"
+flat = true
+clip_text = true
 
-[node name="HealthButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
-custom_minimum_size = Vector2(260, 78)
-layout_mode = 2
-theme = ExtResource("4_button_theme")
-theme_override_font_sizes/font_size = 16
+[node name="HealthButton" type="Button" parent="LevelUpOverlay/Panel/RewardButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.378
+anchor_top = 0.39
+anchor_right = 0.623
+anchor_bottom = 0.85
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_colors/font_hover_color = Color(0.45, 0.2, 0.04, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.05, 0.02, 1)
+theme_override_colors/font_focus_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_colors/font_disabled_color = Color(0.48, 0.44, 0.37, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_reward")
 text = "+1 maks. zdrowia
 (+2 leczenia)"
+flat = true
+clip_text = true
 
-[node name="CardButton" type="Button" parent="LevelUpOverlay/Panel/PanelMargin/VBox/RewardButtons"]
-custom_minimum_size = Vector2(260, 78)
-layout_mode = 2
-theme = ExtResource("4_button_theme")
-theme_override_font_sizes/font_size = 16
+[node name="CardButton" type="Button" parent="LevelUpOverlay/Panel/RewardButtons"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.68
+anchor_top = 0.39
+anchor_right = 0.925
+anchor_bottom = 0.85
+theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_colors/font_hover_color = Color(0.45, 0.2, 0.04, 1)
+theme_override_colors/font_pressed_color = Color(0.08, 0.05, 0.02, 1)
+theme_override_colors/font_focus_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_colors/font_disabled_color = Color(0.48, 0.44, 0.37, 1)
+theme_override_font_sizes/font_size = 17
+theme_override_styles/normal = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_reward")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_reward")
 text = "Nowa karta do talii
 (wybór 1 z 3)"
+flat = true
+clip_text = true
 
-[node name="CardChoices" type="HBoxContainer" parent="LevelUpOverlay/Panel/PanelMargin/VBox"]
+[node name="CardChoices" type="HBoxContainer" parent="LevelUpOverlay/Panel"]
 visible = false
-custom_minimum_size = Vector2(0, 208)
-layout_mode = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.05
+anchor_top = 0.33
+anchor_right = 0.95
+anchor_bottom = 0.95
 theme_override_constants/separation = 12
+alignment = 1
 
 [node name="NightEventOverlay" type="ColorRect" parent="."]
 visible = false

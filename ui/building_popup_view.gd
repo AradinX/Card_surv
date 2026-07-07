@@ -8,9 +8,10 @@ signal demolish_pressed(building_index: int)
 const PANEL_ACT1 := "res://assets/art/ui/panels/building_popup_panel_act1.png"
 const PANEL_ACT2 := "res://assets/art/ui/panels/building_popup_panel_act2.png"
 const BUILDING_ART_DIR := "res://assets/art/cards/illustrations/buildings_act1_candidates"
-const BUILDING_ART_ALIASES := {
-	"building_stone_storage": "building_quarry",
-}
+const BUILDING_ART_ACT2_DIR := "res://assets/art/cards/illustrations/buildings_act2"
+# building_stone_storage borrowed the quarry art until 2026-07-05; it has its
+# own illustration now, so no aliases remain.
+const BUILDING_ART_ALIASES := {}
 const POPUP_SIZE := Vector2(640, 480)
 const CHROMA_SHADER := "shader_type canvas_item;
 uniform vec3 outside_key = vec3(1.0, 0.0, 1.0);
@@ -75,7 +76,7 @@ func set_content(data: Dictionary) -> void:
 	# brązu ~1.6) — skin przełącza font na jasny krem.
 	for button: Button in [_use_button, _repair_button, _demolish_button]:
 		ButtonSkin.apply_panel_action(button, 2 if is_act2 else 1)
-	_building_art.texture = _building_texture(building_data)
+	_building_art.texture = _building_texture(building_data, is_act2)
 
 	_title_label.text = tr(building_data.display_name) if building_data != null else ""
 	_hp_label.text = str(data.get("hp_text", ""))
@@ -153,10 +154,15 @@ func _panel_material() -> ShaderMaterial:
 	return material
 
 
-func _building_texture(building_data: BuildingCardData) -> Texture2D:
+func _building_texture(building_data: BuildingCardData, is_act2: bool = false) -> Texture2D:
 	if building_data == null:
 		return null
 	var art_id := str(BUILDING_ART_ALIASES.get(building_data.id, building_data.id))
+	# Weathered Act II art after BUM (plug-and-play per file).
+	if is_act2:
+		var act2_path := "%s/%s.png" % [BUILDING_ART_ACT2_DIR, art_id]
+		if ResourceLoader.exists(act2_path):
+			return load(act2_path)
 	var path := "%s/%s.png" % [BUILDING_ART_DIR, art_id]
 	return load(path) if ResourceLoader.exists(path) else null
 

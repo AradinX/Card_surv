@@ -26,6 +26,7 @@ extends Control
 @onready var _credits_overlay: CreditsOverlayView = $CreditsOverlay
 
 const MARKER_DIR := "res://assets/art/characters"
+const LOGO_PATH := "res://assets/art/ui/logo_dzien50.png"
 
 ## Class ids parallel to the selector's item list (item index -> class id).
 var _selector_class_ids: Array[String] = []
@@ -33,6 +34,7 @@ var _spin_tween: Tween
 
 
 func _ready() -> void:
+	_apply_logo()
 	ButtonSkin.apply_minimal_many([
 		_continue_button, _start_button, _tutorial_button, _roulette_button, _characters_button,
 		_settings_button, _help_button, _credits_button, _quit_button, _roulette_close, _characters_close
@@ -58,6 +60,30 @@ func _ready() -> void:
 		GameManager.meta_state.seen_tutorial = true
 		GameManager.meta_state.save()
 		_help_overlay.open()
+
+
+## Painted logo replaces the plain text title (and the subtitle, whose pitch
+## the logo carries visually) when the file exists; fallback keeps the labels.
+## The VBox is height-tight at 720p, so the freed subtitle space and smaller
+## separation pay for the taller logo.
+func _apply_logo() -> void:
+	if not ResourceLoader.exists(LOGO_PATH):
+		return
+	var vbox: VBoxContainer = $Center/VBox
+	var title: Label = $Center/VBox/Title
+	var subtitle: Label = $Center/VBox/Subtitle
+	title.visible = false
+	subtitle.visible = false
+	vbox.add_theme_constant_override("separation", 6)
+	var logo := TextureRect.new()
+	logo.name = "Logo"
+	logo.texture = load(LOGO_PATH)
+	logo.custom_minimum_size = Vector2(340, 150)
+	logo.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	logo.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	logo.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	vbox.add_child(logo)
+	vbox.move_child(logo, 0)
 
 
 ## Gallery of unlocked characters: medallion portrait + name + flavour + the
