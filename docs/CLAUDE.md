@@ -2480,6 +2480,23 @@ więc run.gd/testy/bot nie wymagały przepisania.
   `popup_act2_test`, ścieżki panelu awansu w `run.tscn` sprawdzone headless.
   Do rzutu oka w edytorze: panel awansu i HUD na żywo.
 
+### Poprawki po feedbacku: karty awansu w karteczkach + pasek HUD v2 (2026-07-07)
+
+- **Wybór karty po awansie trafia w 3 namalowane karteczki** — karty nagrody
+  kotwiczone w rectach przycisków nagród (nie HBox na środku panelu), z linią
+  „Masz w talii: N" ciemnym tuszem na pergaminie.
+- **Pasek HUD zregenerowany w 2496×128** (19,5:1 — dokładnie proporcja paska
+  w grze; prompt: `ASSET_PROMPTS_HUD_POPRAWKA_2026_07_07.md`) z cienkimi
+  bocznymi krawędziami. `Frame` w `top_status_bar_view` to teraz
+  **NinePatchRect** (marginesy = 16% wysokości pliku) — plecionka trzyma
+  grubość przy każdej szerokości okna.
+- Winieta w obu nowych paskach wyszła poza strefę (do ~1400 px, wchodziła pod
+  statystyki) — ogon wygaszony chirurgicznie klonem tkaniny (przejście 60 px,
+  one-off PowerShell w sesji; szew niewidoczny przy 75% skali).
+- Weryfikacja: sonda renderująca (`tmp/probe_ui.tscn` — start runu przez
+  GameManager + zrzuty HUD/awansu, backup zapisów) — pasek i karty na
+  karteczkach OK; `ui_layout_test` zielony. Akt II do rzutu oka po BUM.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).
