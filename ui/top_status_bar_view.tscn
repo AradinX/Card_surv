@@ -19,7 +19,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Frame" type="TextureRect" parent="."]
+[node name="Frame" type="NinePatchRect" parent="."]
 visible = false
 layout_mode = 1
 anchors_preset = 15
@@ -28,7 +28,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-expand_mode = 1
 
 [node name="Row" type="HBoxContainer" parent="."]
 layout_mode = 1

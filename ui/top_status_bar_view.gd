@@ -29,7 +29,7 @@ const CAPTION_WORDS := {
 const CAPTION_COLOR := Color(0.85, 0.78, 0.62, 0.9)
 
 @onready var _panel: Panel = $Panel
-@onready var _frame: TextureRect = $Frame
+@onready var _frame: NinePatchRect = $Frame
 @onready var _row: HBoxContainer = $Row
 
 var _day_label: Label
@@ -252,7 +252,16 @@ func set_act2() -> void:
 func _apply_panel_style(act: int) -> void:
 	var art := SLIM_FRAME_ACT2 if act == 2 else SLIM_FRAME_ACT1
 	if ResourceLoader.exists(art):
-		_frame.texture = load(art)
+		var tex: Texture2D = load(art)
+		_frame.texture = tex
+		# 9-slice: the braid border keeps its thickness no matter how wide the
+		# bar gets (stretch/aspect="expand" widens it past the art's aspect).
+		# Margin derived from the art so a regenerated file needs no code edit.
+		var margin := int(round(tex.get_height() * 0.16))
+		_frame.patch_margin_left = margin
+		_frame.patch_margin_right = margin
+		_frame.patch_margin_top = margin
+		_frame.patch_margin_bottom = margin
 		_frame.visible = true
 		_panel.visible = false
 		return
