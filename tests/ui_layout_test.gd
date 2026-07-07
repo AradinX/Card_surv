@@ -34,12 +34,24 @@ func _run() -> void:
 	hud.set_state(mock_state, 8)
 	hud.set_act2()
 	await process_frame
-	assert(hud.get_node("Inset/Rows/TopRow/DayLabel").clip_text == true)
-	var season_label := hud.get_node("Inset/Rows/TopRow/SeasonLabel") as Label
+	var day_label := hud.find_child("DayLabel", true, false) as Label
+	assert(day_label.text.begins_with("Dzień 1/"))
+	var season_label := hud.find_child("SeasonLabel", true, false) as Label
 	assert(season_label.text == "Lato")
 	assert(season_label.tooltip_text.contains("Buff:"))
 	assert(season_label.tooltip_text.contains("Debuff:"))
 	assert(season_label.mouse_filter == Control.MOUSE_FILTER_STOP)
+	var health_value := hud.find_child("HealthValue", true, false) as Label
+	assert(health_value.text.contains("/"))
+	hud.show_effect_preview({"health": 2, "water": -1})
+	var badges_shown := 0
+	for badge in _hud_badges(hud):
+		if badge.text != "":
+			badges_shown += 1
+	assert(badges_shown == 2, "expected exactly the health and water badges")
+	hud.clear_effect_preview()
+	for badge in _hud_badges(hud):
+		assert(badge.text == "")
 	hud.queue_free()
 
 	for card in cards:
@@ -51,8 +63,16 @@ func _run() -> void:
 		assert(view.get_node("DescLabel").get_theme_font_size("font_size") >= 5)
 		_assert_label_text_visible(view.get_node("NameLabel"))
 		_assert_label_text_visible(view.get_node("DescLabel"))
-		if view.get_node("EffectLabel").visible:
-			_assert_label_text_visible(view.get_node("EffectLabel"))
+		var effect_label := view.get_node("EffectLabel") as RichTextLabel
+		if effect_label.visible:
+			assert(
+				effect_label.get_content_height() <= effect_label.size.y + 1.0,
+				"EffectLabel clips '%s' (content %d px, box %d px)" % [
+					effect_label.text,
+					effect_label.get_content_height(),
+					effect_label.size.y,
+				]
+			)
 		if view.get_node("CostLabel").visible:
 			_assert_label_text_visible(view.get_node("CostLabel"))
 		view.queue_free()
@@ -82,6 +102,13 @@ func _run() -> void:
 
 	print("UI layout test OK: %d cards, %d biomes" % [cards.size(), biomes.size()])
 	quit(0)
+
+
+func _hud_badges(hud: TopStatusBarView) -> Array[Label]:
+	var badges: Array[Label] = []
+	for cell in hud._cells.values():
+		badges.append(cell["badge"] as Label)
+	return badges
 
 
 func _assert_label_text_visible(label: Label) -> void:

@@ -1590,12 +1590,14 @@ func _rebuild_cards(
 
 ## While the cursor rests on a card, the top HUD shows "+X / -Y" badges next to
 ## every stat/resource the card would change (costs included, computed at hover
-## time so post-BUM surcharges stay fresh).
+## time so post-BUM surcharges stay fresh). During drag & drop the badges stay
+## up (mouse_exited fires when the drag preview grabs the mouse — ignore it).
 func _setup_hover_preview(view: CardView, card: CardData) -> void:
 	view.mouse_entered.connect(func() -> void:
 		_top_status_bar.show_effect_preview(_card_preview_deltas(card)))
 	view.mouse_exited.connect(func() -> void:
-		_top_status_bar.clear_effect_preview())
+		if not _dragging_play_card:
+			_top_status_bar.clear_effect_preview())
 
 
 func _card_preview_deltas(card: CardData) -> Dictionary:
@@ -1645,14 +1647,18 @@ func _setup_draggable_card(
 		view.tooltip_text = hint
 
 
-func _on_card_drag_started(_payload: Dictionary) -> void:
+func _on_card_drag_started(payload: Dictionary) -> void:
 	_dragging_play_card = true
 	_set_card_drop_targets_active(true)
+	var card := payload.get("card") as CardData
+	if card != null:
+		_top_status_bar.show_effect_preview(_card_preview_deltas(card))
 
 
 func _on_card_drag_finished() -> void:
 	_dragging_play_card = false
 	_set_card_drop_targets_active(false)
+	_top_status_bar.clear_effect_preview()
 
 
 func _set_card_drop_targets_active(active: bool) -> void:

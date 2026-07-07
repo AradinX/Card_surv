@@ -63,7 +63,8 @@ vertical_alignment = 1
 autowrap_mode = 2
 clip_text = true
 
-[node name="EffectsLabel" type="Label" parent="."]
+[node name="EffectsLabel" type="RichTextLabel" parent="."]
+clip_contents = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.098
@@ -74,10 +75,11 @@ offset_left = 68.68
 offset_top = 29.25
 offset_right = -18.23999
 offset_bottom = -21.149963
-theme_override_colors/font_color = Color(0.16, 0.1, 0.05, 1)
-theme_override_font_sizes/font_size = 13
-autowrap_mode = 2
-clip_text = true
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.16, 0.1, 0.05, 1)
+theme_override_font_sizes/normal_font_size = 13
+bbcode_enabled = true
+scroll_active = false
 
 [node name="DescLabel" type="Label" parent="."]
 layout_mode = 1

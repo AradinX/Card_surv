@@ -1,396 +1,44 @@
-[gd_scene load_steps=10 format=3 uid="uid://cio2exxm3lor0"]
+[gd_scene load_steps=2 format=3 uid="uid://cio2exxm3lor0"]
 
 [ext_resource type="Script" uid="uid://c2c2c5fl57yti" path="res://ui/top_status_bar_view.gd" id="1_script"]
-[ext_resource type="Texture2D" uid="uid://jjes2c1xds3d" path="res://assets/art/ui/panels/top_status_bar_panel_act1_wreath_candidate.png" id="2_frame"]
-[ext_resource type="Texture2D" uid="uid://bsm24nitful3t" path="res://assets/art/ui/bars/stat_bar_frame.png" id="3_bar_frame"]
-[ext_resource type="Texture2D" uid="uid://g40gfup3molh" path="res://assets/art/ui/bars/stat_fill_health.png" id="4_fill_health"]
-[ext_resource type="Texture2D" uid="uid://c57hvve4tjpfc" path="res://assets/art/ui/bars/stat_fill_hunger.png" id="5_fill_hunger"]
-[ext_resource type="Texture2D" uid="uid://q03hjbj5w7bj" path="res://assets/art/ui/bars/stat_fill_thirst.png" id="6_fill_thirst"]
-[ext_resource type="Texture2D" uid="uid://b2icleud8djox" path="res://assets/art/ui/bars/stat_fill_warmth.png" id="7_fill_warmth"]
-[ext_resource type="Texture2D" uid="uid://b6hdkmsn56b63" path="res://assets/art/ui/bars/stat_fill_energy.png" id="8_fill_energy"]
-[ext_resource type="Texture2D" uid="uid://crrww5dx23pva" path="res://assets/art/ui/bars/stat_fill_xp.png" id="9_fill_xp"]
 
 [node name="TopStatusBarView" type="Control"]
-clip_contents = true
-custom_minimum_size = Vector2(0, 132)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 3
 anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
 script = ExtResource("1_script")
 
-[node name="Frame" type="TextureRect" parent="."]
-self_modulate = Color(1, 1, 1, 0.96)
+[node name="Panel" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = 2.0
-offset_bottom = -12.942856
 grow_horizontal = 2
 grow_vertical = 2
-scale = Vector2(1.0014946, 1.0079194)
 mouse_filter = 2
-texture = ExtResource("2_frame")
+
+[node name="Frame" type="TextureRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 expand_mode = 1
 
-[node name="Tint" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.055
-anchor_top = 0.27
-anchor_right = 0.945
-anchor_bottom = 0.77
-offset_left = -5.4000015
-offset_top = 1.3599968
-offset_right = 13.400024
-offset_bottom = -1.6399994
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(0.015, 0.035, 0.02, 0.2)
-
-[node name="Inset" type="Control" parent="."]
-layout_mode = 1
-anchor_left = 0.055
-anchor_top = 0.25
-anchor_right = 0.945
-anchor_bottom = 0.8
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="Rows" type="Control" parent="Inset"]
+[node name="Row" type="HBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = -0.5999756
-offset_bottom = -8.599998
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="TopRow" type="Control" parent="Inset/Rows"]
-layout_mode = 1
-anchor_right = 1.0
-anchor_bottom = 0.66
-offset_left = 54.6
+offset_left = 16.0
 offset_top = 5.0
-offset_right = 92.0
-offset_bottom = 5.7599983
+offset_right = -16.0
+offset_bottom = -5.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="DayLabel" type="Label" parent="Inset/Rows/TopRow"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.047000002
-anchor_right = 0.058000002
-anchor_bottom = 0.88400006
-offset_left = 0.27200317
-offset_top = -5.0
-offset_right = 0.27199554
-offset_bottom = -0.012001038
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.98, 0.93, 0.76, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 22
-text = "Dzień 1/30"
-vertical_alignment = 1
-clip_text = true
-
-[node name="LevelLabel" type="Label" parent="Inset/Rows/TopRow"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.115
-anchor_right = 0.225
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(0.92, 0.88, 0.69, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 13
-text = "Poziom 1  XP 0/8"
-vertical_alignment = 1
-autowrap_mode = 2
-clip_text = true
-
-[node name="SeasonLabel" type="Label" parent="Inset/Rows/TopRow"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = -0.047000002
-anchor_top = 0.791
-anchor_right = 0.046000004
-anchor_bottom = 1.2090001
-offset_left = 0.27200317
-offset_top = -0.013000488
-offset_right = -0.096004486
-offset_bottom = 0.012996674
-mouse_filter = 0
-theme_override_colors/font_color = Color(0.98, 0.9, 0.76, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 13
-text = "Wiosna"
-horizontal_alignment = 1
-vertical_alignment = 1
-clip_text = true
-
-[node name="XPBar" type="TextureProgressBar" parent="Inset/Rows/TopRow"]
-custom_minimum_size = Vector2(0, 14)
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.115
-anchor_top = 0.68
-anchor_right = 0.225
-anchor_bottom = 1.0
-offset_top = 2.0
-grow_horizontal = 2
-grow_vertical = 2
-max_value = 8.0
-nine_patch_stretch = true
-stretch_margin_left = 14
-stretch_margin_top = 8
-stretch_margin_right = 14
-stretch_margin_bottom = 8
-texture_under = ExtResource("3_bar_frame")
-texture_progress = ExtResource("9_fill_xp")
-
-[node name="HealthBox" type="VBoxContainer" parent="Inset/Rows/TopRow"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.24
-anchor_right = 0.36
-anchor_bottom = 1.0
-offset_left = -9.807983
-offset_top = 4.0
-offset_right = -9.807983
-offset_bottom = 4.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="HealthLabel" type="Label" parent="Inset/Rows/TopRow/HealthBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.98, 0.9, 0.76, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 12
-text = "Zdrowie 10/10"
-clip_text = true
-
-[node name="HealthBar" type="TextureProgressBar" parent="Inset/Rows/TopRow/HealthBox"]
-custom_minimum_size = Vector2(0, 16)
-layout_mode = 2
-max_value = 10.0
-value = 10.0
-nine_patch_stretch = true
-stretch_margin_left = 14
-stretch_margin_top = 8
-stretch_margin_right = 14
-stretch_margin_bottom = 8
-texture_under = ExtResource("3_bar_frame")
-texture_progress = ExtResource("4_fill_health")
-
-[node name="HungerBox" type="VBoxContainer" parent="Inset/Rows/TopRow"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.375
-anchor_right = 0.495
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="HungerLabel" type="Label" parent="Inset/Rows/TopRow/HungerBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.98, 0.9, 0.76, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 12
-text = "Sytość 8/10"
-clip_text = true
-
-[node name="HungerBar" type="TextureProgressBar" parent="Inset/Rows/TopRow/HungerBox"]
-custom_minimum_size = Vector2(0, 16)
-layout_mode = 2
-max_value = 10.0
-value = 8.0
-nine_patch_stretch = true
-stretch_margin_left = 14
-stretch_margin_top = 8
-stretch_margin_right = 14
-stretch_margin_bottom = 8
-texture_under = ExtResource("3_bar_frame")
-texture_progress = ExtResource("5_fill_hunger")
-
-[node name="ThirstBox" type="VBoxContainer" parent="Inset/Rows/TopRow"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.51
-anchor_right = 0.63
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="ThirstLabel" type="Label" parent="Inset/Rows/TopRow/ThirstBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.98, 0.9, 0.76, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 12
-text = "Nawodnienie 8/10"
-clip_text = true
-
-[node name="ThirstBar" type="TextureProgressBar" parent="Inset/Rows/TopRow/ThirstBox"]
-custom_minimum_size = Vector2(0, 16)
-layout_mode = 2
-max_value = 10.0
-value = 8.0
-nine_patch_stretch = true
-stretch_margin_left = 14
-stretch_margin_top = 8
-stretch_margin_right = 14
-stretch_margin_bottom = 8
-texture_under = ExtResource("3_bar_frame")
-texture_progress = ExtResource("6_fill_thirst")
-
-[node name="WarmthBox" type="VBoxContainer" parent="Inset/Rows/TopRow"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.645
-anchor_right = 0.765
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="WarmthLabel" type="Label" parent="Inset/Rows/TopRow/WarmthBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.98, 0.9, 0.76, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 12
-text = "Ciepło 8/10"
-clip_text = true
-
-[node name="WarmthBar" type="TextureProgressBar" parent="Inset/Rows/TopRow/WarmthBox"]
-custom_minimum_size = Vector2(0, 16)
-layout_mode = 2
-max_value = 10.0
-value = 8.0
-nine_patch_stretch = true
-stretch_margin_left = 14
-stretch_margin_top = 8
-stretch_margin_right = 14
-stretch_margin_bottom = 8
-texture_under = ExtResource("3_bar_frame")
-texture_progress = ExtResource("7_fill_warmth")
-
-[node name="EnergyBox" type="VBoxContainer" parent="Inset/Rows/TopRow"]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.78
-anchor_right = 0.9
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="EnergyLabel" type="Label" parent="Inset/Rows/TopRow/EnergyBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.98, 0.9, 0.76, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 12
-text = "Energia 10/10"
-clip_text = true
-
-[node name="EnergyBar" type="TextureProgressBar" parent="Inset/Rows/TopRow/EnergyBox"]
-custom_minimum_size = Vector2(0, 16)
-layout_mode = 2
-max_value = 10.0
-value = 10.0
-nine_patch_stretch = true
-stretch_margin_left = 14
-stretch_margin_top = 8
-stretch_margin_right = 14
-stretch_margin_bottom = 8
-texture_under = ExtResource("3_bar_frame")
-texture_progress = ExtResource("8_fill_energy")
-
-[node name="ResourceRow" type="HBoxContainer" parent="Inset/Rows"]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.66
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -3.4000015
-offset_right = -78.599976
-offset_bottom = -1.5999985
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 22
-alignment = 1
-
-[node name="FoodLabel" type="Label" parent="Inset/Rows/ResourceRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.88, 0.69, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 13
-text = "Jedzenie 2/8"
-vertical_alignment = 1
-clip_text = true
-
-[node name="WaterLabel" type="Label" parent="Inset/Rows/ResourceRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.88, 0.69, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 13
-text = "Woda 1/8"
-vertical_alignment = 1
-clip_text = true
-
-[node name="WoodLabel" type="Label" parent="Inset/Rows/ResourceRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.88, 0.69, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 13
-text = "Drewno 0/12"
-vertical_alignment = 1
-clip_text = true
-
-[node name="MaterialsLabel" type="Label" parent="Inset/Rows/ResourceRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.88, 0.69, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 13
-text = "Kamień 0/12"
-vertical_alignment = 1
-clip_text = true
-
-[node name="ToolsLabel" type="Label" parent="Inset/Rows/ResourceRow"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 0.88, 0.69, 1)
-theme_override_colors/font_shadow_color = Color(0.04, 0.05, 0.025, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 13
-text = "Narzędzia: nie"
-vertical_alignment = 1
-clip_text = true
+theme_override_constants/separation = 12

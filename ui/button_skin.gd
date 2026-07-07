@@ -4,21 +4,26 @@ extends RefCounted
 const ACT1_DIR := "res://assets/art/ui/buttons/act1/"
 const ACT2_DIR := "res://assets/art/ui/buttons/act2/"
 
-# 9-slice cut matching the constant ~20 px border band of the 448x224 button
-# art (2026-07-06 set) — corners stay crisp at any button size.
+# The 448x224 button art (2026-07-06 set) has a constant ~20 px border band.
+# Drawn 1:1 on ~50 px buttons it read as a fat chunky frame, so the art is
+# downscaled once at load (_ART_SCALE) — the band renders at 10 px instead.
+const _ART_SCALE := 0.5
+
 const _TEXTURE_MARGINS := {
-	"left": 20,
-	"top": 20,
-	"right": 20,
-	"bottom": 20,
+	"left": 10,
+	"top": 10,
+	"right": 10,
+	"bottom": 10,
 }
 
 const _CONTENT_MARGINS := {
-	"left": 26,
-	"top": 10,
-	"right": 26,
-	"bottom": 10,
+	"left": 16,
+	"top": 6,
+	"right": 16,
+	"bottom": 6,
 }
+
+static var _scaled_cache := {}
 
 
 static func apply_primary(button: Button, act: int = 1) -> void:
@@ -131,7 +136,7 @@ static func _path(act: int, file_name: String) -> String:
 
 static func _make_style(path: String) -> StyleBoxTexture:
 	var style := StyleBoxTexture.new()
-	style.texture = load(path)
+	style.texture = _scaled_texture(path)
 	style.texture_margin_left = _TEXTURE_MARGINS.left
 	style.texture_margin_top = _TEXTURE_MARGINS.top
 	style.texture_margin_right = _TEXTURE_MARGINS.right
@@ -140,8 +145,24 @@ static func _make_style(path: String) -> StyleBoxTexture:
 	style.content_margin_top = _CONTENT_MARGINS.top
 	style.content_margin_right = _CONTENT_MARGINS.right
 	style.content_margin_bottom = _CONTENT_MARGINS.bottom
-	style.expand_margin_left = 3
-	style.expand_margin_top = 3
-	style.expand_margin_right = 3
-	style.expand_margin_bottom = 3
+	style.expand_margin_left = 2
+	style.expand_margin_top = 2
+	style.expand_margin_right = 2
+	style.expand_margin_bottom = 2
 	return style
+
+
+static func _scaled_texture(path: String) -> Texture2D:
+	if _scaled_cache.has(path):
+		return _scaled_cache[path]
+	var image := (load(path) as Texture2D).get_image()
+	if image.is_compressed():
+		image.decompress()
+	image.resize(
+		int(image.get_width() * _ART_SCALE),
+		int(image.get_height() * _ART_SCALE),
+		Image.INTERPOLATE_LANCZOS
+	)
+	var texture := ImageTexture.create_from_image(image)
+	_scaled_cache[path] = texture
+	return texture

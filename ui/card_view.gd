@@ -11,7 +11,7 @@ signal card_drag_finished
 @onready var _name_label: Label = $NameLabel
 @onready var _cost_label: Label = $CostLabel
 @onready var _desc_label: Label = $DescLabel
-@onready var _effect_label: Label = get_node_or_null("EffectLabel") as Label
+@onready var _effect_label: RichTextLabel = get_node_or_null("EffectLabel") as RichTextLabel
 @onready var _illustration: TextureRect = $Illustration
 @onready var _frame: TextureRect = $Frame
 
@@ -43,6 +43,7 @@ var _feedback_tween: Tween
 var _feedback_frame: Panel
 var _disaster_id := ""
 var _cost_row: HBoxContainer
+var _effects_text := ""
 
 
 ## `cost_override` lets the caller show a context-dependent cost (e.g. the
@@ -66,7 +67,7 @@ func setup(
 	if card is BuildingCardData:
 		effects += ("  ·  " if effects != "" else "") + "%d HP" % (card as BuildingCardData).max_hp
 	if _effect_label != null:
-		_effect_label.text = effects
+		_effects_text = effects
 		_effect_label.visible = effects != ""
 	_block_reason = block_reason
 	disabled = false
@@ -202,9 +203,10 @@ func _apply_text_layout(card: CardData) -> void:
 	var text_bottom := 0.815 if has_cost_bar else 0.93
 	_desc_label.anchor_top = 0.575
 	if _effect_label != null and _effect_label.visible:
-		# Split the text window: flavour on top, effects on their own band.
-		_desc_label.anchor_bottom = 0.73
-		_effect_label.anchor_top = 0.73
+		# Split the text window: flavour on top, effects on their own band
+		# (slightly taller since inline stat icons need more line height).
+		_desc_label.anchor_bottom = 0.715
+		_effect_label.anchor_top = 0.715
 		_effect_label.anchor_bottom = text_bottom
 	else:
 		_desc_label.anchor_bottom = text_bottom
@@ -251,9 +253,22 @@ func _fit_all_text() -> void:
 	_fit_label_font(_name_label, 14, 6, 2)
 	_fit_label_font(_desc_label, 11, 5, 5)
 	if _effect_label != null and _effect_label.visible:
-		_fit_label_font(_effect_label, 10, 4, 3)
+		_fit_effect_font(10, 4)
 	if _cost_label.visible:
 		_fit_label_font(_cost_label, 10, 5, 2)
+
+
+## RichTextLabel variant of the fit: the bbcode is re-rendered per candidate
+## font size so the inline stat icons shrink together with the text, then the
+## font drops until the content height fits the label's window.
+func _fit_effect_font(max_size: int, min_size: int) -> void:
+	var box_size := _label_box_size(_effect_label)
+	for font_size in range(max_size, min_size - 1, -1):
+		_effect_label.add_theme_font_size_override("normal_font_size", font_size)
+		_effect_label.text = "[center]%s[/center]" % StatIcons.iconify(
+			_effects_text, font_size + 3)
+		if box_size.y <= 1.0 or _effect_label.get_content_height() <= box_size.y + 1.0:
+			return
 
 
 func _fit_label_font(label: Label, max_size: int, min_size: int, max_lines: int) -> void:
@@ -301,7 +316,7 @@ func _estimate_text_fits(sample_text: String, box_size: Vector2, font_size: int,
 	return lines <= max_lines and lines * line_height <= box_size.y
 
 
-func _label_box_size(label: Label) -> Vector2:
+func _label_box_size(label: Control) -> Vector2:
 	if label.size.x > 1.0 and label.size.y > 1.0:
 		return label.size
 	var base_size := size

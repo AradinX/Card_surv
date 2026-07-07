@@ -127,3 +127,34 @@ Jeśli po odchudzeniu przycisków wieniec kwiatowy paska Aktu I zacznie gryźć
 się ze stylem, ten sam prompt co w sekcji 2 działa dla Aktu I z motywem
 "fresh forest vine rail with sparse leaves, no flowers" — ale to osobna
 decyzja autora, domyślnie pasek Aktu I zostaje.
+
+## 3. AKTUALIZACJA 2026-07-07: smukła ramka pod nowy jednorzędowy HUD
+
+Górny HUD został przebudowany na pojedynczy pasek ~64 px (ikony + wartości,
+bez pasków postępu) — sekcja 2 wyżej jest NIEAKTUALNA (wieńce 2564×238 już
+nie są ładowane). Nowy HUD rysuje własny płaski panel (ciemna zieleń +
+cienka złota ramka) i NIE wymaga artu; jeśli ma dostać malowaną oprawę,
+wystarczy wrzucić pliki pod te ścieżki (plug-and-play, zastępują panel):
+
+```text
+assets/art/ui/panels/top_status_bar_slim_act1.png
+assets/art/ui/panels/top_status_bar_slim_act2.png
+```
+
+Prompt (canvas 1920×96, rozciągany na szerokość okna — środek musi być
+jednolity):
+
+```text
+Pixel art SLIM TOP HUD STRIP frame for the dark survival card roguelike
+Dzien 50, 1920x96. One long thin horizontal panel filling the whole canvas:
+very dark forest-green fabric fill with subtle woven texture, framed by a
+simple aged-gold pixel border of CONSTANT thickness (about 6-8 px) along all
+four edges, small identical rounded corners. The fill must be flat and even —
+icons and numbers are drawn on top of it at runtime. No flowers, no vines,
+no medallions, no corner ornaments, nothing sticking out of the border band.
+Clearly visible pixels, hard edges, no smooth painting. Text: none.
+```
+
+Wariant act2: "blackened corroded iron border instead of aged gold,
+charcoal fill with a faint sickly tint". Weryfikacja: podmienić plik i
+odpalić run — HUD sam go podniesie (`TopStatusBarView.SLIM_FRAME_*`).

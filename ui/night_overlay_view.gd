@@ -31,7 +31,7 @@ var _night_panel: Control
 var _night_panel_art: TextureRect
 var _night_title: Label
 var _night_illustration: TextureRect
-var _night_summary: Label
+var _night_summary: RichTextLabel
 var _night_desc: Label
 var _night_continue_button: Button
 var _night_choices: Control
@@ -68,7 +68,7 @@ func set_act2(look: Dictionary) -> void:
 	_act2 = true
 	_act2_text_color = look["log_text"]
 	if _night_summary != null:
-		_night_summary.add_theme_color_override("font_color", _act2_text_color)
+		_night_summary.add_theme_color_override("default_color", _act2_text_color)
 		_night_desc.add_theme_color_override("font_color", _act2_text_color)
 		_night_result.add_theme_color_override("font_color", _act2_text_color)
 
@@ -111,7 +111,7 @@ func show_card(card: CardData) -> void:
 	_night_desc.visible = true
 	_night_result.visible = false
 
-	_night_summary.text = _night_summary_text(card)
+	_night_summary.text = StatIcons.iconify(_night_summary_text(card), 15)
 	_night_summary.visible = true
 	_build_night_choices(card)
 	_play_night_reveal(_night_illustration_texture(card), _night_tint(card))
@@ -155,7 +155,7 @@ func _bind_night_popup_nodes() -> void:
 	_night_panel_art = _night_panel.get_node("PanelArt") as TextureRect
 	_night_title = _night_panel.get_node("TitleLabel") as Label
 	_night_illustration = _night_panel.get_node("Illustration") as TextureRect
-	_night_summary = _night_panel.get_node("EffectsLabel") as Label
+	_night_summary = _night_panel.get_node("EffectsLabel") as RichTextLabel
 	_night_desc = _night_panel.get_node("DescLabel") as Label
 	_night_continue_button = _night_panel.get_node("ContinueButton") as Button
 	_night_choices = _night_panel.get_node("ChoiceButtons") as Control
@@ -167,7 +167,7 @@ func _bind_night_popup_nodes() -> void:
 	_clear_night_button_chrome(_night_continue_button)
 	_setup_night_button_hover(_night_continue_button)
 	if _act2:
-		_night_summary.add_theme_color_override("font_color", _act2_text_color)
+		_night_summary.add_theme_color_override("default_color", _act2_text_color)
 		_night_desc.add_theme_color_override("font_color", _act2_text_color)
 		_night_result.add_theme_color_override("font_color", _act2_text_color)
 	for i in range(_night_choice_buttons.size()):
@@ -606,10 +606,10 @@ func _on_night_choice(index: int) -> void:
 	_night_result.anchor_bottom = 0.678
 	_night_result.text = summary
 	_night_result.visible = true
-	_night_summary.text = tr("Wybór: %s\nNoc: %s") % [
+	_night_summary.text = StatIcons.iconify(tr("Wybór: %s\nNoc: %s") % [
 		summary.replace("\n", " "),
 		_night_needs_summary()
-	]
+	], 15)
 	_night_continue_button.visible = true
 	_night_continue_button.disabled = false
 

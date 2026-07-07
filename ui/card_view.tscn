@@ -128,7 +128,8 @@ vertical_alignment = 1
 autowrap_mode = 2
 clip_text = true
 
-[node name="EffectLabel" type="Label" parent="."]
+[node name="EffectLabel" type="RichTextLabel" parent="."]
+clip_contents = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.085
@@ -139,13 +140,12 @@ offset_left = 3.7799997
 offset_right = -3.7800064
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.74, 0.95, 0.7, 1)
+mouse_filter = 2
+theme_override_colors/default_color = Color(0.74, 0.95, 0.7, 1)
 theme_override_colors/font_shadow_color = Color(0.08, 0.05, 0.03, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 9
+theme_override_font_sizes/normal_font_size = 9
+bbcode_enabled = true
 text = "+1"
-horizontal_alignment = 1
-vertical_alignment = 1
-autowrap_mode = 2
-clip_text = true
+scroll_active = false

@@ -14,3 +14,32 @@ static func texture(key: String) -> Texture2D:
 	if ResourceLoader.exists(path):
 		return load(path)
 	return null
+
+
+# Genitive stat/resource words as produced by every effect-summary builder
+# ("+2 wody", "-1 zdrowia nocą"). Ordered dict — no key is a substring of
+# another, so plain replace is safe on effect lines.
+const _WORD_KEYS := {
+	"zdrowia": "health",
+	"sytości": "hunger",
+	"nawodnienia": "thirst",
+	"ciepła": "warmth",
+	"energii": "energy",
+	"jedzenia": "food",
+	"wody": "water",
+	"drewna": "wood",
+	"kamienia": "stone",
+}
+
+
+## Swaps stat words in an effect summary for inline BBCode icons
+## ("+2 wody" -> "+2 [img]…icon_water.png[/img]"). For RichTextLabels with
+## bbcode_enabled. Words whose icon file is missing stay text (plug-and-play).
+static func iconify(text: String, height: int = 12) -> String:
+	for word: String in _WORD_KEYS:
+		if not text.contains(word):
+			continue
+		var path := "%sicon_%s.png" % [DIR, _WORD_KEYS[word]]
+		if ResourceLoader.exists(path):
+			text = text.replace(word, "[img=%dx%d]%s[/img]" % [height, height, path])
+	return text
