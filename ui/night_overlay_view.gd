@@ -165,8 +165,7 @@ func _bind_night_popup_nodes() -> void:
 	_setup_night_button_hover(_night_continue_button)
 	# Each scene's DescLabel is hand-tuned to its painted sheet — it is the
 	# reference rect. ResultLabel mirrors it exactly (same place, same size),
-	# and both center their text. _on_night_choice widens only the result,
-	# over the sheet freed by the choice notes.
+	# and both center their text; nothing moves either rect afterwards.
 	_night_result.anchor_left = _night_desc.anchor_left
 	_night_result.anchor_top = _night_desc.anchor_top
 	_night_result.anchor_right = _night_desc.anchor_right
@@ -683,10 +682,6 @@ func _on_night_choice(index: int) -> void:
 	_reset_night_choice_controls()
 	_night_choices.visible = false
 	_night_desc.visible = false
-	# The result reclaims the full description sheet now that the choice
-	# notes (which used to cover its lower two-thirds) are gone.
-	_night_result.anchor_top = 0.224
-	_night_result.anchor_bottom = 0.678
 	_night_result.text = summary
 	_night_result.visible = true
 	_night_summary.text = StatIcons.iconify(tr("Wybór: %s\nNoc: %s") % [
