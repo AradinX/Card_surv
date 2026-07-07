@@ -12,9 +12,10 @@ Ustalenia z autorem po przeglądzie screenów (`docs/steam_screens/pl/`):
 
 Zasady wspólne: pixel art spójny z resztą (widoczne piksele, twarde krawędzie,
 kontrolowany dithering, bez smooth paintingu), zapis pod podanymi ścieżkami.
-Text-free WSZĘDZIE poza logo (sekcja 3). Tła: jeśli generator nie da
-przezroczystości, dostarczyć na solid blue `#0000FF` — tnie
-`tools/chroma_key_blue.gd`.
+Text-free WSZĘDZIE poza logo (sekcja 3). Tła: generator zamiast
+przezroczystości daje CZARNE tło — dlatego każdy prompt każe malować
+wszystko poza artem na solid blue `#0000FF`; po wygenerowaniu przepuścić
+plik przez `tools/chroma_key_blue.gd` (wycina niebieski do alfy).
 
 Wpięcie w kod (po wrzuceniu plików): sekcje 1–2 są plug-and-play (zero zmian
 w kodzie; przy przyciskach drobna korekta kolorów fontu — robi Claude).
@@ -30,13 +31,21 @@ assets/art/ui/panels/top_status_bar_slim_act2.png
 
 Plug-and-play: `TopStatusBarView` sam podmieni płaski panel, gdy plik istnieje.
 
-Geometria (WAŻNE — tekst gry rysuje się NA panelu):
-- Strefa tekstu lewa: x 0–330 („Dzień 5/50", „Poziom", XP).
-- Strefa statystyk prawa: x 860–1920 (10 komórek ikona+wartość+podpis).
-- **Wolna strefa na art: x ~350–840** — tu wchodzi motyw ozdobny.
+Geometria — ZMIERZONA pikselowo ze screena 1920×1080
+(`docs/steam_screens/pl/02_act1_board.png`); tekst gry rysuje się NA panelu:
+- Strefa tekstu lewa: x 49–274 („Dzień 5/50", „Poziom", XP).
+- Strefa statystyk prawa: x 874–1896 (10 komórek ikona+wartość+podpis).
+- Wolna przerwa: x 274–874 (600 px).
+- **Strefa artu z marginesem bezpieczeństwa: x 330–810** (480 px szerokości,
+  maks. ~60 px wysokości na płótnie 96 px). Art ma być MAŁĄ winietą — mieści
+  się w strefie z zapasem, nie przytłacza; reszta paska zostaje pustym tłem.
 - Wypełnienie pod strefami tekstu musi być CIEMNE i JEDNOLITE (kremowe
   cyfry i małe podpisy muszą zostać czytelne; nad wartościami pojawiają się
   też zielone/czerwone badge'e +X/−Y).
+
+CHROMA-KEY: generator zamiast przezroczystości robi CZARNE tło — wszystko
+POZA panelem (ścinki przy zaokrąglonych rogach) ma być solid blue `#0000FF`;
+tnie `tools/chroma_key_blue.gd`.
 
 Referencje stylu (dołącz jako obrazy): `assets/art/ui/panels/
 log_panel_act1.png` (paleta Aktu I) i `log_panel_act2.png` (Akt II).
@@ -48,26 +57,30 @@ Pixel art SLIM TOP HUD STRIP for the dark survival card roguelike Dzien 50,
 1920x96, front view. One long thin horizontal panel filling the whole canvas.
 
 Fill: very dark forest-green woven fabric, flat and even — game icons and
-numbers are drawn on top at runtime, so keep it low-contrast and uniform,
-especially in the left third and the right half.
+numbers are drawn on top at runtime, so keep it low-contrast and uniform.
+Text zones that MUST stay plain flat fill: x=0 to x=320 and x=820 to x=1920.
 
 Border: a VERY SUBTLE thin braided wicker/vine plait (delikatna plecionka)
 running along all four edges, constant thickness about 8-10 px, muted
 aged-gold and living green tones, small identical rounded corners. The braid
 must stay calm and even — no flowers bursting out, no medallions, nothing
-sticking outside the canvas.
+sticking outside the border band.
 
-Decorative motif: ONLY in the horizontal zone between x=350 and x=840
-(the rest of the strip stays plain fill): a small lively Act I vignette woven
-into the strip — fresh leafy vine sprigs, a few spring leaves and tiny buds,
-maybe a small bird silhouette, growing sideways out of the braid, in muted
-greens and golds, slightly brighter than the fill but still background-dark.
-The motif must fade out smoothly into the plain fill on both sides.
+Decorative motif: ONE SMALL lively vignette ONLY inside the zone from x=330
+to x=810, vertically centered, at most 60 px tall and clearly narrower than
+its zone — it must feel like a modest accent, never overwhelming: fresh leafy
+vine sprigs with a few spring leaves and tiny buds, maybe a small bird
+silhouette, growing sideways out of the braid, muted greens and golds,
+slightly brighter than the fill but still background-dark. The motif fades
+out smoothly into the plain fill on both sides well before x=330 and x=810.
+
+Background OUTSIDE the panel (the tiny cut corners past the rounded border):
+SOLID PURE BLUE #0000FF, not black, not transparent.
 
 Style: clearly visible pixels, hard edges, controlled dithering, no smooth
 painting. Text: no text, no letters, no numbers, no icons.
-Avoid: bright highlights, busy pattern under the text zones, corner
-ornaments, photorealism, painterly blur, glow outside the frame.
+Avoid: bright highlights, busy pattern in the text zones, corner
+ornaments, black background, photorealism, painterly blur, glow.
 ```
 
 Prompt — ACT 2 (referencja: gotowy act1 + `log_panel_act2.png`; geometria
@@ -75,22 +88,28 @@ plecionki skopiowana 1:1):
 
 ```text
 Same 1920x96 slim HUD strip layout as the attached Act I strip: same braid
-thickness, same corners, same decorative zone between x=350 and x=840,
-same plain dark fill everywhere else.
+thickness, same corners, same single small decorative vignette zone from
+x=330 to x=810 (at most 60 px tall, modest accent), same plain dark fill
+everywhere else, especially x=0-320 and x=820-1920.
 
 Theme swap only — the world after the catastrophe: the braided border is now
 DEAD — dry blackened twisted twigs and withered thorny vines, tarnished
-bronze instead of gold, faint sickly gray-green tint. The decorative motif in
-the middle zone is the dead mirror of Act I: bare cracked branches, a few
-dry curled leaves falling, maybe a tiny crow silhouette. Fill: charcoal-dark
-fabric with a faint cold tint, still flat and even under the text zones.
+bronze instead of gold, faint sickly gray-green tint. The vignette is the
+dead mirror of Act I: bare cracked branches, a few dry curled leaves falling,
+maybe a tiny crow silhouette. Fill: charcoal-dark fabric with a faint cold
+tint, still flat and even under the text zones.
+
+Background OUTSIDE the panel (cut corners past the rounded border):
+SOLID PURE BLUE #0000FF, not black, not transparent.
 
 Style: clearly visible pixels, hard edges, no smooth painting. Text: none.
-Avoid: bright highlights, busy pattern under text zones, glow, photorealism.
+Avoid: bright highlights, busy pattern in text zones, black background,
+glow, photorealism.
 ```
 
-Weryfikacja: wrzucić plik, odpalić run — HUD podnosi go sam; sprawdzić
-czytelność wartości i badge'y +X/−Y na obu wariantach.
+Po wygenerowaniu: `tools/chroma_key_blue.gd` na oba pliki (wycina niebieskie
+rogi), wrzucić — HUD podnosi je sam; sprawdzić czytelność wartości i badge'y
++X/−Y na obu wariantach.
 
 ## 2. Przyciski runu jako kartki papieru — 8 plików, 448×224
 
@@ -130,9 +149,12 @@ CRITICAL for 9-slice scaling: the torn edge must form a clean band of
 CONSTANT thickness (about 18-22 px) along all four sides, with all four
 corners looking identical; no single big rip, no element sticking out.
 
+Background OUTSIDE the torn paper sheet: SOLID PURE BLUE #0000FF, not black,
+not transparent.
+
 Text: no text, no letters, no numbers, no icons.
 Avoid: writing, wax seals, medallions, heavy stains in the center,
-photorealism, painterly blur, glow.
+black background, photorealism, painterly blur, glow.
 ```
 
 Warianty stanów ACT 1 (ta sama geometria; generować z bazą jako referencją):
@@ -183,9 +205,11 @@ a warm campfire accent.
 
 Style: clearly visible pixels, hard edges, controlled dithering, readable
 silhouette on a dark background, subtle warm rim light. No background scene,
-no frame, transparent around the letters.
+no frame. Background around the letters: SOLID PURE BLUE #0000FF (chroma
+key), not black, not transparent.
 
-Avoid: any other text, watermark, photorealism, painterly blur, neon glow.
+Avoid: any other text, watermark, black background, photorealism,
+painterly blur, neon glow.
 ```
 
 Wpięcie (Claude): `main_menu.tscn` — TextureRect zamiast Labela tytułu,
@@ -217,10 +241,13 @@ runtime text — same parchment style as the notes on the attached night panel.
 A few subtle celebratory accents in the wood between the notes: small carved
 laurel sprigs, tiny gold star studs — calm, not busy.
 
+Background OUTSIDE the panel (past the rounded border): SOLID PURE BLUE
+#0000FF, not black, not transparent.
+
 Style: clearly visible pixels, hard edges, controlled dithering, no smooth
 painting. Text: no text, no letters, no numbers.
-Avoid: filling the plaque or notes with decoration, wax seals, photorealism,
-painterly blur, glow outside the panel.
+Avoid: filling the plaque or notes with decoration, wax seals, black
+background, photorealism, painterly blur, glow outside the panel.
 ```
 
 Wpięcie (Claude): `run.tscn` LevelUpOverlay — PanelArt + zakotwiczenie
