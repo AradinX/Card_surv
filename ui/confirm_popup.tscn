@@ -58,6 +58,8 @@ offset_bottom = 288.0
 theme_override_colors/font_color = Color(0.24, 0.16, 0.08, 1)
 theme_override_font_sizes/font_size = 16
 text = "Treść"
+horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 3
 
 [node name="CancelButton" type="Button" parent="Panel"]

@@ -99,6 +99,8 @@ offset_right = -0.040039063
 theme_override_colors/font_color = Color(0.24, 0.16, 0.08, 1)
 theme_override_font_sizes/font_size = 16
 text = "Efekt"
+horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 3
 clip_text = true
 

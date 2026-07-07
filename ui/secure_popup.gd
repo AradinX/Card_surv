@@ -41,7 +41,8 @@ func open(
 		ok_text: String = "Zabezpiecz",
 		preview: Texture2D = null) -> void:
 	_title_label.text = title
-	_cost_label.text = StatIcons.iconify(cost_text, 18)
+	# RichTextLabel has no alignment property — centering comes from bbcode.
+	_cost_label.text = "[center]%s[/center]" % StatIcons.iconify(cost_text, 18)
 	_effect_label.text = effect_text
 	_ok_button.text = ok_text
 	_preview.texture = preview
