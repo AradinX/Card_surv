@@ -252,12 +252,20 @@ func set_act2() -> void:
 func _apply_panel_style(act: int) -> void:
 	var art := SLIM_FRAME_ACT2 if act == 2 else SLIM_FRAME_ACT1
 	if ResourceLoader.exists(art):
-		var tex: Texture2D = load(art)
-		_frame.texture = tex
+		# NinePatch draws its margins at 1:1 texture pixels, so the art must be
+		# pre-scaled to the bar's height — otherwise a taller source renders a
+		# fatter border and a vertically squashed centre (the "stretched" bug).
+		var img: Image = (load(art) as Texture2D).get_image()
+		var bar_height := int(custom_minimum_size.y)
+		if img.get_height() != bar_height:
+			var scaled_width := int(round(
+				img.get_width() * float(bar_height) / img.get_height()
+			))
+			img.resize(scaled_width, bar_height, Image.INTERPOLATE_LANCZOS)
+		_frame.texture = ImageTexture.create_from_image(img)
 		# 9-slice: the braid border keeps its thickness no matter how wide the
 		# bar gets (stretch/aspect="expand" widens it past the art's aspect).
-		# Margin derived from the art so a regenerated file needs no code edit.
-		var margin := int(round(tex.get_height() * 0.16))
+		var margin := int(round(bar_height * 0.16))
 		_frame.patch_margin_left = margin
 		_frame.patch_margin_right = margin
 		_frame.patch_margin_top = margin
