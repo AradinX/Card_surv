@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c2c2c5fl57yti" path="res://ui/top_status_bar_view.gd" id="1_script"]
 
 [node name="TopStatusBarView" type="Control"]
-custom_minimum_size = Vector2(0, 64)
+custom_minimum_size = Vector2(0, 80)
 layout_mode = 3
 anchors_preset = 10
 anchor_right = 1.0
@@ -20,14 +20,12 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Frame" type="NinePatchRect" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
 
 [node name="Row" type="HBoxContainer" parent="."]
 layout_mode = 1

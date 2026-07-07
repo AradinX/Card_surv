@@ -2497,6 +2497,23 @@ więc run.gd/testy/bot nie wymagały przepisania.
   GameManager + zrzuty HUD/awansu, backup zapisów) — pasek i karty na
   karteczkach OK; `ui_layout_test` zielony. Akt II do rzutu oka po BUM.
 
+### Pasek HUD v3: winieta jako osobna warstwa, pasek 80 px (2026-07-07)
+
+- Feedback (screenshot 2550×1288, proporcja ~1,98): ptak rozciągnięty, ramka
+  za cienka i pasek za niski. Przyczyna: winieta siedziała w środkowym patchu
+  9-slice — przy oknie szerszym niż 16:9 (`stretch/aspect="expand"`) środek
+  się rozciąga; a podniesienie paska skalowało winietę w prawo pod statystyki
+  (każdy pasek > ~65 px koliduje).
+- Rozwiązanie w `top_status_bar_view.gd`: **winieta (strefa art 400–1100 px)
+  wycinana z pliku i rysowana jako osobny `TextureRect`** w stałej skali 0,5,
+  zakotwiczony z lewej — nigdy się nie rozciąga i nie wchodzi pod statystyki.
+  9-slice dostaje pasek z wyciętą winietą (sama spokojna tkanina — jej
+  rozciąganie jest niewidoczne). Pasek podniesiony **64 → 80 px**
+  (`custom_minimum_size` w .tscn) — plecionka proporcjonalnie grubsza.
+- Weryfikacja: sonda w dwóch oknach (1920×1080 i 2550×1288 jak u gracza) —
+  ptak niezniekształcony w obu, brak szwu po wycięciu; `ui_layout_test`
+  zielony. Screenshot diagnostyczny przeniesiony z `assets/` do `tmp/`.
+
 ## Konwencje
 
 - GDScript ze **statycznym typowaniem** (typy parametrów, zwracane, `:=`).
