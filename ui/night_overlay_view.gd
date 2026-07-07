@@ -166,6 +166,11 @@ func _bind_night_popup_nodes() -> void:
 		_night_continue_button.pressed.connect(continue_callable)
 	_clear_night_button_chrome(_night_continue_button)
 	_setup_night_button_hover(_night_continue_button)
+	# The summary note and choice sheets are small and their icon lines wrap —
+	# extra leading keeps wrapped lines from stacking on each other.
+	_night_summary.add_theme_constant_override("line_separation", 5)
+	for choice_label in _night_choice_labels:
+		choice_label.add_theme_constant_override("line_separation", 3)
 	if _act2:
 		_night_summary.add_theme_color_override("default_color", _act2_text_color)
 		_night_desc.add_theme_color_override("font_color", _act2_text_color)
@@ -471,7 +476,7 @@ func _choice_success_summary(choice) -> String:
 	if choice.materials_gain != 0: parts.append(tr("%+d kamienia") % choice.materials_gain)
 	if choice.next_day_energy_delta != 0: parts.append(tr("%+d energii jutro") % choice.next_day_energy_delta)
 	if choice.grant_random_card: parts.append("+1 karta do talii")
-	return ", ".join(parts)
+	return _join_effect_parts(parts)
 
 
 func _choice_failure_summary(choice) -> String:
@@ -485,7 +490,23 @@ func _choice_failure_summary(choice) -> String:
 	if choice.risk_wood_gain != 0: parts.append(tr("%+d drewna") % choice.risk_wood_gain)
 	if choice.risk_materials_gain != 0: parts.append(tr("%+d kamienia") % choice.risk_materials_gain)
 	if choice.risk_next_day_energy_delta != 0: parts.append(tr("%+d energii jutro") % choice.risk_next_day_energy_delta)
-	return ", ".join(parts) if not parts.is_empty() else "brak efektu"
+	return _join_effect_parts(parts) if not parts.is_empty() else "brak efektu"
+
+
+## Effect lines used to be one dense comma string; with inline icons the +/-
+## items sat on top of each other. Gains come first, losses second, with wide
+## gaps inside groups and an extra-wide gap between them.
+func _join_effect_parts(parts: PackedStringArray) -> String:
+	var gains: PackedStringArray = []
+	var losses: PackedStringArray = []
+	for part in parts:
+		(losses if part.begins_with("-") else gains).append(part)
+	var groups: PackedStringArray = []
+	if not gains.is_empty():
+		groups.append("  ".join(gains))
+	if not losses.is_empty():
+		groups.append("  ".join(losses))
+	return "     ".join(groups)
 
 
 func _night_summary_text(card: CardData) -> String:
@@ -508,7 +529,7 @@ func _night_card_effect_summary(card: CardData) -> String:
 			monster_parts.append(tr("-%d zdrowia") % monster.damage_to_player)
 		if monster.damage_to_buildings > 0:
 			monster_parts.append("-%d HP budynku" % monster.damage_to_buildings)
-		return ", ".join(monster_parts) if not monster_parts.is_empty() else tr("atak bez obrażeń")
+		return _join_effect_parts(monster_parts) if not monster_parts.is_empty() else tr("atak bez obrażeń")
 	if not (card is EventCardData):
 		return ""
 	var event := card as EventCardData
@@ -524,7 +545,7 @@ func _night_card_effect_summary(card: CardData) -> String:
 		event.food_delta, event.water_delta, event.wood_delta, event.materials_delta,
 		event.next_day_energy_delta
 	)
-	return ", ".join(event_parts) if not event_parts.is_empty() else "brak zmian"
+	return _join_effect_parts(event_parts) if not event_parts.is_empty() else "brak zmian"
 
 
 func _night_building_passive_summary() -> String:
@@ -556,8 +577,9 @@ func _night_building_passive_summary() -> String:
 				workshop_crafts = true
 	var parts := _stat_delta_parts(health, hunger, thirst, warmth, food, water, wood, stone, 0)
 	if workshop_crafts:
-		parts.append("-1 drewna, +1 kamienia")
-	return ", ".join(parts)
+		parts.append("+1 kamienia")
+		parts.append("-1 drewna")
+	return _join_effect_parts(parts)
 
 
 func _night_needs_summary() -> String:

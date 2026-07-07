@@ -19,12 +19,14 @@ const BADGE_UP_COLOR := Color(0.55, 1.0, 0.45)
 const BADGE_DOWN_COLOR := Color(1.0, 0.4, 0.32)
 const SHADOW_COLOR := Color(0.04, 0.05, 0.025)
 
-# Fallback cell captions when an icon file is missing (plug-and-play).
-const FALLBACK_WORDS := {
-	"health": "Zdr", "hunger": "Syt", "thirst": "Naw", "warmth": "Cie",
-	"energy": "En", "food": "Jedz", "water": "Woda", "wood": "Drew",
-	"materials": "Kam", "tools": "Narz",
+# Caption under every cell — names what the icon means (feedback: the icons
+# alone weren't obvious). Doubles as the fallback when an icon file is missing.
+const CAPTION_WORDS := {
+	"health": "Zdrowie", "hunger": "Sytość", "thirst": "Nawodnienie",
+	"warmth": "Ciepło", "energy": "Energia", "food": "Jedzenie",
+	"water": "Woda", "wood": "Drewno", "materials": "Kamień", "tools": "Narzędzia",
 }
+const CAPTION_COLOR := Color(0.85, 0.78, 0.62, 0.9)
 
 @onready var _panel: Panel = $Panel
 @onready var _frame: TextureRect = $Frame
@@ -105,14 +107,20 @@ func _make_label(font_size: int, color: Color) -> Label:
 	return label
 
 
-## Cell = [icon | badge-over-value]. The badge line is always there (empty
-## text when no preview), so the row never reflows on hover.
+## Cell = [icon | badge-over-value] with the stat's name captioned underneath.
+## The badge line is always there (empty text when no preview), so the row
+## never reflows on hover.
 func _add_cell(key: String, icon_key: String, tooltip: String) -> void:
-	var cell := HBoxContainer.new()
+	var cell := VBoxContainer.new()
 	cell.name = key.capitalize() + "Cell"
-	cell.add_theme_constant_override("separation", 4)
+	cell.add_theme_constant_override("separation", 0)
 	cell.tooltip_text = tooltip
 	cell.mouse_filter = Control.MOUSE_FILTER_STOP
+	cell.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 4)
+	top.alignment = BoxContainer.ALIGNMENT_CENTER
+	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var texture := StatIcons.texture(icon_key)
 	if texture != null:
 		var icon := TextureRect.new()
@@ -122,12 +130,7 @@ func _add_cell(key: String, icon_key: String, tooltip: String) -> void:
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		cell.add_child(icon)
-	else:
-		var caption := _make_label(11, RESOURCE_COLOR)
-		caption.text = FALLBACK_WORDS.get(key, key)
-		caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		cell.add_child(caption)
+		top.add_child(icon)
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 0)
 	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -140,7 +143,14 @@ func _add_cell(key: String, icon_key: String, tooltip: String) -> void:
 	value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(badge)
 	column.add_child(value)
-	cell.add_child(column)
+	top.add_child(column)
+	cell.add_child(top)
+	var caption := _make_label(8, CAPTION_COLOR)
+	caption.text = tr(CAPTION_WORDS.get(key, key))
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	cell.add_child(caption)
 	_row.add_child(cell)
 	_cells[key] = {"value": value, "badge": badge}
 

@@ -459,23 +459,28 @@ func _apply_cost_icons(card: CardData, cost_values: Dictionary) -> void:
 		_cost_row.name = "CostIconRow"
 		_cost_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_cost_row.alignment = BoxContainer.ALIGNMENT_CENTER
-		_cost_row.add_theme_constant_override("separation", 3)
 		add_child(_cost_row)
 		_cost_row.anchor_left = _cost_label.anchor_left
 		_cost_row.anchor_top = _cost_label.anchor_top
 		_cost_row.anchor_right = _cost_label.anchor_right
 		_cost_row.anchor_bottom = _cost_label.anchor_bottom
-		_cost_row.offset_left = _cost_label.offset_left
-		_cost_row.offset_top = _cost_label.offset_top
-		_cost_row.offset_right = _cost_label.offset_right
-		_cost_row.offset_bottom = _cost_label.offset_bottom
+	# Pixel sizes below were tuned for the 132x198 hand card; the deck popup's
+	# minis (92x138) and the zoom preview (198x297) reuse this scene, so the
+	# frame-window offsets, icon size and font all scale with the card height —
+	# otherwise the row overflows the mini card's frame.
+	var card_scale := _card_scale()
+	_cost_row.add_theme_constant_override("separation", maxi(2, roundi(3.0 * card_scale)))
+	_cost_row.offset_left = _cost_label.offset_left * card_scale
+	_cost_row.offset_top = _cost_label.offset_top * card_scale
+	_cost_row.offset_right = _cost_label.offset_right * card_scale
+	_cost_row.offset_bottom = _cost_label.offset_bottom * card_scale
 	for child in _cost_row.get_children():
 		child.queue_free()
 	var font_color := _cost_label.get_theme_color("font_color")
 	for i in parts.size():
 		var icon := TextureRect.new()
 		icon.texture = icons[i]
-		icon.custom_minimum_size = Vector2(15, 0)
+		icon.custom_minimum_size = Vector2(roundi(15.0 * card_scale), 0)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -484,11 +489,21 @@ func _apply_cost_icons(card: CardData, cost_values: Dictionary) -> void:
 		amount.text = str(parts[i][1])
 		amount.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		amount.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		amount.add_theme_font_size_override("font_size", 11)
+		amount.add_theme_font_size_override("font_size", maxi(7, roundi(11.0 * card_scale)))
 		amount.add_theme_color_override("font_color", font_color)
 		_cost_row.add_child(amount)
 	_cost_row.visible = true
 	_cost_label.visible = false
+
+
+## Ratio of this card's height to the base 132x198 hand card (card_view.tscn).
+func _card_scale() -> float:
+	var height := size.y
+	if height <= 1.0:
+		height = custom_minimum_size.y
+	if height <= 1.0:
+		return 1.0
+	return height / 198.0
 
 
 ## [[icon_key, amount], ...] for the cost row; empty = keep the text line.
